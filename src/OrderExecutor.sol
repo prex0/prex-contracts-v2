@@ -5,21 +5,31 @@ import {IOrderExecutor} from "./interfaces/IOrderExecutor.sol";
 import {IOrderHandler, OrderHeader, OrderReceipt} from "./interfaces/IOrderHandler.sol";
 import {IPolicyValidator} from "./interfaces/IPolicyValidator.sol";
 import {IUserPoints} from "./interfaces/IUserPoints.sol";
+import {PolicyManager} from "./PolicyManager.sol";
 
-contract OrderExecutor is IOrderExecutor {
-    struct Policy {
-        address validator;
-        uint256 policyId;
-    }
-
-    mapping(uint256 => Policy) public policies;
-
+/**
+ * @title OrderExecutor
+ * @notice オーダーの実行とポリシーの検証を行うコントラクト
+ */
+contract OrderExecutor is IOrderExecutor, PolicyManager {
+    // ユーザーポイント管理コントラクトのアドレス
     address public userPoints;
 
+    /**
+     * @notice コンストラクタ
+     * @param _userPoints ユーザーポイント管理コントラクトのアドレス
+     */
     constructor(address _userPoints) {
         userPoints = _userPoints;
     }
 
+    /**
+     * @notice オーダーを実行する関数
+     * @param orderHandler オーダーハンドラーのアドレス
+     * @param order オーダーデータ
+     * @param signature ユーザーの署名
+     * @param appSig アプリケーションの署名
+     */
     function execute(
         address orderHandler,
         bytes calldata order,
@@ -30,21 +40,10 @@ contract OrderExecutor is IOrderExecutor {
         (OrderHeader memory header, OrderReceipt memory receipt) = IOrderHandler(orderHandler).execute(msg.sender, order, signature);
 
         // ヘッダーを解釈して、ポリシーとの整合性をチェックする
-        validatePolicy(
+        address consumer = validatePolicy(
             header,
-            receipt,
             appSig
         );
-    }
-
-    function validatePolicy(
-        OrderHeader memory header,
-        OrderReceipt memory receipt,
-        bytes calldata appSig
-    ) internal {
-        Policy memory policy = policies[header.policyId];
-
-        address consumer = IPolicyValidator(policy.validator).validatePolicy(header, appSig);
 
         // ポイントの消費を行う
         IUserPoints(userPoints).consumePoints(consumer, receipt.points);

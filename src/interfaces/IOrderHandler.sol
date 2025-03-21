@@ -17,5 +17,5 @@ interface IOrderHandler {
         address user,
         bytes calldata order,
         bytes calldata signature
-    ) external view returns (OrderHeader memory, OrderReceipt memory);
+    ) external returns (OrderHeader memory, OrderReceipt memory);
 }
