@@ -4,22 +4,48 @@ pragma solidity ^0.8.20;
 import {OrderHeader, OrderReceipt} from "./interfaces/IOrderHandler.sol";
 import {IPolicyValidator} from "./interfaces/IPolicyValidator.sol";
 
+/**
+ * @notice ポリシーの管理をするコントラクト
+ * ポリシーの追加、削除、検証を行う 
+ */
 contract PolicyManager {
     // ポリシー情報を格納する構造体
     struct Policy {
         address validator; // ポリシーバリデータのアドレス
         uint256 policyId; // ポリシーID
+        address publicKey;
+        address owner;
+        bool isActive;
     }
 
     // ポリシーIDからポリシー情報へのマッピング
     mapping(uint256 => Policy) public policies;
 
-    function registerPolicy() external returns(uint256 pocilyId) {
+    uint256 policyCounts;
 
+    constructor() {
+        policyCounts = 0;
+    
+    }
+
+    function registerPolicy(
+        address validator,
+        address publicKey,
+        address owner
+    ) external returns(uint256 policyId) {
+        policyId = policyCounts++;
+
+        policies[policyId] = Policy(
+            validator,
+            policyId,
+            publicKey,
+            owner,
+            true
+        );
     }
 
     function deregisterPolicy(uint256 policyId) external {
-
+        policies[policyId].isActive = false;
     }
 
     /**
