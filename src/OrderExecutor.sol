@@ -42,6 +42,7 @@ contract OrderExecutor is IOrderExecutor, PolicyManager {
         // ヘッダーを解釈して、ポリシーとの整合性をチェックする
         address consumer = validatePolicy(
             header,
+            receipt,
             appSig
         );
 

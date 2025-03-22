@@ -9,6 +9,8 @@ struct OrderHeader {
 }
 
 struct OrderReceipt {
+    address dispatcher;
+    bytes32 orderHash;
     uint256 points;
 }
 
