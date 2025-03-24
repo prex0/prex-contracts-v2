@@ -91,6 +91,12 @@ contract PolicyManager {
         policies[policyId].isActive = false;
     }
 
+    function registerApp(address owner) external returns(uint256 appId) {
+        appId = appCounts++;
+
+        apps[appId] = App(0, owner);
+    }
+
     function depositCredit(uint256 appId, uint256 amount) external {
         IERC20(prexPoint).transferFrom(msg.sender, address(this), amount);
 
