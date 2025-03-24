@@ -12,6 +12,7 @@ struct TransferRequest {
     uint256 nonce;
     uint256 amount;
     address token;
+    uint256 category;
     bytes metadata;
 }
 
@@ -27,6 +28,7 @@ library TransferRequestLib {
         "uint256 nonce,",
         "uint256 amount,",
         "address token,",
+        "uint256 category,",
         "bytes metadata)"
     );
 
@@ -54,6 +56,7 @@ library TransferRequestLib {
                 request.nonce,
                 request.amount,
                 request.token,
+                request.category,
                 keccak256(request.metadata)
             )
         );
@@ -67,9 +70,7 @@ library TransferRequestLib {
         return OrderHeader({
             tokens: tokens,
             user: request.sender,
-            policyId: request.policyId,
-            nonce: request.nonce,
-            deadline: request.deadline
+            policyId: request.policyId
         });
     }
 }

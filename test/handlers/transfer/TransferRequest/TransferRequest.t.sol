@@ -47,6 +47,7 @@ contract TransferRequestTest is Test, TestUtils {
             nonce: 1,
             amount: 1e18,
             token: address(mockToken),
+            category: 0,
             metadata: bytes("")
         });
 
@@ -56,7 +57,7 @@ contract TransferRequestTest is Test, TestUtils {
             _sign(request, userPrivateKey)
         );
 
-        assertEq(header.nonce, 1);
+        assertEq(header.policyId, 0);
         assertEq(receipt.points, 1e6);
 
         assertEq(ERC20(address(mockToken)).balanceOf(recipient), 1e18);

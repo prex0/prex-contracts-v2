@@ -12,7 +12,7 @@ contract TransferRequestHandler is IOrderHandler {
 
     IPermit2 permit2;
 
-    event Transferred(address token, address from, address to, uint256 amount, bytes metadata);
+    event Transferred(address token, address from, address to, uint256 amount, uint256 category, bytes metadata);
 
     error InvalidDispatcher();
     error DeadlinePassed();
@@ -36,7 +36,7 @@ contract TransferRequestHandler is IOrderHandler {
 
         _verifyRequest(request, orderHash, signature);
 
-        emit Transferred(request.token, request.sender, request.recipient, request.amount, request.metadata);
+        emit Transferred(request.token, request.sender, request.recipient, request.amount, request.category, request.metadata);
 
         return (header, OrderReceipt(
             address(this),

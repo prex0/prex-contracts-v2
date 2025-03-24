@@ -43,6 +43,7 @@ contract OrderExecutorTest is Test, TestUtils {
             nonce: 1,
             amount: 100,
             token: address(0),
+            category: 0,
             metadata: bytes("")
         });
 

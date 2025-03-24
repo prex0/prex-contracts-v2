@@ -67,9 +67,7 @@ library LinkTransferRequestLib {
         return OrderHeader({
             tokens: tokens,
             user: request.sender,
-            policyId: request.policyId,
-            nonce: request.nonce,
-            deadline: request.deadline
+            policyId: request.policyId
         });
     }
 }

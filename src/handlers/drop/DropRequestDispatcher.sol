@@ -11,11 +11,12 @@ import "../../../lib/solmate/src/utils/ReentrancyGuard.sol";
 struct RecipientData {
     bytes32 requestId;
     address recipient;
-    uint256 nonce;
     uint256 deadline;
     bytes sig;
     address subPublicKey;
     bytes subSig;
+    string idempotencyKey;
+    uint256 policyId;
 }
 
 /**
@@ -25,7 +26,7 @@ struct RecipientData {
  * This contract integrates with the Permit2 library to handle ERC20 token transfers securely and efficiently.
  * It supports multiple concurrent requests, enabling flexible and scalable token distribution scenarios.
  */
-contract DropRequestHandler is ReentrancyGuard {
+contract DropRequestDispatcher is ReentrancyGuard {
     using DropRequestLib for DropRequest;
 
     enum RequestStatus {
@@ -50,10 +51,12 @@ contract DropRequestHandler is ReentrancyGuard {
 
     mapping(bytes32 => PendingRequest) public pendingRequests;
 
-    /// @dev nonce => isUsed
-    mapping(uint256 => bool) public nonceUsedMap;
+    /// @dev requestId => idempotencyKey => isCompleted
+    mapping(bytes32 => mapping(string idempotencyKey => bool)) public idempotencyKeyMap;
 
     IPermit2 public immutable permit2;
+
+    uint256 public constant POINTS = 1e6;
 
     /// @dev Error codes
     error InvalidRequest();
@@ -69,8 +72,6 @@ contract DropRequestHandler is ReentrancyGuard {
     error RequestNotExpired();
     /// caller is not sender
     error CallerIsNotSender();
-    /// nonce used
-    error NonceUsed();
     /// invalid secret
     error InvalidSecret();
 
@@ -82,8 +83,8 @@ contract DropRequestHandler is ReentrancyGuard {
     /// public key already exists
     error PublicKeyAlreadyExists();
 
-    /// invalid additional validation
-    error InvalidAdditionalValidation();
+    /// idempotency key used
+    error IdempotencyKeyUsed();
 
     event Submitted(
         bytes32 id,
@@ -111,7 +112,7 @@ contract DropRequestHandler is ReentrancyGuard {
      * @param request The request to submit.
      * @param sig The signature of the request.
      */
-    function submit(DropRequest memory request, bytes memory sig) public {
+    function submitRequest(DropRequest memory request, bytes memory sig) public nonReentrant returns (OrderHeader memory, OrderReceipt memory) {
         bytes32 id = request.hash();
 
         if (!request.verify()) {
@@ -151,6 +152,12 @@ contract DropRequestHandler is ReentrancyGuard {
             request.expiry,
             request.name
         );
+
+        return (request.getOrderHeader(), OrderReceipt(
+            address(this),
+            id,
+            POINTS
+        ));
     }
 
     /**
@@ -158,7 +165,7 @@ contract DropRequestHandler is ReentrancyGuard {
      * @dev Only facilitators can submit distribute requests.
      * @param recipientData The data of the recipient.
      */
-    function distribute(RecipientData memory recipientData) public {
+    function distribute(RecipientData memory recipientData) public nonReentrant returns (OrderHeader memory, OrderReceipt memory) {
         PendingRequest storage request = pendingRequests[recipientData.requestId];
 
         if (block.timestamp > request.expiry) {
@@ -176,6 +183,24 @@ contract DropRequestHandler is ReentrancyGuard {
         ERC20(request.token).transfer(recipientData.recipient, request.amountPerWithdrawal);
 
         emit Received(recipientData.requestId, recipientData.recipient, request.amountPerWithdrawal);
+
+        return (getOrderHeader(request, recipientData), OrderReceipt(
+            address(this),
+            recipientData.requestId,
+            POINTS
+        ));
+    }
+
+    function getOrderHeader(PendingRequest memory request, RecipientData memory recipientData) internal pure returns (OrderHeader memory) {
+        address[] memory tokens = new address[](1);
+
+        tokens[0] = request.token;
+        
+        return OrderHeader({
+            tokens: tokens,
+            user: recipientData.recipient,
+            policyId: recipientData.policyId
+        });
     }
 
     /**
@@ -204,11 +229,17 @@ contract DropRequestHandler is ReentrancyGuard {
         emit RequestCancelled(id, leftAmount);
     }
 
+    function batchCompleteRequest(bytes32[] memory ids) external {
+        for (uint256 i = 0; i < ids.length; i++) {
+            _completeRequest(ids[i]);
+        }
+    }
+
     /**
      * @notice Complete the request after the expiry
      * @param id The ID of the request to complete.
      */
-    function completeRequest(bytes32 id) public {
+    function _completeRequest(bytes32 id) internal {
         PendingRequest storage request = pendingRequests[id];
 
         if (request.expiry > block.timestamp) {
@@ -262,11 +293,12 @@ contract DropRequestHandler is ReentrancyGuard {
      * @notice Verifies the signature made by the recipient using the private key received from the sender.
      */
     function _verifyRecipientData(address publicKey, uint256 expiry, RecipientData memory recipientData) internal {
-        if (nonceUsedMap[recipientData.nonce]) {
-            revert NonceUsed();
+        // 配布者が同じユーザに配布しないように、idempotencyKeyを使用する
+        if (idempotencyKeyMap[recipientData.requestId][recipientData.idempotencyKey]) {
+            revert IdempotencyKeyUsed();
         }
 
-        nonceUsedMap[recipientData.nonce] = true;
+        idempotencyKeyMap[recipientData.requestId][recipientData.idempotencyKey] = true;
 
         if (block.timestamp > recipientData.deadline) {
             revert DeadlinePassed();
@@ -274,31 +306,31 @@ contract DropRequestHandler is ReentrancyGuard {
 
         if (recipientData.subPublicKey != address(0)) {
             _verifyRecipientSignature(
-                publicKey, recipientData.nonce, expiry, recipientData.subPublicKey, recipientData.sig
+                publicKey, recipientData.idempotencyKey, expiry, recipientData.subPublicKey, recipientData.sig
             );
             _verifyRecipientSignature(
                 recipientData.subPublicKey,
-                recipientData.nonce,
+                recipientData.idempotencyKey,
                 recipientData.deadline,
                 recipientData.recipient,
                 recipientData.subSig
             );
         } else {
             _verifyRecipientSignature(
-                publicKey, recipientData.nonce, recipientData.deadline, recipientData.recipient, recipientData.sig
+                publicKey, recipientData.idempotencyKey, recipientData.deadline, recipientData.recipient, recipientData.sig
             );
         }
     }
 
     function _verifyRecipientSignature(
         address publicKey,
-        uint256 nonce,
+        string memory idempotencyKey,
         uint256 deadline,
         address recipient,
         bytes memory signature
     ) internal view {
         bytes32 messageHash =
-            MessageHashUtils.toEthSignedMessageHash(keccak256(abi.encode(address(this), nonce, deadline, recipient)));
+            MessageHashUtils.toEthSignedMessageHash(keccak256(abi.encode(address(this), idempotencyKey, deadline, recipient)));
 
         if (publicKey != ECDSA.recover(messageHash, signature)) {
             revert InvalidSecret();

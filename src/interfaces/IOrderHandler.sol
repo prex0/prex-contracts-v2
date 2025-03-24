@@ -4,8 +4,6 @@ pragma solidity ^0.8.20;
 struct OrderHeader {
     address user;
     uint256 policyId;
-    uint256 nonce;
-    uint256 deadline;
     address[] tokens;
 }
 
