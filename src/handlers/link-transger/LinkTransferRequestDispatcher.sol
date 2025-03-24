@@ -70,6 +70,8 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
     error InvalidSender();
 
     struct RecipientData {
+        uint256 policyId;
+        bytes32 requestId;
         address recipient;
         bytes sig;
         bytes metadata;
@@ -83,39 +85,19 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
         permit2 = IPermit2(_permit2);
     }
 
-    function execute(
-        address _facilitator,
-        bytes calldata order,
-        bytes calldata signature
-    ) external nonReentrant returns (OrderHeader memory, OrderReceipt memory) {
-        LinkTransferRequest memory request = abi.decode(order, (LinkTransferRequest));
-
-        bytes32 orderHash = request.hash();
-
-        OrderHeader memory header = request.getOrderHeader();
-
-        submitRequest(
-            request,
-            orderHash,
-            signature
-        );
-
-        return (header, OrderReceipt(
-            address(this),
-            orderHash,
-            POINTS
-        ));
-    }
-
     /**
      * @notice Submits a new transfer request.
      * The submitter's signature is verified by Permit2
      * @param request The transfer request
      * @param sig The submitter's signature
      */
-    function submitRequest(LinkTransferRequest memory request, bytes32 orderHash, bytes memory sig)
-        internal
+    function createRequest(LinkTransferRequest memory request, bytes memory sig)
+        external
+        nonReentrant
+        returns (OrderHeader memory, OrderReceipt memory)
     {
+        bytes32 orderHash = request.hash();
+
         bytes32 id = keccak256(abi.encode(request.publicKey));
 
         // same public key cannot be used for multiple requests
@@ -150,16 +132,22 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
         });
 
         emit RequestSubmitted(id, request.token, request.sender, request.amount, request.deadline, request.metadata);
+
+        return (request.getOrderHeader(), OrderReceipt(
+            address(this),
+            orderHash,
+            POINTS
+        ));
+
     }
 
     /**
      * @notice Completes a pending request.
      * This function is executed by the recipient after they receive the secret from the sender.
-     * @param id The request ID
      * @param recipientData The recipient data
      */
-    function completeRequest(bytes32 id, RecipientData memory recipientData) external nonReentrant {
-        PendingRequest storage request = pendingRequests[id];
+    function completeRequest(RecipientData memory recipientData) external nonReentrant returns (OrderHeader memory, OrderReceipt memory) {
+        PendingRequest storage request = pendingRequests[recipientData.requestId];
 
         if (recipientData.recipient == address(0)) {
             revert RecipientNotSet();
@@ -184,7 +172,26 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
             revert TransferFailed();
         }
 
-        emit RequestCompleted(id, recipientData.recipient, recipientData.metadata);
+        emit RequestCompleted(recipientData.requestId, recipientData.recipient, recipientData.metadata);
+
+        return (getOrderHeader(request, recipientData), OrderReceipt(
+            address(this),
+            recipientData.requestId,
+            0
+        ));
+    }
+
+
+    function getOrderHeader(PendingRequest memory request, RecipientData memory recipientData) internal pure returns (OrderHeader memory) {
+        address[] memory tokens = new address[](1);
+
+        tokens[0] = request.token;
+        
+        return OrderHeader({
+            tokens: tokens,
+            user: request.sender,
+            policyId: recipientData.policyId
+        });
     }
 
     /**

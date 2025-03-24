@@ -198,7 +198,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
         
         return OrderHeader({
             tokens: tokens,
-            user: recipientData.recipient,
+            user: request.sender,
             policyId: recipientData.policyId
         });
     }
