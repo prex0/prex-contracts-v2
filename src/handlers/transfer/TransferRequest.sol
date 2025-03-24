@@ -60,7 +60,12 @@ library TransferRequestLib {
     }
 
     function getOrderHeader(TransferRequest memory request) internal pure returns (OrderHeader memory) {
+        address[] memory tokens = new address[](1);
+
+        tokens[0] = request.token;
+        
         return OrderHeader({
+            tokens: tokens,
             user: request.sender,
             policyId: request.policyId,
             nonce: request.nonce,

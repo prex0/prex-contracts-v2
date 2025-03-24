@@ -6,6 +6,7 @@ struct OrderHeader {
     uint256 policyId;
     uint256 nonce;
     uint256 deadline;
+    address[] tokens;
 }
 
 struct OrderReceipt {

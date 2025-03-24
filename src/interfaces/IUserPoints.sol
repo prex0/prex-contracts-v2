@@ -6,4 +6,8 @@ interface IUserPoints {
         address user,
         uint256 points
     ) external;
+
+    function burn(
+        uint256 amount
+    ) external;
 }

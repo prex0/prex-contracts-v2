@@ -3,8 +3,6 @@ pragma solidity ^0.8.20;
 
 import {IOrderExecutor} from "./interfaces/IOrderExecutor.sol";
 import {IOrderHandler, OrderHeader, OrderReceipt} from "./interfaces/IOrderHandler.sol";
-import {IPolicyValidator} from "./interfaces/IPolicyValidator.sol";
-import {IUserPoints} from "./interfaces/IUserPoints.sol";
 import {PolicyManager} from "./PolicyManager.sol";
 
 /**
@@ -12,15 +10,11 @@ import {PolicyManager} from "./PolicyManager.sol";
  * @notice オーダーの実行とポリシーの検証を行うコントラクト
  */
 contract OrderExecutor is IOrderExecutor, PolicyManager {
-    // ユーザーポイント管理コントラクトのアドレス
-    address public userPoints;
-
     /**
      * @notice コンストラクタ
-     * @param _userPoints ユーザーポイント管理コントラクトのアドレス
+     * @param _prexPoint ポイント管理コントラクトのアドレス
      */
-    constructor(address _userPoints) {
-        userPoints = _userPoints;
+    constructor(address _prexPoint) PolicyManager(_prexPoint) {
     }
 
     /**
@@ -40,13 +34,10 @@ contract OrderExecutor is IOrderExecutor, PolicyManager {
         (OrderHeader memory header, OrderReceipt memory receipt) = IOrderHandler(orderHandler).execute(msg.sender, order, signature);
 
         // ヘッダーを解釈して、ポリシーとの整合性をチェックする
-        address consumer = validatePolicy(
+        validatePolicy(
             header,
             receipt,
             appSig
         );
-
-        // ポイントの消費を行う
-        IUserPoints(userPoints).consumePoints(consumer, receipt.points);
     }
 }

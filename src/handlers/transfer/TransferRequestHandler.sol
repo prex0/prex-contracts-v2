@@ -2,12 +2,12 @@
 pragma solidity ^0.8.20;
 
 import {IOrderHandler, OrderHeader, OrderReceipt} from "../../interfaces/IOrderHandler.sol";
-import "./TransferOrder.sol";
+import "./TransferRequest.sol";
 import {ERC20} from "../../../lib/solmate/src/tokens/ERC20.sol";
 import "../../../lib/permit2/src/interfaces/ISignatureTransfer.sol";
 import "../../../lib/permit2/src/interfaces/IPermit2.sol";
 
-contract TransferOrderHandler is IOrderHandler {
+contract TransferRequestHandler is IOrderHandler {
     using TransferRequestLib for TransferRequest;
 
     IPermit2 permit2;
@@ -17,7 +17,7 @@ contract TransferOrderHandler is IOrderHandler {
     error InvalidDispatcher();
     error DeadlinePassed();
 
-    uint256 public constant POINTS = 1e18;
+    uint256 public constant POINTS = 1e6;
 
     constructor(address _permit2) {
         permit2 = IPermit2(_permit2);

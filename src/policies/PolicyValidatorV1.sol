@@ -9,7 +9,7 @@ import {OrderHeader, OrderReceipt} from "../interfaces/IOrderHandler.sol";
  * @title CounterPolicyValidator
  * @notice 1日に、n回だけオーダーを実行できる
  */
-contract CounterPolicyValidator is IPolicyValidator {
+contract PolicyValidatorV1 is IPolicyValidator {
     struct Counter {
         uint256 counter;
         uint256 lastExecutionDay;
