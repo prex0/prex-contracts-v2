@@ -3,7 +3,8 @@ pragma solidity ^0.8.20;
 
 import {IPolicyValidator} from "../interfaces/IPolicyValidator.sol";
 import {SignatureVerification} from "../../lib/permit2/src/libraries/SignatureVerification.sol";
-import {OrderHeader, OrderReceipt} from "../interfaces/IOrderHandler.sol";
+import {OrderReceipt} from "../interfaces/IOrderHandler.sol";
+import {OrderHeader} from "../interfaces/IOrderExecutor.sol";
 import {Owned} from "../../lib/solmate/src/auth/Owned.sol";
 
 /**
@@ -31,7 +32,7 @@ contract WhitelistHandlerPolicyValidator is IPolicyValidator, Owned {
         bytes memory policyParams,
         bytes calldata _appParams
     ) external returns (bool) {
-        if (!whitelist[receipt.dispatcher]) {
+        if (!whitelist[header.dispatcher]) {
             revert InvalidHandler();
         }
 

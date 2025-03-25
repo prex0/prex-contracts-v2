@@ -59,11 +59,15 @@ library LinkTransferRequestLib {
         );
     }
 
-    function getOrderHeader(LinkTransferRequest memory request) internal pure returns (OrderHeader memory) {
+    function getOrderReceipt(LinkTransferRequest memory request, uint256 points)
+        internal
+        pure
+        returns (OrderReceipt memory)
+    {
         address[] memory tokens = new address[](1);
 
         tokens[0] = request.token;
 
-        return OrderHeader({tokens: tokens, user: request.sender, policyId: request.policyId});
+        return OrderReceipt({tokens: tokens, user: request.sender, policyId: request.policyId, points: points});
     }
 }

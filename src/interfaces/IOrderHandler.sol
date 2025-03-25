@@ -9,20 +9,13 @@ struct SignedOrder {
     bytes appSig;
 }
 
-struct OrderHeader {
+struct OrderReceipt {
     address user;
     uint256 policyId;
     address[] tokens;
-}
-
-struct OrderReceipt {
-    address dispatcher;
-    bytes32 orderHash;
     uint256 points;
 }
 
 interface IOrderHandler {
-    function execute(address user, SignedOrder calldata order)
-        external
-        returns (OrderHeader memory, OrderReceipt memory);
+    function execute(address user, SignedOrder calldata order) external returns (OrderReceipt memory);
 }

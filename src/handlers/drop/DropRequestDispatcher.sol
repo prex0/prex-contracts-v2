@@ -115,7 +115,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
     function submitRequest(DropRequest memory request, bytes memory sig)
         internal
         nonReentrant
-        returns (OrderHeader memory, OrderReceipt memory)
+        returns (OrderReceipt memory)
     {
         bytes32 id = request.hash();
 
@@ -157,7 +157,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
             request.name
         );
 
-        return (request.getOrderHeader(), OrderReceipt(address(this), id, POINTS));
+        return request.getOrderReceipt(POINTS);
     }
 
     /**
@@ -165,11 +165,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
      * @dev Only facilitators can submit distribute requests.
      * @param recipientData The data of the recipient.
      */
-    function distribute(RecipientData memory recipientData)
-        internal
-        nonReentrant
-        returns (OrderHeader memory, OrderReceipt memory)
-    {
+    function distribute(RecipientData memory recipientData) internal nonReentrant returns (OrderReceipt memory) {
         PendingRequest storage request = pendingRequests[recipientData.requestId];
 
         if (block.timestamp > request.expiry) {
@@ -188,19 +184,19 @@ contract DropRequestDispatcher is ReentrancyGuard {
 
         emit Received(recipientData.requestId, recipientData.recipient, request.amountPerWithdrawal);
 
-        return (getOrderHeader(request, recipientData), OrderReceipt(address(this), recipientData.requestId, POINTS));
+        return getOrderReceipt(request, recipientData, POINTS);
     }
 
-    function getOrderHeader(PendingRequest memory request, RecipientData memory recipientData)
+    function getOrderReceipt(PendingRequest memory request, RecipientData memory recipientData, uint256 points)
         internal
         pure
-        returns (OrderHeader memory)
+        returns (OrderReceipt memory)
     {
         address[] memory tokens = new address[](1);
 
         tokens[0] = request.token;
 
-        return OrderHeader({tokens: tokens, user: request.sender, policyId: recipientData.policyId});
+        return OrderReceipt({tokens: tokens, user: request.sender, policyId: recipientData.policyId, points: points});
     }
 
     /**

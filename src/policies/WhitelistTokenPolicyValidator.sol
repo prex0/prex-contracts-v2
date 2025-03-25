@@ -3,7 +3,8 @@ pragma solidity ^0.8.20;
 
 import {IPolicyValidator} from "../interfaces/IPolicyValidator.sol";
 import {SignatureVerification} from "../../lib/permit2/src/libraries/SignatureVerification.sol";
-import {OrderHeader, OrderReceipt} from "../interfaces/IOrderHandler.sol";
+import {OrderReceipt} from "../interfaces/IOrderHandler.sol";
+import {OrderHeader} from "../interfaces/IOrderExecutor.sol";
 
 /**
  * @title WhitelistTokenPolicyValidator
@@ -20,8 +21,8 @@ contract WhitelistTokenPolicyValidator is IPolicyValidator {
     ) external returns (bool) {
         address[] memory whitelist = abi.decode(policyParams, (address[]));
 
-        for (uint256 i = 0; i < header.tokens.length; i += 1) {
-            address tokenAddress = header.tokens[i];
+        for (uint256 i = 0; i < receipt.tokens.length; i += 1) {
+            address tokenAddress = receipt.tokens[i];
 
             if (!_isInWhitelist(whitelist, tokenAddress)) {
                 revert InvalidToken();

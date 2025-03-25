@@ -5,15 +5,12 @@ import "../../interfaces/IOrderHandler.sol";
 import "./LinkTransferRequest.sol";
 import "./LinkTransferRequestDispatcher.sol";
 
-contract CreateLinkTransferHandler is IOrderHandler, LinkTransferRequestDispatcher {
+contract LinkTransferHandler is IOrderHandler, LinkTransferRequestDispatcher {
     error InvalidMethodId();
 
     constructor(address _permit2) LinkTransferRequestDispatcher(_permit2) {}
 
-    function execute(address _facilitator, SignedOrder calldata order)
-        external
-        returns (OrderHeader memory, OrderReceipt memory)
-    {
+    function execute(address _facilitator, SignedOrder calldata order) external returns (OrderReceipt memory) {
         if (order.methodId == 1) {
             LinkTransferRequest memory request = abi.decode(order.order, (LinkTransferRequest));
 

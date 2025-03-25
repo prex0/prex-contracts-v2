@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {PolicyManagerSetup} from "./SetUp.t.sol";
+import {PolicyManagerSetup} from "./Setup.t.sol";
 
 contract RegisterPolicyTest is PolicyManagerSetup {
     function setUp() public virtual override {

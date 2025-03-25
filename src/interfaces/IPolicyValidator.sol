@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
-import {OrderHeader, OrderReceipt} from "./IOrderHandler.sol";
+import {OrderReceipt} from "./IOrderHandler.sol";
+import {OrderHeader} from "./IOrderExecutor.sol";
 
 interface IPolicyValidator {
     function validatePolicy(

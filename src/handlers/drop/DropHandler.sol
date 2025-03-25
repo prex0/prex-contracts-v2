@@ -9,10 +9,7 @@ contract DropHandler is IOrderHandler, DropRequestDispatcher {
 
     constructor(address _permit2) DropRequestDispatcher(_permit2) {}
 
-    function execute(address _facilitator, SignedOrder calldata order)
-        external
-        returns (OrderHeader memory, OrderReceipt memory)
-    {
+    function execute(address _facilitator, SignedOrder calldata order) external returns (OrderReceipt memory) {
         if (order.methodId == 1) {
             DropRequest memory request = abi.decode(order.order, (DropRequest));
 

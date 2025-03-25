@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
-import {IOrderHandler, OrderHeader, OrderReceipt, SignedOrder} from "../../interfaces/IOrderHandler.sol";
+import {IOrderHandler, OrderReceipt, SignedOrder} from "../../interfaces/IOrderHandler.sol";
+import {OrderHeader} from "../../interfaces/IOrderExecutor.sol";
 import "./TransferRequest.sol";
 import {ERC20} from "../../../lib/solmate/src/tokens/ERC20.sol";
 import "../../../lib/permit2/src/interfaces/ISignatureTransfer.sol";
@@ -23,26 +24,19 @@ contract TransferRequestHandler is IOrderHandler {
         permit2 = IPermit2(_permit2);
     }
 
-    function execute(address _facilitator, SignedOrder calldata order)
-        external
-        returns (OrderHeader memory, OrderReceipt memory)
-    {
+    function execute(address _facilitator, SignedOrder calldata order) external returns (OrderReceipt memory) {
         TransferRequest memory request = abi.decode(order.order, (TransferRequest));
 
-        bytes32 orderHash = request.hash();
-
-        OrderHeader memory header = request.getOrderHeader();
-
-        _verifyRequest(request, orderHash, order.signature);
+        _verifyRequest(request, order.signature);
 
         emit Transferred(
             request.token, request.sender, request.recipient, request.amount, request.category, request.metadata
         );
 
-        return (header, OrderReceipt(address(this), orderHash, POINTS));
+        return request.getOrderReceipt(POINTS);
     }
 
-    function _verifyRequest(TransferRequest memory request, bytes32 orderHash, bytes memory sig) internal {
+    function _verifyRequest(TransferRequest memory request, bytes memory sig) internal {
         if (address(this) != address(request.dispatcher)) {
             revert InvalidDispatcher();
         }
@@ -59,7 +53,7 @@ contract TransferRequestHandler is IOrderHandler {
             }),
             ISignatureTransfer.SignatureTransferDetails({to: request.recipient, requestedAmount: request.amount}),
             request.sender,
-            orderHash,
+            request.hash(),
             TransferRequestLib.PERMIT2_ORDER_TYPE,
             sig
         );

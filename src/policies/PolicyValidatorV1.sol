@@ -3,7 +3,8 @@ pragma solidity ^0.8.20;
 
 import {IPolicyValidator} from "../interfaces/IPolicyValidator.sol";
 import {SignatureVerification} from "../../lib/permit2/src/libraries/SignatureVerification.sol";
-import {OrderHeader, OrderReceipt} from "../interfaces/IOrderHandler.sol";
+import {OrderReceipt} from "../interfaces/IOrderHandler.sol";
+import {OrderHeader} from "../interfaces/IOrderExecutor.sol";
 
 /**
  * @title CounterPolicyValidator
@@ -30,7 +31,7 @@ contract PolicyValidatorV1 is IPolicyValidator {
 
         uint256 currentDay = block.timestamp / timeUnit;
 
-        Counter storage counter = counterMap[receipt.dispatcher][header.user];
+        Counter storage counter = counterMap[header.dispatcher][receipt.user];
 
         if (counter.lastExecutionDay < currentDay) {
             counter.counter = 0;

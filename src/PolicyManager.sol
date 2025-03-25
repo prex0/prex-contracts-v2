@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
-import {OrderHeader, OrderReceipt} from "./interfaces/IOrderHandler.sol";
+import {OrderReceipt} from "./interfaces/IOrderHandler.sol";
+import {OrderHeader} from "./interfaces/IOrderExecutor.sol";
 import {IPolicyValidator} from "./interfaces/IPolicyValidator.sol";
 import {SignatureVerification} from "../lib/permit2/src/libraries/SignatureVerification.sol";
 import {IERC20} from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
@@ -124,16 +125,16 @@ contract PolicyManager {
     function validatePolicy(OrderHeader memory header, OrderReceipt memory receipt, bytes calldata appSig) internal {
         // ポリシーIDに対応するポリシー情報を取得
 
-        if (header.policyId == 0) {
-            IUserPoints(prexPoint).consumePoints(header.user, receipt.points);
+        if (receipt.policyId == 0) {
+            IUserPoints(prexPoint).consumePoints(receipt.user, receipt.points);
         } else {
-            Policy memory policy = policies[header.policyId];
+            Policy memory policy = policies[receipt.policyId];
 
             if (!policy.isActive) {
                 revert InactivePolicy();
             }
 
-            verifyAppSignature(receipt, policy, appSig);
+            verifyAppSignature(header, policy, appSig);
 
             consumeAppCredit(policy.appId, receipt.points);
 
@@ -148,14 +149,11 @@ contract PolicyManager {
 
     /**
      * @notice アプリ開発者の署名を検証する
-     * @param receipt オーダーの実行結果
+     * @param header オーダーヘッダー
      * @param policy ポリシー情報
      * @param appSig アプリ開発者の署名
      */
-    function verifyAppSignature(OrderReceipt memory receipt, Policy memory policy, bytes calldata appSig)
-        internal
-        view
-    {
-        SignatureVerification.verify(appSig, receipt.orderHash, policy.publicKey);
+    function verifyAppSignature(OrderHeader memory header, Policy memory policy, bytes calldata appSig) internal view {
+        SignatureVerification.verify(appSig, header.orderHash, policy.publicKey);
     }
 }

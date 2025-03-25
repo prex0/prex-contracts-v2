@@ -94,10 +94,8 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
     function createRequest(LinkTransferRequest memory request, bytes memory sig)
         internal
         nonReentrant
-        returns (OrderHeader memory, OrderReceipt memory)
+        returns (OrderReceipt memory)
     {
-        bytes32 orderHash = request.hash();
-
         bytes32 id = keccak256(abi.encode(request.publicKey));
 
         // same public key cannot be used for multiple requests
@@ -119,7 +117,7 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
         }
 
         // Verify the signature
-        _verifySenderRequest(request, orderHash, sig);
+        _verifySenderRequest(request, sig);
 
         pendingRequests[id] = PendingRequest({
             amount: request.amount,
@@ -133,7 +131,7 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
 
         emit RequestSubmitted(id, request.token, request.sender, request.amount, request.deadline, request.metadata);
 
-        return (request.getOrderHeader(), OrderReceipt(address(this), orderHash, POINTS));
+        return request.getOrderReceipt(POINTS);
     }
 
     /**
@@ -141,11 +139,7 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
      * This function is executed by the recipient after they receive the secret from the sender.
      * @param recipientData The recipient data
      */
-    function completeRequest(RecipientData memory recipientData)
-        internal
-        nonReentrant
-        returns (OrderHeader memory, OrderReceipt memory)
-    {
+    function completeRequest(RecipientData memory recipientData) internal nonReentrant returns (OrderReceipt memory) {
         PendingRequest storage request = pendingRequests[recipientData.requestId];
 
         if (recipientData.recipient == address(0)) {
@@ -160,7 +154,9 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
             revert RequestExpired();
         }
 
-        _verifyRecipientSignature(request.nonce, request.publicKey, recipientData.recipient, recipientData.sig);
+        _verifyRecipientSignature(
+            request.nonce, request.expiry, request.publicKey, recipientData.recipient, recipientData.sig
+        );
 
         uint256 amount = request.amount;
 
@@ -173,19 +169,19 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
 
         emit RequestCompleted(recipientData.requestId, recipientData.recipient, recipientData.metadata);
 
-        return (getOrderHeader(request, recipientData), OrderReceipt(address(this), recipientData.requestId, 0));
+        return getOrderReceipt(request, recipientData, POINTS);
     }
 
-    function getOrderHeader(PendingRequest memory request, RecipientData memory recipientData)
+    function getOrderReceipt(PendingRequest memory request, RecipientData memory recipientData, uint256 points)
         internal
         pure
-        returns (OrderHeader memory)
+        returns (OrderReceipt memory)
     {
         address[] memory tokens = new address[](1);
 
         tokens[0] = request.token;
 
-        return OrderHeader({tokens: tokens, user: request.sender, policyId: recipientData.policyId});
+        return OrderReceipt({tokens: tokens, user: request.sender, policyId: recipientData.policyId, points: points});
     }
 
     /**
@@ -247,7 +243,7 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
     /**
      * @notice Verifies the request and the signature.
      */
-    function _verifySenderRequest(LinkTransferRequest memory request, bytes32 orderHash, bytes memory sig) internal {
+    function _verifySenderRequest(LinkTransferRequest memory request, bytes memory sig) internal {
         if (address(this) != address(request.dispatcher)) {
             revert InvalidDispatcher();
         }
@@ -264,7 +260,7 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
             }),
             ISignatureTransfer.SignatureTransferDetails({to: address(this), requestedAmount: request.amount}),
             request.sender,
-            orderHash,
+            request.hash(),
             LinkTransferRequestLib.PERMIT2_ORDER_TYPE,
             sig
         );
@@ -273,12 +269,15 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
     /**
      * @notice Verifies the signature made by the recipient using the private key received from the sender.
      */
-    function _verifyRecipientSignature(uint256 nonce, address publicKey, address recipient, bytes memory signature)
-        internal
-        view
-    {
+    function _verifyRecipientSignature(
+        uint256 nonce,
+        uint256 deadline,
+        address publicKey,
+        address recipient,
+        bytes memory signature
+    ) internal view {
         bytes32 messageHash =
-            MessageHashUtils.toEthSignedMessageHash(keccak256(abi.encode(address(this), nonce, recipient)));
+            MessageHashUtils.toEthSignedMessageHash(keccak256(abi.encode(address(this), nonce, deadline, recipient)));
 
         if (publicKey != ECDSA.recover(messageHash, signature)) {
             revert InvalidSecret();
