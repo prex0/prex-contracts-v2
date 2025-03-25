@@ -12,21 +12,21 @@ contract RegisterPolicyTest is PolicyManagerSetup {
 
     // ポリシーを登録する
     function test_RegisterPolicy() public {
-        uint256 appId = policyManager.registerApp(appOwner1);
+        uint256 appId = policyManager.registerApp(appOwner1, "test");
 
         vm.startPrank(appOwner1);
-        policyManager.registerPolicy(address(0), address(0), appId, "");
+        policyManager.registerPolicy(appId, address(0), address(0), "");
         vm.stopPrank();
     }
 
     // 不正なアプリオーナーはポリシーを登録できない
     function test_RegisterPolicy_InvalidAppOwner() public {
-        uint256 appId = policyManager.registerApp(appOwner1);
+        uint256 appId = policyManager.registerApp(appOwner1, "test");
 
         vm.startPrank(appOwner2);
 
         vm.expectRevert(abi.encodeWithSelector(IPolicyErrors.InvalidAppOwner.selector));
-        policyManager.registerPolicy(address(0), address(0), appId, "");
+        policyManager.registerPolicy(appId, address(0), address(0), "");
 
         vm.stopPrank();
     }

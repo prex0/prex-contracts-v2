@@ -30,7 +30,7 @@ contract OrderExecutor is IOrderExecutor, PolicyManager {
             OrderHeader({
                 dispatcher: order.dispatcher,
                 methodId: order.methodId,
-                orderHash: _getOrderHashForPolicy(order),
+                orderHash: _getOrderHashForPolicy(order.order, order.identifier),
                 identifier: order.identifier
             }),
             receipt,
@@ -38,7 +38,11 @@ contract OrderExecutor is IOrderExecutor, PolicyManager {
         );
     }
 
-    function _getOrderHashForPolicy(SignedOrder calldata order) internal pure returns (bytes32) {
-        return keccak256(abi.encode("AppOrder", order.order, order.identifier));
+    function getOrderHashForPolicy(bytes memory order, bytes32 identifier) external pure returns (bytes32) {
+        return _getOrderHashForPolicy(order, identifier);
+    }
+
+    function _getOrderHashForPolicy(bytes memory order, bytes32 identifier) internal pure returns (bytes32) {
+        return keccak256(abi.encode("AppOrder", keccak256(order), identifier));
     }
 }

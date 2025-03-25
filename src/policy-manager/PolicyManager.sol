@@ -6,6 +6,7 @@ import {OrderHeader} from "../interfaces/IOrderExecutor.sol";
 import {IPolicyValidator} from "../interfaces/IPolicyValidator.sol";
 import {SignatureVerification} from "../../lib/permit2/src/libraries/SignatureVerification.sol";
 import {IERC20} from "../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {MessageHashUtils} from "../../lib/openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
 import {IUserPoints} from "../interfaces/IUserPoints.sol";
 import {WhitelistHandler} from "./WhitelistHandler.sol";
 import {IPolicyErrors} from "../interfaces/IPolicyErrors.sol";
@@ -40,6 +41,9 @@ contract PolicyManager is WhitelistHandler, IPolicyErrors {
     uint256 policyCounts;
     uint256 appCounts;
 
+    event AppRegistered(uint256 appId, address owner, string appName);
+    event PolicyRegistered(uint256 policyId, address validator, address publicKey, uint256 appId, bytes policyParams);
+
     modifier onlyPolicyOwner(uint256 policyId) {
         if (apps[policies[policyId].appId].owner != msg.sender) {
             revert InvalidPolicyOwner();
@@ -55,9 +59,17 @@ contract PolicyManager is WhitelistHandler, IPolicyErrors {
     }
 
     constructor(address _prexPoint, address _owner) WhitelistHandler(_owner) {
-        policyCounts = 0;
-        appCounts = 0;
+        policyCounts = 1;
+        appCounts = 1;
         prexPoint = _prexPoint;
+    }
+
+    function registerApp(address owner, string calldata appName) external returns (uint256 appId) {
+        appId = appCounts++;
+
+        apps[appId] = App(0, owner);
+
+        emit AppRegistered(appId, owner, appName);
     }
 
     /**
@@ -67,7 +79,7 @@ contract PolicyManager is WhitelistHandler, IPolicyErrors {
      * @param appId アプリID
      * @return policyId ポリシーID
      */
-    function registerPolicy(address validator, address publicKey, uint256 appId, bytes calldata policyParams)
+    function registerPolicy(uint256 appId, address validator, address publicKey, bytes calldata policyParams)
         external
         onlyAppOwner(appId)
         returns (uint256 policyId)
@@ -79,12 +91,6 @@ contract PolicyManager is WhitelistHandler, IPolicyErrors {
 
     function deregisterPolicy(uint256 policyId) external onlyPolicyOwner(policyId) {
         policies[policyId].isActive = false;
-    }
-
-    function registerApp(address owner) external returns (uint256 appId) {
-        appId = appCounts++;
-
-        apps[appId] = App(0, owner);
     }
 
     function depositCredit(uint256 appId, uint256 amount) external {
@@ -153,6 +159,8 @@ contract PolicyManager is WhitelistHandler, IPolicyErrors {
      * @param appSig アプリ開発者の署名
      */
     function verifyAppSignature(OrderHeader memory header, Policy memory policy, bytes calldata appSig) internal view {
-        SignatureVerification.verify(appSig, header.orderHash, policy.publicKey);
+        bytes32 messageHash = MessageHashUtils.toEthSignedMessageHash(header.orderHash);
+
+        SignatureVerification.verify(appSig, messageHash, policy.publicKey);
     }
 }

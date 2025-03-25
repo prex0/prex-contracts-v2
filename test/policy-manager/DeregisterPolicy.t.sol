@@ -11,10 +11,10 @@ contract DeregisterPolicyTest is PolicyManagerSetup {
     function setUp() public virtual override {
         super.setUp();
 
-        uint256 appId = policyManager.registerApp(appOwner1);
+        uint256 appId = policyManager.registerApp(appOwner1, "test");
 
         vm.startPrank(appOwner1);
-        policyId = policyManager.registerPolicy(address(0), address(0), appId, "");
+        policyId = policyManager.registerPolicy(appId, address(0), address(0), "");
         vm.stopPrank();
     }
 
