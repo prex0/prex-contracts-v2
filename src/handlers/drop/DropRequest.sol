@@ -92,6 +92,17 @@ library DropRequestLib {
 
         tokens[0] = request.token;
 
-        return OrderReceipt({tokens: tokens, user: request.sender, policyId: request.policyId, points: points});
+        uint256 numberOfWithdrawals = getNumberOfWithdrawals(request);
+
+        return OrderReceipt({
+            tokens: tokens,
+            user: request.sender,
+            policyId: request.policyId,
+            points: points * numberOfWithdrawals
+        });
+    }
+
+    function getNumberOfWithdrawals(DropRequest memory request) internal pure returns (uint256) {
+        return request.amount / request.amountPerWithdrawal;
     }
 }

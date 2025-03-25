@@ -32,7 +32,8 @@ contract PrexTokenFactory {
         address _permit2,
         address _tokenRegistry
     ) public returns (address) {
-        CreatorCoin coin = new CreatorCoin(_name, _symbol, _initialSupply, _recipient, _issuer, _permit2, _tokenRegistry);
+        CreatorCoin coin =
+            new CreatorCoin(_name, _symbol, _initialSupply, _recipient, _issuer, _permit2, _tokenRegistry);
 
         emit CreatorCoinCreated(address(coin));
 
@@ -60,7 +61,8 @@ contract PrexTokenFactory {
         address _permit2,
         address _tokenRegistry
     ) public returns (address) {
-        MintableCreatorCoin token = new MintableCreatorCoin(_name, _symbol, _initialSupply, _recipient, _issuer, _permit2, _tokenRegistry);
+        MintableCreatorCoin token =
+            new MintableCreatorCoin(_name, _symbol, _initialSupply, _recipient, _issuer, _permit2, _tokenRegistry);
 
         emit MintableCreatorCoinCreated(address(token));
 

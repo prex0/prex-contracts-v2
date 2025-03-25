@@ -40,8 +40,11 @@ library IssueMintableTokenRequestLib {
     bytes32 internal constant ISSUE_MINTABLE_TOKEN_REQUEST_TYPE_HASH = keccak256(ISSUE_MINTABLE_TOKEN_REQUEST_TYPE);
 
     string internal constant TOKEN_PERMISSIONS_TYPE = "TokenPermissions(address token,uint256 amount)";
-    string internal constant PERMIT2_ORDER_TYPE =
-        string(abi.encodePacked("IssueMintableTokenRequest witness)", ISSUE_MINTABLE_TOKEN_REQUEST_TYPE_S, TOKEN_PERMISSIONS_TYPE));
+    string internal constant PERMIT2_ORDER_TYPE = string(
+        abi.encodePacked(
+            "IssueMintableTokenRequest witness)", ISSUE_MINTABLE_TOKEN_REQUEST_TYPE_S, TOKEN_PERMISSIONS_TYPE
+        )
+    );
 
     /// @notice hash the given request
     /// @param request the request to hash

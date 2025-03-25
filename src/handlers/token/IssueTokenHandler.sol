@@ -28,10 +28,7 @@ contract IssueTokenHandler is IOrderHandler {
         tokenRegistry = ITokenRegistry(_tokenRegistry);
     }
 
-    function execute(address, SignedOrder calldata order, bytes calldata)
-        external
-        returns (OrderReceipt memory)
-    {
+    function execute(address, SignedOrder calldata order, bytes calldata) external returns (OrderReceipt memory) {
         // TODO: Implement issue token logic
         IssueMintableTokenRequest memory request = abi.decode(order.order, (IssueMintableTokenRequest));
 

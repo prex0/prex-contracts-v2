@@ -184,19 +184,15 @@ contract DropRequestDispatcher is ReentrancyGuard {
 
         emit Received(recipientData.requestId, recipientData.recipient, request.amountPerWithdrawal);
 
-        return getOrderReceipt(request, POINTS);
+        return getOrderReceipt(request);
     }
 
-    function getOrderReceipt(PendingRequest memory request, uint256 points)
-        internal
-        pure
-        returns (OrderReceipt memory)
-    {
+    function getOrderReceipt(PendingRequest memory request) internal pure returns (OrderReceipt memory) {
         address[] memory tokens = new address[](1);
 
         tokens[0] = request.token;
 
-        return OrderReceipt({tokens: tokens, user: request.sender, policyId: request.policyId, points: points});
+        return OrderReceipt({tokens: tokens, user: request.sender, policyId: request.policyId, points: 0});
     }
 
     /**

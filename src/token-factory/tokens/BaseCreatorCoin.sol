@@ -22,13 +22,10 @@ abstract contract BaseCreatorCoin is ERC20Permit {
         _;
     }
 
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        address _issuer,
-        address _permit2,
-        address _tokenRegistry
-    ) ERC20(_name, _symbol) ERC20Permit(_name) {
+    constructor(string memory _name, string memory _symbol, address _issuer, address _permit2, address _tokenRegistry)
+        ERC20(_name, _symbol)
+        ERC20Permit(_name)
+    {
         issuer = _issuer;
         permit2 = _permit2;
         tokenRegistry = ITokenRegistry(_tokenRegistry);
