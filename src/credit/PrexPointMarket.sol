@@ -86,7 +86,7 @@ contract PrexPointMarket is Owned {
 
         _issueNewPoint(to, amount, method, bytes(orderId));
     }
-    
+
     /**
      * @notice Buy tokens with DAI
      * @param order The order to buy
