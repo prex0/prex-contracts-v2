@@ -7,6 +7,7 @@ struct OrderHeader {
     address dispatcher;
     uint256 methodId;
     bytes32 orderHash;
+    bytes32 identifier;
 }
 
 interface IOrderExecutor {

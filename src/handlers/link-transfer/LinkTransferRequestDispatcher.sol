@@ -33,6 +33,7 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
         uint256 nonce;
         uint256 expiry;
         RequestStatus status;
+        uint256 policyId;
     }
 
     mapping(bytes32 => PendingRequest) public pendingRequests;
@@ -70,7 +71,6 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
     error InvalidSender();
 
     struct RecipientData {
-        uint256 policyId;
         bytes32 requestId;
         address recipient;
         bytes sig;
@@ -126,7 +126,8 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
             sender: request.sender,
             nonce: request.nonce,
             expiry: request.deadline,
-            status: RequestStatus.Pending
+            status: RequestStatus.Pending,
+            policyId: request.policyId
         });
 
         emit RequestSubmitted(id, request.token, request.sender, request.amount, request.deadline, request.metadata);
@@ -169,10 +170,10 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
 
         emit RequestCompleted(recipientData.requestId, recipientData.recipient, recipientData.metadata);
 
-        return getOrderReceipt(request, recipientData, POINTS);
+        return getOrderReceipt(request, POINTS);
     }
 
-    function getOrderReceipt(PendingRequest memory request, RecipientData memory recipientData, uint256 points)
+    function getOrderReceipt(PendingRequest memory request, uint256 points)
         internal
         pure
         returns (OrderReceipt memory)
@@ -181,7 +182,7 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
 
         tokens[0] = request.token;
 
-        return OrderReceipt({tokens: tokens, user: request.sender, policyId: recipientData.policyId, points: points});
+        return OrderReceipt({tokens: tokens, user: request.sender, policyId: request.policyId, points: points});
     }
 
     /**

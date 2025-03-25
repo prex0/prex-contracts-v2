@@ -16,7 +16,6 @@ struct RecipientData {
     address subPublicKey;
     bytes subSig;
     string idempotencyKey;
-    uint256 policyId;
 }
 
 /**
@@ -45,6 +44,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
         uint256 expiry;
         RequestStatus status;
         string name;
+        uint256 policyId;
     }
 
     mapping(address => bytes32) public publicKeyToRequestId;
@@ -137,7 +137,8 @@ contract DropRequestDispatcher is ReentrancyGuard {
             sender: request.sender,
             expiry: request.expiry,
             status: RequestStatus.Pending,
-            name: request.name
+            name: request.name,
+            policyId: request.policyId
         });
 
         if (publicKeyToRequestId[request.publicKey] != bytes32(0)) {
@@ -184,10 +185,10 @@ contract DropRequestDispatcher is ReentrancyGuard {
 
         emit Received(recipientData.requestId, recipientData.recipient, request.amountPerWithdrawal);
 
-        return getOrderReceipt(request, recipientData, POINTS);
+        return getOrderReceipt(request, POINTS);
     }
 
-    function getOrderReceipt(PendingRequest memory request, RecipientData memory recipientData, uint256 points)
+    function getOrderReceipt(PendingRequest memory request, uint256 points)
         internal
         pure
         returns (OrderReceipt memory)
@@ -196,7 +197,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
 
         tokens[0] = request.token;
 
-        return OrderReceipt({tokens: tokens, user: request.sender, policyId: recipientData.policyId, points: points});
+        return OrderReceipt({tokens: tokens, user: request.sender, policyId: request.policyId, points: points});
     }
 
     /**

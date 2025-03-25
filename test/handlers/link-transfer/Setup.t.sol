@@ -59,7 +59,6 @@ contract LinkTransferSetup is Test, TestUtils {
         bytes32 messageHash = keccak256(abi.encode(address(linkTransferHandler), _nonce, _deadline, _recipient));
 
         return LinkTransferRequestDispatcher.RecipientData({
-            policyId: 0,
             requestId: _requestId,
             recipient: _recipient,
             sig: _signMessage(_privateKey, messageHash),

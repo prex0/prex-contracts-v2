@@ -10,7 +10,7 @@ contract LinkTransferHandler is IOrderHandler, LinkTransferRequestDispatcher {
 
     constructor(address _permit2) LinkTransferRequestDispatcher(_permit2) {}
 
-    function execute(address _facilitator, SignedOrder calldata order) external returns (OrderReceipt memory) {
+    function execute(address, SignedOrder calldata order, bytes calldata) external returns (OrderReceipt memory) {
         if (order.methodId == 1) {
             LinkTransferRequest memory request = abi.decode(order.order, (LinkTransferRequest));
 

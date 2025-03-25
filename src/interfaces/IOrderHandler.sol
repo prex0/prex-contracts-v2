@@ -7,6 +7,8 @@ struct SignedOrder {
     bytes order;
     bytes signature;
     bytes appSig;
+    // unique identifier in policy
+    bytes32 identifier;
 }
 
 struct OrderReceipt {
@@ -17,5 +19,7 @@ struct OrderReceipt {
 }
 
 interface IOrderHandler {
-    function execute(address user, SignedOrder calldata order) external returns (OrderReceipt memory);
+    function execute(address user, SignedOrder calldata order, bytes calldata facilitatorData)
+        external
+        returns (OrderReceipt memory);
 }

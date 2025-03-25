@@ -54,7 +54,8 @@ contract OrderExecutorTest is Test, TestUtils {
                 methodId: 0,
                 order: abi.encode(request),
                 signature: _sign(request, userPrivateKey),
-                appSig: bytes("")
+                appSig: bytes(""),
+                identifier: bytes32(0)
             }),
             bytes("")
         );
@@ -75,7 +76,7 @@ contract OrderExecutorTest is Test, TestUtils {
 
     function _toPermit(TransferRequest memory request)
         internal
-        view
+        pure
         returns (ISignatureTransfer.PermitTransferFrom memory)
     {
         return ISignatureTransfer.PermitTransferFrom({

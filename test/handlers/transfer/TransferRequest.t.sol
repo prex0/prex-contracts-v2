@@ -54,8 +54,10 @@ contract TransferRequestTest is TransferRequestSetup {
                 methodId: 0,
                 order: abi.encode(request),
                 signature: _sign(request, userPrivateKey),
-                appSig: bytes("")
-            })
+                appSig: bytes(""),
+                identifier: bytes32(0)
+            }),
+            bytes("")
         );
 
         assertEq(receipt.policyId, 0);

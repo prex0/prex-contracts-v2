@@ -59,8 +59,10 @@ contract CompleteLinkTransferTest is LinkTransferSetup {
                 methodId: 1,
                 order: abi.encode(request),
                 signature: _sign(request, userPrivateKey),
-                appSig: bytes("")
-            })
+                appSig: bytes(""),
+                identifier: bytes32(0)
+            }),
+            bytes("")
         );
     }
 
@@ -76,8 +78,10 @@ contract CompleteLinkTransferTest is LinkTransferSetup {
                 methodId: 2,
                 order: abi.encode(recipientData),
                 signature: bytes(""),
-                appSig: bytes("")
-            })
+                appSig: bytes(""),
+                identifier: bytes32(0)
+            }),
+            bytes("")
         );
         assertEq(ERC20(address(mockToken)).balanceOf(recipient), 1e18);
     }

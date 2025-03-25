@@ -140,7 +140,7 @@ contract PolicyManager {
 
             if (policy.validator != address(0)) {
                 // ポリシーバリデータを呼び出してポリシーを検証し、消費者アドレスを取得
-                if (!IPolicyValidator(policy.validator).validatePolicy(header, receipt, policy.policyParams, appSig)) {
+                if (!IPolicyValidator(policy.validator).validatePolicy(header, receipt, policy.policyParams)) {
                     revert InvalidPolicy();
                 }
             }

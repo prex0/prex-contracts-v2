@@ -11,8 +11,6 @@ interface IPolicyValidator {
         // オーダーの実行結果
         OrderReceipt memory receipt,
         // ポリシーのパラメータ
-        bytes memory policyParams,
-        // アプリケーションパラメータ
-        bytes calldata appParams
+        bytes memory policyParams
     ) external returns (bool);
 }
