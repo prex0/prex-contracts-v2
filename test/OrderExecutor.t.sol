@@ -10,6 +10,7 @@ import {ERC20} from "../lib/solmate/src/tokens/ERC20.sol";
 import "../lib/permit2/src/interfaces/ISignatureTransfer.sol";
 import {PrexPoint} from "../src/credit/PrexPoint.sol";
 import {SignedOrder} from "../src/interfaces/IOrderHandler.sol";
+import {IERC20Errors} from "../lib/openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol";
 
 contract OrderExecutorTest is Test, TestUtils {
     using TransferRequestLib for TransferRequest;
@@ -19,8 +20,12 @@ contract OrderExecutorTest is Test, TestUtils {
     PrexPoint public prexPoint;
 
     address owner = address(this);
+
     uint256 internal userPrivateKey = 12345;
     address public user = vm.addr(userPrivateKey);
+
+    uint256 internal userPrivateKey2 = 12346;
+    address public user2 = vm.addr(userPrivateKey2);
 
     function setUp() public virtual override {
         super.setUp();
@@ -34,12 +39,12 @@ contract OrderExecutorTest is Test, TestUtils {
         prexPoint.mint(user, 1000 * 1e6);
     }
 
-    function test_Execute() public {
-        TransferRequest memory request = TransferRequest({
+    function createSampleRequest(address sender, address recipient) internal view returns (TransferRequest memory) {
+        return TransferRequest({
             dispatcher: address(transferRequestHandler),
             policyId: 0,
-            sender: user,
-            recipient: user,
+            sender: sender,
+            recipient: recipient,
             deadline: 1,
             nonce: 1,
             amount: 100,
@@ -47,6 +52,10 @@ contract OrderExecutorTest is Test, TestUtils {
             category: 0,
             metadata: bytes("")
         });
+    }
+
+    function test_Execute() public {
+        TransferRequest memory request = createSampleRequest(user, user2);
 
         orderExecutor.execute(
             SignedOrder({
@@ -54,6 +63,26 @@ contract OrderExecutorTest is Test, TestUtils {
                 methodId: 0,
                 order: abi.encode(request),
                 signature: _sign(request, userPrivateKey),
+                appSig: bytes(""),
+                identifier: bytes32(0)
+            }),
+            bytes("")
+        );
+
+        // check PrexCredit is consumed
+        assertEq(prexPoint.balanceOf(user), 999 * 1e6);
+    }
+
+    function test_Execute_InsufficientCredit() public {
+        TransferRequest memory request = createSampleRequest(user2, user);
+
+        vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, user2, 0, 1e6));
+        orderExecutor.execute(
+            SignedOrder({
+                dispatcher: address(transferRequestHandler),
+                methodId: 0,
+                order: abi.encode(request),
+                signature: _sign(request, userPrivateKey2),
                 appSig: bytes(""),
                 identifier: bytes32(0)
             }),

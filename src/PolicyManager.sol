@@ -71,14 +71,14 @@ contract PolicyManager {
      * @param appId アプリID
      * @return policyId ポリシーID
      */
-    function registerPolicy(address validator, address publicKey, uint256 appId)
+    function registerPolicy(address validator, address publicKey, uint256 appId, bytes calldata policyParams)
         external
         onlyAppOwner(appId)
         returns (uint256 policyId)
     {
         policyId = policyCounts++;
 
-        policies[policyId] = Policy(validator, policyId, publicKey, appId, "", true);
+        policies[policyId] = Policy(validator, policyId, publicKey, appId, policyParams, true);
     }
 
     function deregisterPolicy(uint256 policyId) external onlyPolicyOwner(policyId) {

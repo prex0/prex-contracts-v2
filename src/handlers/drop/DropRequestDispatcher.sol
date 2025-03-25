@@ -168,6 +168,10 @@ contract DropRequestDispatcher is ReentrancyGuard {
     function distribute(RecipientData memory recipientData) internal nonReentrant returns (OrderReceipt memory) {
         PendingRequest storage request = pendingRequests[recipientData.requestId];
 
+        if (request.status != RequestStatus.Pending) {
+            revert RequestNotPending();
+        }
+
         if (block.timestamp > request.expiry) {
             revert RequestExpiredError();
         }

@@ -38,6 +38,36 @@ contract DropRequestSetup is Test, TestUtils {
         token.approve(address(permit2), 1e20);
     }
 
+    function _submit(DropRequest memory request, bytes memory sig) internal {
+        dropHandler.execute(
+            address(this),
+            SignedOrder({
+                dispatcher: address(dropHandler),
+                methodId: 1,
+                order: abi.encode(request),
+                signature: sig,
+                appSig: bytes(""),
+                identifier: bytes32(0)
+            }),
+            bytes("")
+        );
+    }
+
+    function _drop(RecipientData memory recipientData) internal {
+        dropHandler.execute(
+            address(this),
+            SignedOrder({
+                dispatcher: address(dropHandler),
+                methodId: 2,
+                order: abi.encode(recipientData),
+                signature: bytes(""),
+                appSig: bytes(""),
+                identifier: bytes32(0)
+            }),
+            bytes("")
+        );
+    }
+
     function _sign(DropRequest memory request, uint256 fromPrivateKey) internal view virtual returns (bytes memory) {
         bytes32 witness = request.hash();
 

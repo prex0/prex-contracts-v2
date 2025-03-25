@@ -36,21 +36,6 @@ contract TestDropRequestDispatcherSubmit is DropRequestSetup {
         });
     }
 
-    function _submit(DropRequest memory request, bytes memory sig) internal {
-        dropHandler.execute(
-            address(this),
-            SignedOrder({
-                dispatcher: address(dropHandler),
-                methodId: 1,
-                order: abi.encode(request),
-                signature: sig,
-                appSig: bytes(""),
-                identifier: bytes32(0)
-            }),
-            bytes("")
-        );
-    }
-
     // submit request
     function testSubmitRequest() public {
         DropRequest memory request = _getRequest(address(dropHandler), block.timestamp + 100, block.timestamp + 100);

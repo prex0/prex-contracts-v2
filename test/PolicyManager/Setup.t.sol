@@ -10,8 +10,10 @@ contract PolicyManagerSetup is Test {
     PolicyManager public policyManager;
 
     address owner = address(this);
-    uint256 internal userPrivateKey = 12345;
-    address public user = vm.addr(userPrivateKey);
+
+    address appOwner1 = address(1);
+    address appOwner2 = address(2);
+
     address public permit2 = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
 
     function setUp() public virtual {
@@ -20,6 +22,7 @@ contract PolicyManagerSetup is Test {
 
         prexPoint.setOrderExecutor(address(policyManager));
 
-        prexPoint.mint(user, 1000 * 1e6);
+        prexPoint.mint(appOwner1, 1000 * 1e6);
+        prexPoint.mint(appOwner2, 1000 * 1e6);
     }
 }
