@@ -5,7 +5,6 @@ import {PolicyPrimitiveSetup} from "./Setup.t.sol";
 import {StandardPolicyValidator} from "src/policies/StandardPolicyValidator.sol";
 import {OrderHeader} from "src/interfaces/IOrderExecutor.sol";
 import {OrderReceipt} from "src/interfaces/IOrderHandler.sol";
-import {WhitelistHandlerPolicyPrimitive} from "src/policies/primitives/WhitelistHandlerPolicyPrimitive.sol";
 
 contract StandardPolicyValidatorText is PolicyPrimitiveSetup {
     StandardPolicyValidator public standardPolicyValidator;
@@ -16,11 +15,7 @@ contract StandardPolicyValidatorText is PolicyPrimitiveSetup {
     function setUp() public override {
         super.setUp();
 
-        WhitelistHandlerPolicyPrimitive whitelistHandlerPolicyPrimitive =
-            new WhitelistHandlerPolicyPrimitive(address(this));
-        standardPolicyValidator = new StandardPolicyValidator(address(whitelistHandlerPolicyPrimitive));
-
-        whitelistHandlerPolicyPrimitive.addHandler(WHITELIST_HANDLER);
+        standardPolicyValidator = new StandardPolicyValidator();
     }
 
     function getOrderReceipt(address token) internal returns (OrderReceipt memory) {

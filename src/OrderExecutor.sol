@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import {IOrderExecutor, OrderHeader} from "./interfaces/IOrderExecutor.sol";
 import {IOrderHandler, OrderReceipt, SignedOrder} from "./interfaces/IOrderHandler.sol";
-import {PolicyManager} from "./PolicyManager.sol";
+import {PolicyManager} from "./policy-manager/PolicyManager.sol";
 
 /**
  * @title OrderExecutor
@@ -14,7 +14,7 @@ contract OrderExecutor is IOrderExecutor, PolicyManager {
      * @notice コンストラクタ
      * @param _prexPoint ポイント管理コントラクトのアドレス
      */
-    constructor(address _prexPoint) PolicyManager(_prexPoint) {}
+    constructor(address _prexPoint, address _owner) PolicyManager(_prexPoint, _owner) {}
 
     /**
      * @notice オーダーを実行する関数

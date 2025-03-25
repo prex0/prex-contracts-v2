@@ -1,18 +1,20 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
-import {OrderReceipt} from "./interfaces/IOrderHandler.sol";
-import {OrderHeader} from "./interfaces/IOrderExecutor.sol";
-import {IPolicyValidator} from "./interfaces/IPolicyValidator.sol";
-import {SignatureVerification} from "../lib/permit2/src/libraries/SignatureVerification.sol";
-import {IERC20} from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import {IUserPoints} from "./interfaces/IUserPoints.sol";
+import {OrderReceipt} from "../interfaces/IOrderHandler.sol";
+import {OrderHeader} from "../interfaces/IOrderExecutor.sol";
+import {IPolicyValidator} from "../interfaces/IPolicyValidator.sol";
+import {SignatureVerification} from "../../lib/permit2/src/libraries/SignatureVerification.sol";
+import {IERC20} from "../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IUserPoints} from "../interfaces/IUserPoints.sol";
+import {WhitelistHandler} from "./WhitelistHandler.sol";
+import {IPolicyErrors} from "../interfaces/IPolicyErrors.sol";
 
 /**
  * @notice ポリシーの管理をするコントラクト
  * ポリシーの追加、削除、検証を行う
  */
-contract PolicyManager {
+contract PolicyManager is WhitelistHandler, IPolicyErrors {
     // ポリシー情報を格納する構造体
     struct Policy {
         address validator; // ポリシーバリデータのアドレス
@@ -38,12 +40,6 @@ contract PolicyManager {
     uint256 policyCounts;
     uint256 appCounts;
 
-    error InvalidPolicy();
-    error InactivePolicy();
-    error InvalidAppOwner();
-    error InvalidPolicyOwner();
-    error InsufficientCredit();
-
     modifier onlyPolicyOwner(uint256 policyId) {
         if (apps[policies[policyId].appId].owner != msg.sender) {
             revert InvalidPolicyOwner();
@@ -58,7 +54,7 @@ contract PolicyManager {
         _;
     }
 
-    constructor(address _prexPoint) {
+    constructor(address _prexPoint, address _owner) WhitelistHandler(_owner) {
         policyCounts = 0;
         appCounts = 0;
         prexPoint = _prexPoint;
@@ -124,6 +120,9 @@ contract PolicyManager {
      */
     function validatePolicy(OrderHeader memory header, OrderReceipt memory receipt, bytes calldata appSig) internal {
         // ポリシーIDに対応するポリシー情報を取得
+        if (!validateHandler(header.dispatcher)) {
+            revert InvalidHandler();
+        }
 
         if (receipt.policyId == 0) {
             IUserPoints(prexPoint).consumePoints(receipt.user, receipt.points);

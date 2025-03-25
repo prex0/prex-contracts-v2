@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 import {PrexPoint} from "../../src/credit/PrexPoint.sol";
-import {PolicyManager} from "../../src/PolicyManager.sol";
+import {PolicyManager} from "../../src/policy-manager/PolicyManager.sol";
 
 contract PolicyManagerSetup is Test {
     PrexPoint public prexPoint;
@@ -18,7 +18,7 @@ contract PolicyManagerSetup is Test {
 
     function setUp() public virtual {
         prexPoint = new PrexPoint(owner, address(permit2));
-        policyManager = new PolicyManager(address(prexPoint));
+        policyManager = new PolicyManager(address(prexPoint), owner);
 
         prexPoint.setOrderExecutor(address(policyManager));
 

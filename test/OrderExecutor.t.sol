@@ -11,6 +11,7 @@ import "../lib/permit2/src/interfaces/ISignatureTransfer.sol";
 import {PrexPoint} from "../src/credit/PrexPoint.sol";
 import {SignedOrder} from "../src/interfaces/IOrderHandler.sol";
 import {IERC20Errors} from "../lib/openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol";
+import {IPolicyErrors} from "../src/interfaces/IPolicyErrors.sol";
 
 contract OrderExecutorTest is Test, TestUtils {
     using TransferRequestLib for TransferRequest;
@@ -31,12 +32,15 @@ contract OrderExecutorTest is Test, TestUtils {
         super.setUp();
 
         prexPoint = new PrexPoint(owner, address(permit2));
-        orderExecutor = new OrderExecutor(address(prexPoint));
+        orderExecutor = new OrderExecutor(address(prexPoint), owner);
         transferRequestHandler = new TransferRequestHandler(address(permit2));
 
         prexPoint.setOrderExecutor(address(orderExecutor));
 
         prexPoint.mint(user, 1000 * 1e6);
+
+        // register handler
+        orderExecutor.addHandler(address(transferRequestHandler));
     }
 
     function createSampleRequest(address sender, address recipient) internal view returns (TransferRequest memory) {
@@ -73,6 +77,7 @@ contract OrderExecutorTest is Test, TestUtils {
         assertEq(prexPoint.balanceOf(user), 999 * 1e6);
     }
 
+    // クレジット不足では、オーダーを実行できない
     function test_Execute_InsufficientCredit() public {
         TransferRequest memory request = createSampleRequest(user2, user);
 
@@ -88,6 +93,25 @@ contract OrderExecutorTest is Test, TestUtils {
             }),
             bytes("")
         );
+    }
+
+    // 登録されていないハンドラーでは、オーダーを実行できない
+    function test_Execute_InvalidHandler() public {
+        orderExecutor.removeHandler(address(transferRequestHandler));
+
+        TransferRequest memory request = createSampleRequest(user, user2);
+
+        SignedOrder memory order = SignedOrder({
+            dispatcher: address(transferRequestHandler),
+            methodId: 0,
+            order: abi.encode(request),
+            signature: _sign(request, userPrivateKey),
+            appSig: bytes(""),
+            identifier: bytes32(0)
+        });
+
+        vm.expectRevert(abi.encodeWithSelector(IPolicyErrors.InvalidHandler.selector));
+        orderExecutor.execute(order, bytes(""));
     }
 
     function _sign(TransferRequest memory request, uint256 fromPrivateKey) internal view returns (bytes memory) {

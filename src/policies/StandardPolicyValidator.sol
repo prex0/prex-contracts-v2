@@ -6,7 +6,6 @@ import {SignatureVerification} from "../../lib/permit2/src/libraries/SignatureVe
 import {OrderReceipt} from "../interfaces/IOrderHandler.sol";
 import {OrderHeader} from "../interfaces/IOrderExecutor.sol";
 import {CounterPolicyPrimitive} from "./primitives/CounterPolicyPrimitive.sol";
-import {WhitelistHandlerPolicyPrimitive} from "./primitives/WhitelistHandlerPolicyPrimitive.sol";
 import {WhitelistTokenPolicyPrimitive} from "./primitives/WhitelistTokenPolicyPrimitive.sol";
 
 /**
@@ -14,22 +13,12 @@ import {WhitelistTokenPolicyPrimitive} from "./primitives/WhitelistTokenPolicyPr
  * @notice handlerとトークンをチェックする
  */
 contract StandardPolicyValidator is IPolicyValidator, WhitelistTokenPolicyPrimitive, CounterPolicyPrimitive {
-    WhitelistHandlerPolicyPrimitive public whitelistHandlerPolicyPrimitive;
-
-    constructor(address _whitelistHandlerPolicyPrimitive) {
-        whitelistHandlerPolicyPrimitive = WhitelistHandlerPolicyPrimitive(_whitelistHandlerPolicyPrimitive);
-    }
-
     function validatePolicy(OrderHeader memory header, OrderReceipt memory receipt, bytes memory policyParams)
         external
         returns (bool)
     {
         (address[] memory whitelist, uint256 dailyLimit, uint256 timeUnit) =
             abi.decode(policyParams, (address[], uint256, uint256));
-
-        if (!whitelistHandlerPolicyPrimitive.validate(header)) {
-            return false;
-        }
 
         if (!validateTokens(receipt, whitelist)) {
             return false;

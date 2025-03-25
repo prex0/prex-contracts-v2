@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
-import {OrderReceipt} from "../../interfaces/IOrderHandler.sol";
-import {OrderHeader} from "../../interfaces/IOrderExecutor.sol";
-import {Owned} from "../../../lib/solmate/src/auth/Owned.sol";
+import {Owned} from "../../lib/solmate/src/auth/Owned.sol";
 
 /**
  * @title WhitelistHandlerPolicyValidator
  * @notice ホワイトリストに登録されたハンドラーのみがオーダーを実行できる
  */
-contract WhitelistHandlerPolicyPrimitive is Owned {
+contract WhitelistHandler is Owned {
     mapping(address => bool) public whitelist;
 
     constructor(address _owner) Owned(_owner) {}
@@ -40,8 +38,13 @@ contract WhitelistHandlerPolicyPrimitive is Owned {
         whitelist[handler] = false;
     }
 
-    function validate(OrderHeader memory header) external view returns (bool) {
-        if (!whitelist[header.dispatcher]) {
+    /**
+     * @notice ハンドラーがホワイトリストに登録されているかどうかを確認する
+     * @param handler ハンドラーのアドレス
+     * @return ハンドラーがホワイトリストに登録されている場合はtrue、そうでない場合はfalse
+     */
+    function validateHandler(address handler) internal view returns (bool) {
+        if (!whitelist[handler]) {
             return false;
         }
 
