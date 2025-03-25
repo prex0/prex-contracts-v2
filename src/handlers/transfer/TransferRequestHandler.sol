@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
-import {IOrderHandler, OrderHeader, OrderReceipt} from "../../interfaces/IOrderHandler.sol";
+import {IOrderHandler, OrderHeader, OrderReceipt, SignedOrder} from "../../interfaces/IOrderHandler.sol";
 import "./TransferRequest.sol";
 import {ERC20} from "../../../lib/solmate/src/tokens/ERC20.sol";
 import "../../../lib/permit2/src/interfaces/ISignatureTransfer.sol";
@@ -23,28 +23,25 @@ contract TransferRequestHandler is IOrderHandler {
         permit2 = IPermit2(_permit2);
     }
 
-    function execute(
-        address _facilitator,
-        bytes calldata order,
-        bytes calldata signature
-    ) external returns (OrderHeader memory, OrderReceipt memory) {
-        TransferRequest memory request = abi.decode(order, (TransferRequest));
+    function execute(address _facilitator, SignedOrder calldata order)
+        external
+        returns (OrderHeader memory, OrderReceipt memory)
+    {
+        TransferRequest memory request = abi.decode(order.order, (TransferRequest));
 
         bytes32 orderHash = request.hash();
 
         OrderHeader memory header = request.getOrderHeader();
 
-        _verifyRequest(request, orderHash, signature);
+        _verifyRequest(request, orderHash, order.signature);
 
-        emit Transferred(request.token, request.sender, request.recipient, request.amount, request.category, request.metadata);
+        emit Transferred(
+            request.token, request.sender, request.recipient, request.amount, request.category, request.metadata
+        );
 
-        return (header, OrderReceipt(
-            address(this),
-            orderHash,
-            POINTS
-        ));
+        return (header, OrderReceipt(address(this), orderHash, POINTS));
     }
-    
+
     function _verifyRequest(TransferRequest memory request, bytes32 orderHash, bytes memory sig) internal {
         if (address(this) != address(request.dispatcher)) {
             revert InvalidDispatcher();

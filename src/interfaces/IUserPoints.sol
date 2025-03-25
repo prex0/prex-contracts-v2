@@ -2,12 +2,7 @@
 pragma solidity ^0.8.20;
 
 interface IUserPoints {
-    function consumePoints(
-        address user,
-        uint256 points
-    ) external;
+    function consumePoints(address user, uint256 points) external;
 
-    function burn(
-        uint256 amount
-    ) external;
+    function burn(uint256 amount) external;
 }

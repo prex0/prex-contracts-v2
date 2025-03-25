@@ -92,7 +92,7 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
      * @param sig The submitter's signature
      */
     function createRequest(LinkTransferRequest memory request, bytes memory sig)
-        external
+        internal
         nonReentrant
         returns (OrderHeader memory, OrderReceipt memory)
     {
@@ -133,12 +133,7 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
 
         emit RequestSubmitted(id, request.token, request.sender, request.amount, request.deadline, request.metadata);
 
-        return (request.getOrderHeader(), OrderReceipt(
-            address(this),
-            orderHash,
-            POINTS
-        ));
-
+        return (request.getOrderHeader(), OrderReceipt(address(this), orderHash, POINTS));
     }
 
     /**
@@ -146,7 +141,11 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
      * This function is executed by the recipient after they receive the secret from the sender.
      * @param recipientData The recipient data
      */
-    function completeRequest(RecipientData memory recipientData) external nonReentrant returns (OrderHeader memory, OrderReceipt memory) {
+    function completeRequest(RecipientData memory recipientData)
+        internal
+        nonReentrant
+        returns (OrderHeader memory, OrderReceipt memory)
+    {
         PendingRequest storage request = pendingRequests[recipientData.requestId];
 
         if (recipientData.recipient == address(0)) {
@@ -174,24 +173,19 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
 
         emit RequestCompleted(recipientData.requestId, recipientData.recipient, recipientData.metadata);
 
-        return (getOrderHeader(request, recipientData), OrderReceipt(
-            address(this),
-            recipientData.requestId,
-            0
-        ));
+        return (getOrderHeader(request, recipientData), OrderReceipt(address(this), recipientData.requestId, 0));
     }
 
-
-    function getOrderHeader(PendingRequest memory request, RecipientData memory recipientData) internal pure returns (OrderHeader memory) {
+    function getOrderHeader(PendingRequest memory request, RecipientData memory recipientData)
+        internal
+        pure
+        returns (OrderHeader memory)
+    {
         address[] memory tokens = new address[](1);
 
         tokens[0] = request.token;
-        
-        return OrderHeader({
-            tokens: tokens,
-            user: request.sender,
-            policyId: recipientData.policyId
-        });
+
+        return OrderHeader({tokens: tokens, user: request.sender, policyId: recipientData.policyId});
     }
 
     /**
@@ -207,7 +201,7 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
     }
 
     /**
-    /**
+     * /**
      * @notice Cancels pending requests.
      */
     function batchCancelRequest(bytes32[] memory ids) external nonReentrant {
@@ -283,7 +277,8 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
         internal
         view
     {
-        bytes32 messageHash = MessageHashUtils.toEthSignedMessageHash(keccak256(abi.encode(address(this), nonce, recipient)));
+        bytes32 messageHash =
+            MessageHashUtils.toEthSignedMessageHash(keccak256(abi.encode(address(this), nonce, recipient)));
 
         if (publicKey != ECDSA.recover(messageHash, signature)) {
             revert InvalidSecret();

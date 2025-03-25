@@ -15,6 +15,7 @@ contract PolicyValidatorV1 is IPolicyValidator {
         uint256 lastExecutionDay;
     }
     // カウンター
+
     mapping(address => mapping(address => Counter)) public counterMap;
 
     error ExceededDailyLimit();

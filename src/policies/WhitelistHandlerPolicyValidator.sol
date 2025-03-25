@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import {IPolicyValidator} from "../interfaces/IPolicyValidator.sol";
 import {SignatureVerification} from "../../lib/permit2/src/libraries/SignatureVerification.sol";
 import {OrderHeader, OrderReceipt} from "../interfaces/IOrderHandler.sol";
-import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
+import {Owned} from "../../lib/solmate/src/auth/Owned.sol";
 
 /**
  * @title WhitelistHandlerPolicyValidator

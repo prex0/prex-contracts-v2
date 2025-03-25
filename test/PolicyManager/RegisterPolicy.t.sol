@@ -4,7 +4,6 @@ pragma solidity ^0.8.13;
 import {PolicyManagerSetup} from "./SetUp.t.sol";
 
 contract RegisterPolicyTest is PolicyManagerSetup {
-
     function setUp() public virtual override {
         super.setUp();
     }

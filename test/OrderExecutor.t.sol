@@ -9,6 +9,7 @@ import {TestUtils} from "./utils/TestUtils.sol";
 import {ERC20} from "../lib/solmate/src/tokens/ERC20.sol";
 import "../lib/permit2/src/interfaces/ISignatureTransfer.sol";
 import {PrexPoint} from "../src/credit/PrexPoint.sol";
+import {SignedOrder} from "../src/interfaces/IOrderHandler.sol";
 
 contract OrderExecutorTest is Test, TestUtils {
     using TransferRequestLib for TransferRequest;
@@ -48,10 +49,14 @@ contract OrderExecutorTest is Test, TestUtils {
         });
 
         orderExecutor.execute(
-            address(transferRequestHandler),
-            abi.encode(request),
-            _sign(request, userPrivateKey),
-            _sign(request, userPrivateKey)
+            SignedOrder({
+                dispatcher: address(transferRequestHandler),
+                methodId: 0,
+                order: abi.encode(request),
+                signature: _sign(request, userPrivateKey),
+                appSig: bytes("")
+            }),
+            bytes("")
         );
     }
 
@@ -74,10 +79,7 @@ contract OrderExecutorTest is Test, TestUtils {
         returns (ISignatureTransfer.PermitTransferFrom memory)
     {
         return ISignatureTransfer.PermitTransferFrom({
-            permitted: ISignatureTransfer.TokenPermissions({
-                token: address(request.token),
-                amount: request.amount
-            }),
+            permitted: ISignatureTransfer.TokenPermissions({token: address(request.token), amount: request.amount}),
             nonce: request.nonce,
             deadline: request.deadline
         });

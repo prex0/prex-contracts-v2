@@ -6,7 +6,7 @@ import {TransferRequestHandler} from "../../../../src/handlers/transfer/Transfer
 import {TransferRequest, TransferRequestLib} from "../../../../src/handlers/transfer/TransferRequest.sol";
 import {TestUtils} from "../../../utils/TestUtils.sol";
 import {ERC20} from "../../../../lib/solmate/src/tokens/ERC20.sol";
-import {OrderHeader, OrderReceipt} from "../../../../src/interfaces/IOrderHandler.sol";
+import {OrderHeader, OrderReceipt, SignedOrder} from "../../../../src/interfaces/IOrderHandler.sol";
 import "../../../../lib/permit2/src/interfaces/ISignatureTransfer.sol";
 import {MockToken} from "../../../mock/MockToken.sol";
 
@@ -52,9 +52,14 @@ contract TransferRequestTest is Test, TestUtils {
         });
 
         (OrderHeader memory header, OrderReceipt memory receipt) = transferRequestHandler.execute(
-            address(transferRequestHandler),
-            abi.encode(request),
-            _sign(request, userPrivateKey)
+            address(this),
+            SignedOrder({
+                dispatcher: address(transferRequestHandler),
+                methodId: 0,
+                order: abi.encode(request),
+                signature: _sign(request, userPrivateKey),
+                appSig: bytes("")
+            })
         );
 
         assertEq(header.policyId, 0);
@@ -82,10 +87,7 @@ contract TransferRequestTest is Test, TestUtils {
         returns (ISignatureTransfer.PermitTransferFrom memory)
     {
         return ISignatureTransfer.PermitTransferFrom({
-            permitted: ISignatureTransfer.TokenPermissions({
-                token: address(request.token),
-                amount: request.amount
-            }),
+            permitted: ISignatureTransfer.TokenPermissions({token: address(request.token), amount: request.amount}),
             nonce: request.nonce,
             deadline: request.deadline
         });

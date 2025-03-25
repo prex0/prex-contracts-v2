@@ -40,11 +40,8 @@ library DropRequestLib {
 
     string internal constant TOKEN_PERMISSIONS_TYPE = "TokenPermissions(address token,uint256 amount)";
 
-    string internal constant PERMIT2_ORDER_TYPE = string(
-        abi.encodePacked(
-            "DropRequest witness)", DROP_REQUEST_TYPE_S, TOKEN_PERMISSIONS_TYPE
-        )
-    );
+    string internal constant PERMIT2_ORDER_TYPE =
+        string(abi.encodePacked("DropRequest witness)", DROP_REQUEST_TYPE_S, TOKEN_PERMISSIONS_TYPE));
 
     uint256 private constant MAX_EXPIRY = 360 days;
 
@@ -95,10 +92,6 @@ library DropRequestLib {
 
         tokens[0] = request.token;
 
-        return OrderHeader({
-            tokens: tokens,
-            user: request.sender,
-            policyId: request.policyId
-        });
+        return OrderHeader({tokens: tokens, user: request.sender, policyId: request.policyId});
     }
 }

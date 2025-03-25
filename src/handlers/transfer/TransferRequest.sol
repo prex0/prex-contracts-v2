@@ -66,11 +66,7 @@ library TransferRequestLib {
         address[] memory tokens = new address[](1);
 
         tokens[0] = request.token;
-        
-        return OrderHeader({
-            tokens: tokens,
-            user: request.sender,
-            policyId: request.policyId
-        });
+
+        return OrderHeader({tokens: tokens, user: request.sender, policyId: request.policyId});
     }
 }

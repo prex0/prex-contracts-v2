@@ -9,7 +9,7 @@ import {IUserPoints} from "./interfaces/IUserPoints.sol";
 
 /**
  * @notice ポリシーの管理をするコントラクト
- * ポリシーの追加、削除、検証を行う 
+ * ポリシーの追加、削除、検証を行う
  */
 contract PolicyManager {
     // ポリシー情報を格納する構造体
@@ -70,28 +70,21 @@ contract PolicyManager {
      * @param appId アプリID
      * @return policyId ポリシーID
      */
-    function registerPolicy(
-        address validator,
-        address publicKey,
-        uint256 appId
-    ) external onlyAppOwner(appId) returns(uint256 policyId) {
+    function registerPolicy(address validator, address publicKey, uint256 appId)
+        external
+        onlyAppOwner(appId)
+        returns (uint256 policyId)
+    {
         policyId = policyCounts++;
 
-        policies[policyId] = Policy(
-            validator,
-            policyId,
-            publicKey,
-            appId,
-            "",
-            true
-        );
+        policies[policyId] = Policy(validator, policyId, publicKey, appId, "", true);
     }
 
     function deregisterPolicy(uint256 policyId) external onlyPolicyOwner(policyId) {
         policies[policyId].isActive = false;
     }
 
-    function registerApp(address owner) external returns(uint256 appId) {
+    function registerApp(address owner) external returns (uint256 appId) {
         appId = appCounts++;
 
         apps[appId] = App(0, owner);
@@ -128,14 +121,10 @@ contract PolicyManager {
      * @param header オーダーヘッダー
      * @param appSig アプリケーションの署名
      */
-    function validatePolicy(
-        OrderHeader memory header,
-        OrderReceipt memory receipt,
-        bytes calldata appSig
-    ) internal {
+    function validatePolicy(OrderHeader memory header, OrderReceipt memory receipt, bytes calldata appSig) internal {
         // ポリシーIDに対応するポリシー情報を取得
 
-        if(header.policyId == 0) {
+        if (header.policyId == 0) {
             IUserPoints(prexPoint).consumePoints(header.user, receipt.points);
         } else {
             Policy memory policy = policies[header.policyId];
@@ -143,14 +132,14 @@ contract PolicyManager {
             if (!policy.isActive) {
                 revert InactivePolicy();
             }
-            
+
             verifyAppSignature(receipt, policy, appSig);
 
             consumeAppCredit(policy.appId, receipt.points);
 
             if (policy.validator != address(0)) {
                 // ポリシーバリデータを呼び出してポリシーを検証し、消費者アドレスを取得
-                if(!IPolicyValidator(policy.validator).validatePolicy(header, receipt, policy.policyParams, appSig)) {
+                if (!IPolicyValidator(policy.validator).validatePolicy(header, receipt, policy.policyParams, appSig)) {
                     revert InvalidPolicy();
                 }
             }
@@ -163,11 +152,10 @@ contract PolicyManager {
      * @param policy ポリシー情報
      * @param appSig アプリ開発者の署名
      */
-    function verifyAppSignature(
-        OrderReceipt memory receipt,
-        Policy memory policy,
-        bytes calldata appSig
-    ) internal view {
+    function verifyAppSignature(OrderReceipt memory receipt, Policy memory policy, bytes calldata appSig)
+        internal
+        view
+    {
         SignatureVerification.verify(appSig, receipt.orderHash, policy.publicKey);
     }
 }

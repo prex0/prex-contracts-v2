@@ -112,7 +112,11 @@ contract DropRequestDispatcher is ReentrancyGuard {
      * @param request The request to submit.
      * @param sig The signature of the request.
      */
-    function submitRequest(DropRequest memory request, bytes memory sig) public nonReentrant returns (OrderHeader memory, OrderReceipt memory) {
+    function submitRequest(DropRequest memory request, bytes memory sig)
+        internal
+        nonReentrant
+        returns (OrderHeader memory, OrderReceipt memory)
+    {
         bytes32 id = request.hash();
 
         if (!request.verify()) {
@@ -153,11 +157,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
             request.name
         );
 
-        return (request.getOrderHeader(), OrderReceipt(
-            address(this),
-            id,
-            POINTS
-        ));
+        return (request.getOrderHeader(), OrderReceipt(address(this), id, POINTS));
     }
 
     /**
@@ -165,7 +165,11 @@ contract DropRequestDispatcher is ReentrancyGuard {
      * @dev Only facilitators can submit distribute requests.
      * @param recipientData The data of the recipient.
      */
-    function distribute(RecipientData memory recipientData) public nonReentrant returns (OrderHeader memory, OrderReceipt memory) {
+    function distribute(RecipientData memory recipientData)
+        internal
+        nonReentrant
+        returns (OrderHeader memory, OrderReceipt memory)
+    {
         PendingRequest storage request = pendingRequests[recipientData.requestId];
 
         if (block.timestamp > request.expiry) {
@@ -184,23 +188,19 @@ contract DropRequestDispatcher is ReentrancyGuard {
 
         emit Received(recipientData.requestId, recipientData.recipient, request.amountPerWithdrawal);
 
-        return (getOrderHeader(request, recipientData), OrderReceipt(
-            address(this),
-            recipientData.requestId,
-            POINTS
-        ));
+        return (getOrderHeader(request, recipientData), OrderReceipt(address(this), recipientData.requestId, POINTS));
     }
 
-    function getOrderHeader(PendingRequest memory request, RecipientData memory recipientData) internal pure returns (OrderHeader memory) {
+    function getOrderHeader(PendingRequest memory request, RecipientData memory recipientData)
+        internal
+        pure
+        returns (OrderHeader memory)
+    {
         address[] memory tokens = new address[](1);
 
         tokens[0] = request.token;
-        
-        return OrderHeader({
-            tokens: tokens,
-            user: request.sender,
-            policyId: recipientData.policyId
-        });
+
+        return OrderHeader({tokens: tokens, user: request.sender, policyId: recipientData.policyId});
     }
 
     /**
@@ -317,7 +317,11 @@ contract DropRequestDispatcher is ReentrancyGuard {
             );
         } else {
             _verifyRecipientSignature(
-                publicKey, recipientData.idempotencyKey, recipientData.deadline, recipientData.recipient, recipientData.sig
+                publicKey,
+                recipientData.idempotencyKey,
+                recipientData.deadline,
+                recipientData.recipient,
+                recipientData.sig
             );
         }
     }
@@ -329,8 +333,9 @@ contract DropRequestDispatcher is ReentrancyGuard {
         address recipient,
         bytes memory signature
     ) internal view {
-        bytes32 messageHash =
-            MessageHashUtils.toEthSignedMessageHash(keccak256(abi.encode(address(this), idempotencyKey, deadline, recipient)));
+        bytes32 messageHash = MessageHashUtils.toEthSignedMessageHash(
+            keccak256(abi.encode(address(this), idempotencyKey, deadline, recipient))
+        );
 
         if (publicKey != ECDSA.recover(messageHash, signature)) {
             revert InvalidSecret();

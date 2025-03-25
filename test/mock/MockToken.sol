@@ -7,11 +7,7 @@ import {ERC20} from "../../lib/openzeppelin-contracts/contracts/token/ERC20/ERC2
  * @notice MockToken
  */
 contract MockToken is ERC20 {
-    constructor()
-        ERC20("MockToken", "MT")
-    {
-
-    }
+    constructor() ERC20("MockToken", "MT") {}
 
     function mint(address to, uint256 amount) external {
         _mint(to, amount);

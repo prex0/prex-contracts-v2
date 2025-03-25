@@ -4,22 +4,25 @@ pragma solidity ^0.8.20;
 import "../../interfaces/IOrderHandler.sol";
 import "./DropRequestDispatcher.sol";
 
-contract DropHandler is IOrderHandler {
-    using DropRequestLib for DropRequest;
+contract DropHandler is IOrderHandler, DropRequestDispatcher {
+    error InvalidMethodId();
 
-    DropRequestDispatcher public dropRequestDispatcher;
+    constructor(address _permit2) DropRequestDispatcher(_permit2) {}
 
-    constructor(address _dropRequestDispatcher) {
-        dropRequestDispatcher = DropRequestDispatcher(_dropRequestDispatcher);
-    }
+    function execute(address _facilitator, SignedOrder calldata order)
+        external
+        returns (OrderHeader memory, OrderReceipt memory)
+    {
+        if (order.methodId == 1) {
+            DropRequest memory request = abi.decode(order.order, (DropRequest));
 
-    function execute(
-        address _facilitator,
-        bytes calldata order,
-        bytes calldata signature
-    ) external returns (OrderHeader memory, OrderReceipt memory) {
-        RecipientData memory recipientData = abi.decode(order, (RecipientData));
+            return submitRequest(request, order.signature);
+        } else if (order.methodId == 2) {
+            RecipientData memory recipientData = abi.decode(order.order, (RecipientData));
 
-        return dropRequestDispatcher.distribute(recipientData);
+            return distribute(recipientData);
+        } else {
+            revert InvalidMethodId();
+        }
     }
 }

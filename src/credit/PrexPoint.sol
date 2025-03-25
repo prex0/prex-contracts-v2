@@ -21,11 +21,7 @@ contract PrexPoint is IUserPoints, ERC20Permit, Owned {
         _;
     }
 
-    constructor(address _owner, address _permit2)
-        ERC20("PrexPoint", "PREX")
-        ERC20Permit("PrexPoint")
-        Owned(_owner)
-    {
+    constructor(address _owner, address _permit2) ERC20("PrexPoint", "PREX") ERC20Permit("PrexPoint") Owned(_owner) {
         permit2 = _permit2;
     }
 
@@ -41,16 +37,11 @@ contract PrexPoint is IUserPoints, ERC20Permit, Owned {
         _mint(to, amount);
     }
 
-    function burn(
-        uint256 amount
-    ) external {
+    function burn(uint256 amount) external {
         _burn(msg.sender, amount);
     }
 
-    function consumePoints(
-        address user,
-        uint256 points
-    ) external onlyOrderExecutor {
+    function consumePoints(address user, uint256 points) external onlyOrderExecutor {
         _burn(user, points);
     }
 
