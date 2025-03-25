@@ -8,7 +8,7 @@ import {IUserPoints} from "../interfaces/IUserPoints.sol";
 
 /**
  * @notice Prexポイントは、ERC20です。
- * OrderExecutorは、Prexポイントを消費することができます。
+ * OrderExecutorは、Prexポイントを消費してオーダーを実行します。
  */
 contract PrexPoint is IUserPoints, ERC20Permit, Owned {
     address public permit2;
