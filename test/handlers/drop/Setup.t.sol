@@ -2,16 +2,16 @@
 pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
-import {RecipientData} from "../../../src/handlers/drop/DropRequestDispatcher.sol";
+import {ClaimDropRequest} from "../../../src/handlers/drop/ClaimDropRequest.sol";
 import {DropHandler} from "../../../src/handlers/drop/DropHandler.sol";
-import {DropRequest, DropRequestLib} from "../../../src/handlers/drop/DropRequest.sol";
+import {CreateDropRequest, CreateDropRequestLib} from "../../../src/handlers/drop/CreateDropRequest.sol";
 import {TestUtils} from "../../utils/TestUtils.sol";
 import {OrderReceipt, SignedOrder} from "../../../src/interfaces/IOrderHandler.sol";
 import "../../../lib/permit2/src/interfaces/ISignatureTransfer.sol";
 import {MockToken} from "../../mock/MockToken.sol";
 
 contract DropRequestSetup is Test, TestUtils {
-    using DropRequestLib for DropRequest;
+    using CreateDropRequestLib for CreateDropRequest;
 
     DropHandler public dropHandler;
 
@@ -38,7 +38,7 @@ contract DropRequestSetup is Test, TestUtils {
         token.approve(address(permit2), 1e20);
     }
 
-    function _submit(DropRequest memory request, bytes memory sig) internal {
+    function _submit(CreateDropRequest memory request, bytes memory sig) internal {
         dropHandler.execute(
             address(this),
             SignedOrder({
@@ -53,7 +53,7 @@ contract DropRequestSetup is Test, TestUtils {
         );
     }
 
-    function _drop(RecipientData memory recipientData) internal {
+    function _drop(ClaimDropRequest memory recipientData) internal {
         dropHandler.execute(
             address(this),
             SignedOrder({
@@ -68,20 +68,25 @@ contract DropRequestSetup is Test, TestUtils {
         );
     }
 
-    function _sign(DropRequest memory request, uint256 fromPrivateKey) internal view virtual returns (bytes memory) {
+    function _sign(CreateDropRequest memory request, uint256 fromPrivateKey)
+        internal
+        view
+        virtual
+        returns (bytes memory)
+    {
         bytes32 witness = request.hash();
 
         return getPermit2Signature(
             fromPrivateKey,
             _toPermit(request),
             address(dropHandler),
-            DropRequestLib.PERMIT2_ORDER_TYPE,
+            CreateDropRequestLib.PERMIT2_ORDER_TYPE,
             witness,
             DOMAIN_SEPARATOR
         );
     }
 
-    function _toPermit(DropRequest memory request)
+    function _toPermit(CreateDropRequest memory request)
         internal
         pure
         returns (ISignatureTransfer.PermitTransferFrom memory)
@@ -99,10 +104,10 @@ contract DropRequestSetup is Test, TestUtils {
         uint256 _deadline,
         address _recipient,
         uint256 _privateKey
-    ) internal view returns (RecipientData memory) {
+    ) internal view returns (ClaimDropRequest memory) {
         bytes32 messageHash = keccak256(abi.encode(address(dropHandler), _idempotencyKey, _deadline, _recipient));
 
-        return RecipientData({
+        return ClaimDropRequest({
             requestId: _requestId,
             recipient: _recipient,
             idempotencyKey: _idempotencyKey,
@@ -121,14 +126,14 @@ contract DropRequestSetup is Test, TestUtils {
         uint256 _privateKey,
         uint256 _expiry,
         uint256 _subPrivateKey
-    ) internal view returns (RecipientData memory) {
+    ) internal view returns (ClaimDropRequest memory) {
         address subPublicKey = vm.addr(_subPrivateKey);
 
         bytes32 messageHash = keccak256(abi.encode(address(dropHandler), _idempotencyKey, _expiry, subPublicKey));
 
         bytes32 subMessageHash = keccak256(abi.encode(address(dropHandler), _idempotencyKey, _deadline, _recipient));
 
-        return RecipientData({
+        return ClaimDropRequest({
             requestId: _requestId,
             recipient: _recipient,
             idempotencyKey: _idempotencyKey,

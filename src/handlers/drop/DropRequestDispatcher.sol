@@ -1,32 +1,23 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.17;
 
-import "./DropRequest.sol";
+import "./CreateDropRequest.sol";
+import "./ClaimDropRequest.sol";
 import "../../../lib/solmate/src/tokens/ERC20.sol";
 import "../../../lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 import "../../../lib/openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
 import "../../../lib/permit2/src/interfaces/IPermit2.sol";
 import "../../../lib/solmate/src/utils/ReentrancyGuard.sol";
 
-struct RecipientData {
-    bytes32 requestId;
-    address recipient;
-    uint256 deadline;
-    bytes sig;
-    address subPublicKey;
-    bytes subSig;
-    string idempotencyKey;
-}
-
 /**
- * @notice TokenDistributor is a contract that allows senders to create multiple distribution requests.
+ * @notice DropRequestDispatcher is a contract that allows senders to create multiple distribution requests.
  * Each request can have multiple recipients who can claim their allocated tokens.
  * Recipients complete their claims by providing the signature of a secret key associated with the request.
  * This contract integrates with the Permit2 library to handle ERC20 token transfers securely and efficiently.
  * It supports multiple concurrent requests, enabling flexible and scalable token distribution scenarios.
  */
 contract DropRequestDispatcher is ReentrancyGuard {
-    using DropRequestLib for DropRequest;
+    using CreateDropRequestLib for CreateDropRequest;
 
     enum RequestStatus {
         NotSubmitted,
@@ -107,7 +98,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
      * @param request The request to get the ID from.
      * @return The request ID.
      */
-    function getRequestId(DropRequest memory request) public pure returns (bytes32) {
+    function getRequestId(CreateDropRequest memory request) public pure returns (bytes32) {
         return keccak256(abi.encode(request.publicKey));
     }
 
@@ -117,7 +108,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
      * @param request The request to submit.
      * @param sig The signature of the request.
      */
-    function submitRequest(DropRequest memory request, bytes memory sig)
+    function submitRequest(CreateDropRequest memory request, bytes memory sig)
         internal
         nonReentrant
         returns (OrderReceipt memory)
@@ -165,7 +156,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
      * @dev Only facilitators can submit distribute requests.
      * @param recipientData The data of the recipient.
      */
-    function distribute(RecipientData memory recipientData) internal nonReentrant returns (OrderReceipt memory) {
+    function distribute(ClaimDropRequest memory recipientData) internal nonReentrant returns (OrderReceipt memory) {
         PendingRequest storage request = pendingRequests[recipientData.requestId];
 
         if (request.status != RequestStatus.Pending) {
@@ -262,7 +253,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
     /**
      * @notice Verifies the request and the signature.
      */
-    function _verifySubmitRequest(DropRequest memory request, bytes memory sig) internal {
+    function _verifySubmitRequest(CreateDropRequest memory request, bytes memory sig) internal {
         if (address(this) != address(request.dispatcher)) {
             revert InvalidDispatcher();
         }
@@ -280,7 +271,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
             ISignatureTransfer.SignatureTransferDetails({to: address(this), requestedAmount: request.amount}),
             request.sender,
             request.hash(),
-            DropRequestLib.PERMIT2_ORDER_TYPE,
+            CreateDropRequestLib.PERMIT2_ORDER_TYPE,
             sig
         );
     }
@@ -288,7 +279,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
     /**
      * @notice Verifies the signature made by the recipient using the private key received from the sender.
      */
-    function _verifyRecipientData(address publicKey, uint256 expiry, RecipientData memory recipientData) internal {
+    function _verifyRecipientData(address publicKey, uint256 expiry, ClaimDropRequest memory recipientData) internal {
         // 配布者が同じユーザに配布しないように、idempotencyKeyを使用する
         if (idempotencyKeyMap[recipientData.requestId][recipientData.idempotencyKey]) {
             revert IdempotencyKeyUsed();

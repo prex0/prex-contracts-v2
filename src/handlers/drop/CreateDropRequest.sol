@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import "../../../src/interfaces/IOrderHandler.sol";
 
-struct DropRequest {
+struct CreateDropRequest {
     address dispatcher;
     uint256 policyId;
     address sender;
@@ -17,9 +17,9 @@ struct DropRequest {
     string name;
 }
 
-library DropRequestLib {
-    bytes internal constant DROP_REQUEST_TYPE_S = abi.encodePacked(
-        "DropRequest(",
+library CreateDropRequestLib {
+    bytes internal constant CREATE_DROP_REQUEST_TYPE_S = abi.encodePacked(
+        "CreateDropRequest(",
         "address dispatcher,",
         "uint256 policyId,",
         "address sender,",
@@ -35,23 +35,23 @@ library DropRequestLib {
 
     /// @dev Note that sub-structs have to be defined in alphabetical order in the EIP-712 spec
 
-    bytes internal constant DROP_REQUEST_TYPE = abi.encodePacked(DROP_REQUEST_TYPE_S);
-    bytes32 internal constant DROP_REQUEST_TYPE_HASH = keccak256(DROP_REQUEST_TYPE);
+    bytes internal constant CREATE_DROP_REQUEST_TYPE = abi.encodePacked(CREATE_DROP_REQUEST_TYPE_S);
+    bytes32 internal constant CREATE_DROP_REQUEST_TYPE_HASH = keccak256(CREATE_DROP_REQUEST_TYPE);
 
     string internal constant TOKEN_PERMISSIONS_TYPE = "TokenPermissions(address token,uint256 amount)";
 
     string internal constant PERMIT2_ORDER_TYPE =
-        string(abi.encodePacked("DropRequest witness)", DROP_REQUEST_TYPE_S, TOKEN_PERMISSIONS_TYPE));
+        string(abi.encodePacked("CreateDropRequest witness)", CREATE_DROP_REQUEST_TYPE_S, TOKEN_PERMISSIONS_TYPE));
 
     uint256 private constant MAX_EXPIRY = 360 days;
 
     /// @notice hash the given request
     /// @param request the request to hash
     /// @return the eip-712 request hash
-    function hash(DropRequest memory request) internal pure returns (bytes32) {
+    function hash(CreateDropRequest memory request) internal pure returns (bytes32) {
         return keccak256(
             abi.encode(
-                DROP_REQUEST_TYPE_HASH,
+                CREATE_DROP_REQUEST_TYPE_HASH,
                 request.dispatcher,
                 request.policyId,
                 request.sender,
@@ -67,7 +67,7 @@ library DropRequestLib {
         );
     }
 
-    function verify(DropRequest memory request) internal view returns (bool) {
+    function verify(CreateDropRequest memory request) internal view returns (bool) {
         if (request.expiry <= block.timestamp) {
             return false;
         }
@@ -87,7 +87,11 @@ library DropRequestLib {
         return true;
     }
 
-    function getOrderReceipt(DropRequest memory request, uint256 points) internal pure returns (OrderReceipt memory) {
+    function getOrderReceipt(CreateDropRequest memory request, uint256 points)
+        internal
+        pure
+        returns (OrderReceipt memory)
+    {
         address[] memory tokens = new address[](1);
 
         tokens[0] = request.token;
@@ -102,7 +106,7 @@ library DropRequestLib {
         });
     }
 
-    function getNumberOfWithdrawals(DropRequest memory request) internal pure returns (uint256) {
+    function getNumberOfWithdrawals(CreateDropRequest memory request) internal pure returns (uint256) {
         return request.amount / request.amountPerWithdrawal;
     }
 }

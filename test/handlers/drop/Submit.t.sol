@@ -6,8 +6,6 @@ import "../../../src/handlers/drop/DropRequestDispatcher.sol";
 import {SignatureVerification} from "../../../lib/permit2/src/libraries/SignatureVerification.sol";
 
 contract TestDropRequestDispatcherSubmit is DropRequestSetup {
-    using DropRequestLib for DropRequest;
-
     uint256 public tmpPrivKey = 11111000002;
 
     function setUp() public virtual override(DropRequestSetup) {
@@ -17,11 +15,11 @@ contract TestDropRequestDispatcherSubmit is DropRequestSetup {
     function _getRequest(address _dispatcher, uint256 _deadline, uint256 _expiry)
         internal
         view
-        returns (DropRequest memory)
+        returns (CreateDropRequest memory)
     {
         address tmpPublicKey = vm.addr(tmpPrivKey);
 
-        return DropRequest({
+        return CreateDropRequest({
             policyId: 0,
             dispatcher: _dispatcher,
             sender: sender,
@@ -38,7 +36,8 @@ contract TestDropRequestDispatcherSubmit is DropRequestSetup {
 
     // submit request
     function testSubmitRequest() public {
-        DropRequest memory request = _getRequest(address(dropHandler), block.timestamp + 100, block.timestamp + 100);
+        CreateDropRequest memory request =
+            _getRequest(address(dropHandler), block.timestamp + 100, block.timestamp + 100);
 
         bytes memory sig = _sign(request, privateKey);
 
@@ -49,7 +48,8 @@ contract TestDropRequestDispatcherSubmit is DropRequestSetup {
 
     // fails to submit if invalid signature
     function testCannotSubmitRequestIfInvalidSignature() public {
-        DropRequest memory request = _getRequest(address(dropHandler), block.timestamp + 100, block.timestamp + 100);
+        CreateDropRequest memory request =
+            _getRequest(address(dropHandler), block.timestamp + 100, block.timestamp + 100);
 
         bytes memory sig = _sign(request, privateKey2);
 
@@ -59,7 +59,7 @@ contract TestDropRequestDispatcherSubmit is DropRequestSetup {
 
     // fails to submit if invalid dispatcher
     function testCannotSubmitRequestIfInvalidDispatcher() public {
-        DropRequest memory request = _getRequest(address(0), block.timestamp + 100, block.timestamp + 100);
+        CreateDropRequest memory request = _getRequest(address(0), block.timestamp + 100, block.timestamp + 100);
 
         bytes memory sig = _sign(request, privateKey2);
 
@@ -71,7 +71,8 @@ contract TestDropRequestDispatcherSubmit is DropRequestSetup {
 
     // fails to submit if request already exists
     function testCannotSubmitRequestIfAlreadyExists() public {
-        DropRequest memory request = _getRequest(address(dropHandler), block.timestamp + 100, block.timestamp + 100);
+        CreateDropRequest memory request =
+            _getRequest(address(dropHandler), block.timestamp + 100, block.timestamp + 100);
 
         bytes memory sig = _sign(request, privateKey);
 
@@ -85,7 +86,7 @@ contract TestDropRequestDispatcherSubmit is DropRequestSetup {
     function testCannotSubmitRequestIfExpired() public {
         vm.warp(block.timestamp + 1000);
 
-        DropRequest memory request = _getRequest(address(dropHandler), block.timestamp + 100, 100);
+        CreateDropRequest memory request = _getRequest(address(dropHandler), block.timestamp + 100, 100);
 
         bytes memory sig = _sign(request, privateKey);
 
@@ -101,7 +102,7 @@ contract TestDropRequestDispatcherSubmit is DropRequestSetup {
     function testCannotSubmitRequestIfInvalidExpiry() public {
         vm.warp(block.timestamp + 1000);
 
-        DropRequest memory request =
+        CreateDropRequest memory request =
             _getRequest(address(dropHandler), block.timestamp + 100, block.timestamp + 365 days);
 
         bytes memory sig = _sign(request, privateKey);
@@ -116,7 +117,7 @@ contract TestDropRequestDispatcherSubmit is DropRequestSetup {
 
     // fails to submit if deadline passed
     function testCannotSubmitIfDeadlinePassed() public {
-        DropRequest memory request = _getRequest(address(dropHandler), block.timestamp - 1, block.timestamp + 100);
+        CreateDropRequest memory request = _getRequest(address(dropHandler), block.timestamp - 1, block.timestamp + 100);
 
         bytes memory sig = _sign(request, privateKey);
 

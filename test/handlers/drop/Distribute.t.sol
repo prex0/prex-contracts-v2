@@ -5,9 +5,7 @@ import {DropRequestSetup} from "./Setup.t.sol";
 import "../../../src/handlers/drop/DropRequestDispatcher.sol";
 
 contract TestDropRequestDispatcherDistribute is DropRequestSetup {
-    using DropRequestLib for DropRequest;
-
-    DropRequest internal request;
+    CreateDropRequest internal request;
     bytes32 internal requestId;
 
     uint256 public constant AMOUNT = 3;
@@ -23,7 +21,7 @@ contract TestDropRequestDispatcherDistribute is DropRequestSetup {
 
         address tmpPublicKey = vm.addr(tmpPrivKey);
 
-        request = DropRequest({
+        request = CreateDropRequest({
             policyId: 0,
             dispatcher: address(dropHandler),
             sender: sender,
@@ -46,7 +44,7 @@ contract TestDropRequestDispatcherDistribute is DropRequestSetup {
 
     // distribute
     function testDistribute() public {
-        RecipientData memory recipientData =
+        ClaimDropRequest memory recipientData =
             _getRecipientData(requestId, "0", block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
 
         assertEq(token.balanceOf(recipient), 0);
@@ -57,7 +55,7 @@ contract TestDropRequestDispatcherDistribute is DropRequestSetup {
     }
 
     function testDistributeWithSub() public {
-        RecipientData memory recipientData = _getRecipientDataWithSub(
+        ClaimDropRequest memory recipientData = _getRecipientDataWithSub(
             requestId, "0", block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey, request.expiry, subPrivKey
         );
 
@@ -78,7 +76,7 @@ contract TestDropRequestDispatcherDistribute is DropRequestSetup {
         _drop(_getRecipientData(requestId, "2", block.timestamp + EXPIRY_UNTIL, address(12), tmpPrivKey));
         _drop(_getRecipientData(requestId, "3", block.timestamp + EXPIRY_UNTIL, address(13), tmpPrivKey));
 
-        RecipientData memory recipientData =
+        ClaimDropRequest memory recipientData =
             _getRecipientData(requestId, "0", block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
 
         vm.expectRevert(DropRequestDispatcher.InsufficientFunds.selector);
@@ -90,7 +88,7 @@ contract TestDropRequestDispatcherDistribute is DropRequestSetup {
 
     // fails to distribute after expiry
     function testCannotDistributeAfterExpiry() public {
-        RecipientData memory recipientData =
+        ClaimDropRequest memory recipientData =
             _getRecipientData(requestId, "0", block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
 
         vm.warp(block.timestamp + EXPIRY_UNTIL + 1);
@@ -101,7 +99,7 @@ contract TestDropRequestDispatcherDistribute is DropRequestSetup {
 
     // fails to distribute with incorrect signature
     function testCannotDistributeWithIncorrectSignature() public {
-        RecipientData memory recipientData =
+        ClaimDropRequest memory recipientData =
             _getRecipientData(requestId, "0", block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
 
         recipientData.sig = _sign(request, privateKey);
@@ -114,7 +112,7 @@ contract TestDropRequestDispatcherDistribute is DropRequestSetup {
     function testCannotDistributeWithIncorrectNonce() public {
         _drop(_getRecipientData(requestId, "1", block.timestamp + EXPIRY_UNTIL, address(11), tmpPrivKey));
 
-        RecipientData memory recipientData =
+        ClaimDropRequest memory recipientData =
             _getRecipientData(requestId, "1", block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
 
         vm.expectRevert(DropRequestDispatcher.IdempotencyKeyUsed.selector);

@@ -11,11 +11,11 @@ contract DropHandler is IOrderHandler, DropRequestDispatcher {
 
     function execute(address, SignedOrder calldata order, bytes calldata) external returns (OrderReceipt memory) {
         if (order.methodId == 1) {
-            DropRequest memory request = abi.decode(order.order, (DropRequest));
+            CreateDropRequest memory request = abi.decode(order.order, (CreateDropRequest));
 
             return submitRequest(request, order.signature);
         } else if (order.methodId == 2) {
-            RecipientData memory recipientData = abi.decode(order.order, (RecipientData));
+            ClaimDropRequest memory recipientData = abi.decode(order.order, (ClaimDropRequest));
 
             return distribute(recipientData);
         } else {
