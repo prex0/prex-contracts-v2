@@ -56,6 +56,7 @@ contract ExecuteWithAppTest is OrderExecutorSetup {
         });
     }
 
+    // アプリにクレジットがある場合はクレジットを消費して実行する
     function test_ExecuteWithAppCredit() public {
         TransferRequest memory request = createSampleRequest(user, user2, textPolicyId);
 
@@ -79,5 +80,27 @@ contract ExecuteWithAppTest is OrderExecutorSetup {
         (uint256 credit,) = orderExecutor.apps(appId);
 
         assertEq(credit, 999 * 1e6);
+    }
+
+    // アプリにクレジットがない場合はリバートする
+    function test_ExecuteWithoutAppCredit() public {
+        TransferRequest memory request = createSampleRequest(user, user2, textPolicyId);
+
+        bytes32 orderHash = orderExecutor.getOrderHashForPolicy(abi.encode(request), bytes32(0));
+
+        orderExecutor.withdrawCredit(appId, 1000 * 1e6, owner);
+
+        vm.expectRevert(IPolicyErrors.InsufficientCredit.selector);
+        orderExecutor.execute(
+            SignedOrder({
+                dispatcher: address(transferRequestHandler),
+                methodId: 0,
+                order: abi.encode(request),
+                signature: _sign(request, userPrivateKey),
+                appSig: _signMessage(policyPrivateKey, orderHash),
+                identifier: bytes32(0)
+            }),
+            bytes("")
+        );
     }
 }
