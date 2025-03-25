@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
+import {OrderReceipt} from "../interfaces/IOrderHandler.sol";
+
 struct BuyPointOrder {
     address dispatcher;
     address buyer;
@@ -38,5 +40,15 @@ library BuyPointOrderLib {
                 BUY_POINT_ORDER_TYPE_HASH, order.dispatcher, order.buyer, order.deadline, order.nonce, order.amount
             )
         );
+    }
+
+    function getOrderReceipt(BuyPointOrder memory order) internal pure returns (OrderReceipt memory) {
+        address[] memory tokens = new address[](0);
+        return OrderReceipt({
+            user: order.buyer,
+            policyId: 0,
+            points: 0,
+            tokens: tokens
+        });
     }
 }

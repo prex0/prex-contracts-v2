@@ -9,10 +9,10 @@ import "./PrexPoint.sol";
 import "./BuyPointOrder.sol";
 
 /**
- * @title PointMarket
- * @notice Market for PointToken
+ * @title PrexPointMarket
+ * @notice Market for PrexPoint
  */
-contract PointMarket is Owned {
+contract PrexPointMarket is Owned {
     using BuyPointOrderLib for BuyPointOrder;
 
     PrexPoint public immutable point;
@@ -86,13 +86,13 @@ contract PointMarket is Owned {
 
         _issueNewPoint(to, amount, method, bytes(orderId));
     }
-
+    
     /**
      * @notice Buy tokens with DAI
      * @param order The order to buy
      * @param sig The signature of the order
      */
-    function buy(BuyPointOrder memory order, bytes memory sig) public {
+    function buy(BuyPointOrder memory order, bytes memory sig) internal {
         _verifyBuyOrder(order, sig);
 
         uint256 pointAmount = order.amount / POINT_PRICE;
