@@ -24,10 +24,7 @@ contract TransferRequestHandler is IOrderHandler {
         permit2 = IPermit2(_permit2);
     }
 
-    function execute(address _facilitator, SignedOrder calldata order, bytes calldata facilitatorData)
-        external
-        returns (OrderReceipt memory)
-    {
+    function execute(address, SignedOrder calldata order, bytes calldata) external returns (OrderReceipt memory) {
         TransferRequest memory request = abi.decode(order.order, (TransferRequest));
 
         _verifyRequest(request, order.signature);

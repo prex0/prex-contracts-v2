@@ -47,8 +47,6 @@ contract DropRequestDispatcher is ReentrancyGuard {
         uint256 policyId;
     }
 
-    mapping(address => bytes32) public publicKeyToRequestId;
-
     mapping(bytes32 => PendingRequest) public pendingRequests;
 
     /// @dev requestId => idempotencyKey => isCompleted
@@ -80,8 +78,6 @@ contract DropRequestDispatcher is ReentrancyGuard {
     error InvalidDispatcher();
     /// deadline passed
     error DeadlinePassed();
-    /// public key already exists
-    error PublicKeyAlreadyExists();
 
     /// idempotency key used
     error IdempotencyKeyUsed();
@@ -107,6 +103,15 @@ contract DropRequestDispatcher is ReentrancyGuard {
     }
 
     /**
+     * @notice Get the request ID from the request.
+     * @param request The request to get the ID from.
+     * @return The request ID.
+     */
+    function getRequestId(DropRequest memory request) public pure returns (bytes32) {
+        return keccak256(abi.encode(request.publicKey));
+    }
+
+    /**
      * @notice Submits a request to distribute tokens.
      * @dev Only facilitators can submit requests.
      * @param request The request to submit.
@@ -117,7 +122,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
         nonReentrant
         returns (OrderReceipt memory)
     {
-        bytes32 id = request.hash();
+        bytes32 id = getRequestId(request);
 
         if (!request.verify()) {
             revert InvalidRequest();
@@ -140,12 +145,6 @@ contract DropRequestDispatcher is ReentrancyGuard {
             name: request.name,
             policyId: request.policyId
         });
-
-        if (publicKeyToRequestId[request.publicKey] != bytes32(0)) {
-            revert PublicKeyAlreadyExists();
-        }
-
-        publicKeyToRequestId[request.publicKey] = id;
 
         emit Submitted(
             id,
