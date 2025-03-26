@@ -6,12 +6,16 @@ import {ITokenRegistry} from "../../interfaces/ITokenRegistry.sol";
 
 /**
  * @notice BaseCreatorCoin is a base contract for CreatorCoin.
+ * 発行者がトークンの詳細を変更することができる。
  */
 abstract contract BaseCreatorCoin is BasePrexToken {
+    /// @dev 発行者
     address public immutable issuer;
 
+    /// @dev トークンレジストリ
     ITokenRegistry public immutable tokenRegistry;
 
+    /// @dev 発行者のみが呼び出すことができる
     modifier onlyIssuer() {
         if (msg.sender != issuer) {
             revert("Only issuer can call this function");
@@ -26,6 +30,11 @@ abstract contract BaseCreatorCoin is BasePrexToken {
         tokenRegistry = ITokenRegistry(_tokenRegistry);
     }
 
+    /**
+     * @notice トークンの詳細を更新する
+     * @param pictureHash トークンの画像のハッシュ
+     * @param metadata トークンのメタデータ
+     */
     function updateTokenDetails(bytes32 pictureHash, string memory metadata) external onlyIssuer {
         tokenRegistry.updateToken(address(this), pictureHash, metadata);
     }

@@ -24,7 +24,7 @@ contract StandardPolicyValidator is IPolicyValidator, WhitelistTokenPolicyPrimit
             return false;
         }
 
-        if (!validateCounter(header, dailyLimit, timeUnit)) {
+        if (!_validateCounter(receipt.policyId, header.identifier, dailyLimit, timeUnit)) {
             return false;
         }
 

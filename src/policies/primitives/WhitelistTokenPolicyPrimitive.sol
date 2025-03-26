@@ -8,7 +8,7 @@ import {OrderHeader} from "../../interfaces/IOrderExecutor.sol";
  * @title WhitelistTokenPolicyValidator
  * @notice ホワイトリストに登録されたトークンのみがオーダーを実行できる
  */
-contract WhitelistTokenPolicyPrimitive {
+abstract contract WhitelistTokenPolicyPrimitive {
     error InvalidToken();
 
     function validateTokens(OrderReceipt memory receipt, address[] memory whitelist) internal pure returns (bool) {
