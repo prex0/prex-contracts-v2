@@ -186,20 +186,20 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
             revert InvalidSender();
         }
 
-        _cancelRequest(id);
+        _cancelRequest(id, true);
     }
 
     /**
-     * /**
+     *
      * @notice Cancels pending requests.
      */
     function batchCancelRequest(bytes32[] memory ids) external nonReentrant {
         for (uint256 i = 0; i < ids.length; i++) {
-            _cancelRequest(ids[i]);
+            _cancelRequest(ids[i], false);
         }
     }
 
-    function _cancelRequest(bytes32 id) internal {
+    function _cancelRequest(bytes32 id, bool forceCancel) internal {
         PendingRequest storage request = pendingRequests[id];
 
         if (request.status != RequestStatus.Pending) {
@@ -208,7 +208,7 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
 
         require(request.expiry > 0, "Expiry not set");
 
-        if (block.timestamp < request.expiry) {
+        if (block.timestamp < request.expiry && !forceCancel) {
             revert RequestNotExpired();
         }
 
