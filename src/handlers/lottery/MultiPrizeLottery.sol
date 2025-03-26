@@ -7,7 +7,11 @@ import "../../../lib/permit2/src/interfaces/IPermit2.sol";
 import "./orders/CreateLotteryOrder.sol";
 import "./orders/DrawLotteryOrder.sol";
 import {OrderReceipt} from "../../interfaces/IOrderHandler.sol";
+import {IOrderHandler} from "../../interfaces/IOrderHandler.sol";
 
+/**
+ * @notice 複数の賞を持つくじ
+ */
 contract MultiPrizeLottery {
     using CreateLotteryOrderLib for CreateLotteryOrder;
     using DrawLotteryOrderLib for DrawLotteryOrder;
@@ -34,9 +38,6 @@ contract MultiPrizeLottery {
     IPermit2 public immutable permit2;
 
     uint256 public constant POINTS = 1;
-
-    error InvalidDispatcher();
-    error DeadlinePassed();
 
     event LotteryCreated(uint256 indexed lotteryId, uint256 totalTickets);
     event LotteryDrawn(uint256 indexed lotteryId, address indexed player, uint256 prizeType, uint256 ticketNumber);
@@ -147,11 +148,11 @@ contract MultiPrizeLottery {
 
     function _verifyCreateOrder(CreateLotteryOrder memory order, bytes memory sig) internal {
         if (address(this) != address(order.dispatcher)) {
-            revert InvalidDispatcher();
+            revert IOrderHandler.InvalidDispatcher();
         }
 
         if (block.timestamp > order.deadline) {
-            revert DeadlinePassed();
+            revert IOrderHandler.DeadlinePassed();
         }
 
         permit2.permitWitnessTransferFrom(
@@ -172,11 +173,11 @@ contract MultiPrizeLottery {
         internal
     {
         if (address(this) != address(order.dispatcher)) {
-            revert InvalidDispatcher();
+            revert IOrderHandler.InvalidDispatcher();
         }
 
         if (block.timestamp > order.deadline) {
-            revert DeadlinePassed();
+            revert IOrderHandler.DeadlinePassed();
         }
 
         permit2.permitWitnessTransferFrom(

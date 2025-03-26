@@ -6,7 +6,7 @@ import "../../interfaces/IOrderHandler.sol";
 struct IssueMintableTokenRequest {
     address dispatcher;
     uint256 policyId;
-    address sender;
+    address issuer;
     address recipient;
     uint256 deadline;
     uint256 nonce;
@@ -23,7 +23,7 @@ library IssueMintableTokenRequestLib {
         "IssueMintableTokenRequest(",
         "address dispatcher,",
         "uint256 policyId,",
-        "address sender,",
+        "address issuer,",
         "address recipient,",
         "uint256 deadline,",
         "uint256 nonce,",
@@ -55,7 +55,7 @@ library IssueMintableTokenRequestLib {
                 ISSUE_MINTABLE_TOKEN_REQUEST_TYPE_HASH,
                 request.dispatcher,
                 request.policyId,
-                request.sender,
+                request.issuer,
                 request.recipient,
                 request.deadline,
                 request.nonce,
@@ -75,6 +75,6 @@ library IssueMintableTokenRequestLib {
     {
         address[] memory tokens = new address[](0);
 
-        return OrderReceipt({tokens: tokens, user: request.sender, policyId: request.policyId, points: points});
+        return OrderReceipt({tokens: tokens, user: request.issuer, policyId: request.policyId, points: points});
     }
 }

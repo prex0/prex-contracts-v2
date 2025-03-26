@@ -10,6 +10,9 @@ import {PrexTokenFactory} from "../../token-factory/PrexTokenFactory.sol";
 import {ITokenRegistry} from "../../interfaces/ITokenRegistry.sol";
 import {ICreatorCoin} from "../../interfaces/ICreatorCoin.sol";
 
+/**
+ * @notice ユーザのトークンを発行注文を処理するハンドラー
+ */
 contract IssueTokenHandler is IOrderHandler {
     using IssueMintableTokenRequestLib for IssueMintableTokenRequest;
 
@@ -17,10 +20,7 @@ contract IssueTokenHandler is IOrderHandler {
     PrexTokenFactory public immutable tokenFactory;
     ITokenRegistry public immutable tokenRegistry;
 
-    uint256 constant POINTS = 20 * 1e6;
-
-    error InvalidDispatcher();
-    error DeadlinePassed();
+    uint256 constant POINTS = 10;
 
     constructor(address _permit2, address _tokenFactory, address _tokenRegistry) {
         permit2 = IPermit2(_permit2);
@@ -28,27 +28,39 @@ contract IssueTokenHandler is IOrderHandler {
         tokenRegistry = ITokenRegistry(_tokenRegistry);
     }
 
+    /**
+     * @notice ユーザのトークンを発行注文を処理する
+     * @param order オーダーデータ
+     * @return 注文の結果
+     */
     function execute(address, SignedOrder calldata order, bytes calldata) external returns (OrderReceipt memory) {
-        // TODO: Implement issue token logic
         IssueMintableTokenRequest memory request = abi.decode(order.order, (IssueMintableTokenRequest));
 
+        // オーダーのリクエストを検証する
         _verifyRequest(request, order.signature);
 
+        // トークンを発行する
         address token = tokenFactory.createMintableCreatorToken(
             request.name,
             request.symbol,
             request.initialSupply,
             request.recipient,
-            request.sender,
+            request.issuer,
             address(permit2),
             address(tokenRegistry)
         );
 
+        // トークンの画像と詳細を更新する
         ICreatorCoin(token).updateTokenDetails(request.pictureHash, request.metadata);
 
         return request.getOrderReceipt(POINTS);
     }
 
+    /**
+     * @notice オーダーのリクエストを検証する
+     * @param request オーダーのリクエスト
+     * @param sig オーダーの署名
+     */
     function _verifyRequest(IssueMintableTokenRequest memory request, bytes memory sig) internal {
         if (address(this) != address(request.dispatcher)) {
             revert InvalidDispatcher();
@@ -65,7 +77,7 @@ contract IssueTokenHandler is IOrderHandler {
                 deadline: request.deadline
             }),
             ISignatureTransfer.SignatureTransferDetails({to: address(this), requestedAmount: 0}),
-            request.sender,
+            request.issuer,
             request.hash(),
             IssueMintableTokenRequestLib.PERMIT2_ORDER_TYPE,
             sig

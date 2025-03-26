@@ -65,7 +65,7 @@ contract TestDropRequestDispatcherSubmit is DropRequestSetup {
 
         vm.startPrank(facilitator);
 
-        vm.expectRevert(DropRequestDispatcher.InvalidDispatcher.selector);
+        vm.expectRevert(IOrderHandler.InvalidDispatcher.selector);
         _submit(request, sig);
     }
 
@@ -123,7 +123,7 @@ contract TestDropRequestDispatcherSubmit is DropRequestSetup {
 
         vm.startPrank(facilitator);
 
-        vm.expectRevert(DropRequestDispatcher.DeadlinePassed.selector);
+        vm.expectRevert(IOrderHandler.DeadlinePassed.selector);
         _submit(request, sig);
 
         vm.stopPrank();

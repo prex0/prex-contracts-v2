@@ -8,7 +8,7 @@ import "../../../lib/permit2/src/interfaces/IPermit2.sol";
 import "../../../lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 import "../../../lib/openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
 import "../../../lib/solmate/src/utils/ReentrancyGuard.sol";
-import "../../../src/interfaces/IOrderHandler.sol";
+import {IOrderHandler} from "../../interfaces/IOrderHandler.sol";
 
 /**
  * @notice OnetimeLockRequestDispatcher is a contract that allows the sender to create a request with a secret key.
@@ -57,14 +57,10 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
     error RecipientNotSet();
     /// @notice The secret is invalid
     error InvalidSecret();
-    /// @notice The dispatcher is invalid
-    error InvalidDispatcher();
     /// @notice The deadline is invalid
     error InvalidDeadline();
     /// @notice The amount is invalid
     error InvalidAmount();
-    /// @notice The deadline has passed
-    error DeadlinePassed();
     /// @notice The transfer failed
     error TransferFailed();
     /// @notice The sender is invalid
@@ -242,11 +238,11 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
      */
     function _verifySenderRequest(LinkTransferRequest memory request, bytes memory sig) internal {
         if (address(this) != address(request.dispatcher)) {
-            revert InvalidDispatcher();
+            revert IOrderHandler.InvalidDispatcher();
         }
 
         if (block.timestamp > request.deadline) {
-            revert DeadlinePassed();
+            revert IOrderHandler.DeadlinePassed();
         }
 
         permit2.permitWitnessTransferFrom(

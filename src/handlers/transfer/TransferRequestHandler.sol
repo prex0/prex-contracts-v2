@@ -15,18 +15,21 @@ contract TransferRequestHandler is IOrderHandler {
 
     event Transferred(address token, address from, address to, uint256 amount, uint256 category, bytes metadata);
 
-    error InvalidDispatcher();
-    error DeadlinePassed();
-
     uint256 public constant POINTS = 1;
 
     constructor(address _permit2) {
         permit2 = IPermit2(_permit2);
     }
 
+    /**
+     * @notice トークンの送付オーダーを処理する
+     * @param order 注文
+     * @return 注文の結果
+     */
     function execute(address, SignedOrder calldata order, bytes calldata) external returns (OrderReceipt memory) {
         TransferRequest memory request = abi.decode(order.order, (TransferRequest));
 
+        // オーダーのリクエストを検証する
         _verifyRequest(request, order.signature);
 
         emit Transferred(
@@ -36,6 +39,11 @@ contract TransferRequestHandler is IOrderHandler {
         return request.getOrderReceipt(POINTS);
     }
 
+    /**
+     * @notice オーダーのリクエストを検証する
+     * @param request オーダーのリクエスト
+     * @param sig オーダーの署名
+     */
     function _verifyRequest(TransferRequest memory request, bytes memory sig) internal {
         if (address(this) != address(request.dispatcher)) {
             revert InvalidDispatcher();

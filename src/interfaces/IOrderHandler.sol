@@ -19,6 +19,11 @@ struct OrderReceipt {
 }
 
 interface IOrderHandler {
+    // ハンドラーのアドレスが不正な場合
+    error InvalidDispatcher();
+    // オーダーの期限が切れた場合
+    error DeadlinePassed();
+
     function execute(address user, SignedOrder calldata order, bytes calldata facilitatorData)
         external
         returns (OrderReceipt memory);

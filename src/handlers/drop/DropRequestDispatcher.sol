@@ -8,6 +8,7 @@ import "../../../lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.s
 import "../../../lib/openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
 import "../../../lib/permit2/src/interfaces/IPermit2.sol";
 import "../../../lib/solmate/src/utils/ReentrancyGuard.sol";
+import {IOrderHandler} from "../../interfaces/IOrderHandler.sol";
 
 /**
  * @notice DropRequestDispatcher is a contract that allows senders to create multiple distribution requests.
@@ -63,12 +64,6 @@ contract DropRequestDispatcher is ReentrancyGuard {
     error CallerIsNotSender();
     /// invalid secret
     error InvalidSecret();
-
-    // common permit2 errors
-    /// invalid dispatcher
-    error InvalidDispatcher();
-    /// deadline passed
-    error DeadlinePassed();
 
     /// idempotency key used
     error IdempotencyKeyUsed();
@@ -255,11 +250,11 @@ contract DropRequestDispatcher is ReentrancyGuard {
      */
     function _verifySubmitRequest(CreateDropRequest memory request, bytes memory sig) internal {
         if (address(this) != address(request.dispatcher)) {
-            revert InvalidDispatcher();
+            revert IOrderHandler.InvalidDispatcher();
         }
 
         if (block.timestamp > request.deadline) {
-            revert DeadlinePassed();
+            revert IOrderHandler.DeadlinePassed();
         }
 
         permit2.permitWitnessTransferFrom(
@@ -288,7 +283,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
         idempotencyKeyMap[recipientData.requestId][recipientData.idempotencyKey] = true;
 
         if (block.timestamp > recipientData.deadline) {
-            revert DeadlinePassed();
+            revert IOrderHandler.DeadlinePassed();
         }
 
         if (recipientData.subPublicKey != address(0)) {

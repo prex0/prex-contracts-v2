@@ -7,11 +7,12 @@ import {ISignatureTransfer} from "../../lib/permit2/src/interfaces/ISignatureTra
 import {IPermit2} from "../../lib/permit2/src/interfaces/IPermit2.sol";
 import "./PrexPoint.sol";
 import "./BuyPointOrder.sol";
-
+import {IOrderHandler} from "../interfaces/IOrderHandler.sol";
 /**
  * @title PrexPointMarket
  * @notice Market for PrexPoint
  */
+
 contract PrexPointMarket is Owned {
     using BuyPointOrderLib for BuyPointOrder;
 
@@ -31,8 +32,6 @@ contract PrexPointMarket is Owned {
 
     error IdempotencyKeyAlreadyUsed();
     error InvalidMinter();
-    error InvalidDispatcher();
-    error DeadlinePassed();
 
     event PointBought(address indexed buyer, uint256 amount, uint256 method, bytes orderId);
     event FeeRecipientUpdated(address indexed newFeeRecipient);
@@ -112,11 +111,11 @@ contract PrexPointMarket is Owned {
 
     function _verifyBuyOrder(BuyPointOrder memory order, bytes memory sig) internal {
         if (address(this) != address(order.dispatcher)) {
-            revert InvalidDispatcher();
+            revert IOrderHandler.InvalidDispatcher();
         }
 
         if (block.timestamp > order.deadline) {
-            revert DeadlinePassed();
+            revert IOrderHandler.DeadlinePassed();
         }
 
         permit2.permitWitnessTransferFrom(
