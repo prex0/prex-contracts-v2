@@ -20,7 +20,7 @@ contract StandardPolicyValidator is IPolicyValidator, WhitelistTokenPolicyPrimit
         (address[] memory whitelist, uint256 dailyLimit, uint256 timeUnit) =
             abi.decode(policyParams, (address[], uint256, uint256));
 
-        if (!validateTokens(receipt, whitelist)) {
+        if (!_validateTokens(receipt.tokens, whitelist)) {
             return false;
         }
 
