@@ -8,14 +8,14 @@ import {SignatureVerification} from "../../lib/permit2/src/libraries/SignatureVe
 import {IERC20} from "../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {MessageHashUtils} from "../../lib/openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
 import {IUserPoints} from "../interfaces/IUserPoints.sol";
-import {WhitelistHandler} from "./WhitelistHandler.sol";
+import {CreditPrice} from "./CreditPrice.sol";
 import {IPolicyErrors} from "../interfaces/IPolicyErrors.sol";
 
 /**
  * @notice ポリシーの管理をするコントラクト
  * ポリシーの追加、削除、検証を行う
  */
-contract PolicyManager is WhitelistHandler, IPolicyErrors {
+contract PolicyManager is CreditPrice, IPolicyErrors {
     // ポリシー情報を格納する構造体
     struct Policy {
         address validator; // ポリシーバリデータのアドレス
@@ -58,7 +58,7 @@ contract PolicyManager is WhitelistHandler, IPolicyErrors {
         _;
     }
 
-    constructor(address _prexPoint, address _owner) WhitelistHandler(_owner) {
+    constructor(address _prexPoint, address _owner) CreditPrice(_owner) {
         policyCounts = 1;
         appCounts = 1;
         prexPoint = _prexPoint;
@@ -131,7 +131,7 @@ contract PolicyManager is WhitelistHandler, IPolicyErrors {
         }
 
         if (receipt.policyId == 0) {
-            IUserPoints(prexPoint).consumePoints(receipt.user, receipt.points);
+            IUserPoints(prexPoint).consumePoints(receipt.user, receipt.points * creditPrice);
         } else {
             Policy memory policy = policies[receipt.policyId];
 
@@ -141,7 +141,7 @@ contract PolicyManager is WhitelistHandler, IPolicyErrors {
 
             verifyAppSignature(header, policy, appSig);
 
-            consumeAppCredit(policy.appId, receipt.points);
+            consumeAppCredit(policy.appId, receipt.points * creditPrice);
 
             if (policy.validator != address(0)) {
                 // ポリシーバリデータを呼び出してポリシーを検証し、消費者アドレスを取得

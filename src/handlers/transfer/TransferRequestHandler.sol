@@ -18,7 +18,7 @@ contract TransferRequestHandler is IOrderHandler {
     error InvalidDispatcher();
     error DeadlinePassed();
 
-    uint256 public constant POINTS = 1e6;
+    uint256 public constant POINTS = 1;
 
     constructor(address _permit2) {
         permit2 = IPermit2(_permit2);

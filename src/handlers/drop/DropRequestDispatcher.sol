@@ -45,7 +45,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
 
     IPermit2 public immutable permit2;
 
-    uint256 public constant POINTS = 1e6;
+    uint256 public constant POINTS = 1;
 
     /// @dev Error codes
     error InvalidRequest();

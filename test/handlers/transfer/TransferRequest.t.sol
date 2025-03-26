@@ -33,7 +33,7 @@ contract TransferRequestTest is TransferRequestSetup {
         mockToken.approve(address(permit2), 1e18);
     }
 
-    function test_Execute() public {
+    function test_ExecuteTransfer() public {
         TransferRequest memory request = TransferRequest({
             dispatcher: address(transferRequestHandler),
             policyId: 0,
@@ -61,7 +61,7 @@ contract TransferRequestTest is TransferRequestSetup {
         );
 
         assertEq(receipt.policyId, 0);
-        assertEq(receipt.points, 1e6);
+        assertEq(receipt.points, 1);
 
         assertEq(ERC20(address(mockToken)).balanceOf(recipient), 1e18);
     }

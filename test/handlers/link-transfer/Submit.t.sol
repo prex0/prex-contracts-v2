@@ -66,7 +66,7 @@ contract LinkTransferTest is LinkTransferSetup {
         );
 
         assertEq(receipt.policyId, 0);
-        assertEq(receipt.points, 1e6);
+        assertEq(receipt.points, 1);
 
         // assertEq(ERC20(address(mockToken)).balanceOf(recipient), 1e18);
     }

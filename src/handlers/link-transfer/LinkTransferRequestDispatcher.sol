@@ -42,7 +42,7 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
 
     IPermit2 immutable permit2;
 
-    uint256 public constant POINTS = 1e6;
+    uint256 public constant POINTS = 1;
 
     // Request errors
     /// @notice The request already exists
@@ -170,19 +170,15 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
 
         emit RequestCompleted(recipientData.requestId, recipientData.recipient, recipientData.metadata);
 
-        return getOrderReceipt(request, POINTS);
+        return getOrderReceipt(request);
     }
 
-    function getOrderReceipt(PendingRequest memory request, uint256 points)
-        internal
-        pure
-        returns (OrderReceipt memory)
-    {
+    function getOrderReceipt(PendingRequest memory request) internal pure returns (OrderReceipt memory) {
         address[] memory tokens = new address[](1);
 
         tokens[0] = request.token;
 
-        return OrderReceipt({tokens: tokens, user: request.sender, policyId: request.policyId, points: points});
+        return OrderReceipt({tokens: tokens, user: request.sender, policyId: request.policyId, points: 0});
     }
 
     /**

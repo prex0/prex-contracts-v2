@@ -33,14 +33,14 @@ contract ExecuteWithUserTest is OrderExecutorSetup {
         );
 
         // check PrexCredit is consumed
-        assertEq(prexPoint.balanceOf(user), 999 * 1e6);
+        assertEq(prexPoint.balanceOf(user), 995 * 1e6);
     }
 
     // クレジット不足では、オーダーを実行できない
     function test_Execute_InsufficientCredit() public {
         TransferRequest memory request = createSampleRequest(user2, user);
 
-        vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, user2, 0, 1e6));
+        vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, user2, 0, 5 * 1e6));
         orderExecutor.execute(
             SignedOrder({
                 dispatcher: address(transferRequestHandler),

@@ -75,11 +75,11 @@ contract ExecuteWithAppTest is OrderExecutorSetup {
         );
 
         // check PrexCredit is consumed
-        assertEq(prexPoint.balanceOf(address(orderExecutor)), 999 * 1e6);
+        assertEq(prexPoint.balanceOf(address(orderExecutor)), 995 * 1e6);
 
         (uint256 credit,) = orderExecutor.apps(appId);
 
-        assertEq(credit, 999 * 1e6);
+        assertEq(credit, 995 * 1e6);
     }
 
     // アプリにクレジットがない場合はリバートする

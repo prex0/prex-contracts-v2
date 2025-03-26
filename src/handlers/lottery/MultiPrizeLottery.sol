@@ -33,7 +33,7 @@ contract MultiPrizeLottery {
 
     IPermit2 public immutable permit2;
 
-    uint256 public constant POINTS = 1e6;
+    uint256 public constant POINTS = 1;
 
     error InvalidDispatcher();
     error DeadlinePassed();
