@@ -26,7 +26,7 @@ contract OrderExecutor is IOrderExecutor, PolicyManager {
         OrderReceipt memory receipt = IOrderHandler(order.dispatcher).execute(msg.sender, order, facilitatorData);
 
         // ヘッダーを解釈して、ポリシーとの整合性をチェックする
-        validatePolicy(
+        _validatePolicy(
             OrderHeader({
                 dispatcher: order.dispatcher,
                 methodId: order.methodId,

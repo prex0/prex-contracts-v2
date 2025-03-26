@@ -3,22 +3,23 @@ pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 import {PrexPoint} from "../../src/credit/PrexPoint.sol";
-import {PolicyManager} from "../../src/policy-manager/PolicyManager.sol";
+import {PolicyManagerWrapper} from "../mock/PolicyManagerWrapper.sol";
+import {TestUtils} from "../utils/TestUtils.sol";
 
-contract PolicyManagerSetup is Test {
+contract PolicyManagerSetup is Test, TestUtils {
     PrexPoint public prexPoint;
-    PolicyManager public policyManager;
+    PolicyManagerWrapper public policyManager;
 
     address owner = address(this);
 
     address appOwner1 = address(1);
     address appOwner2 = address(2);
 
-    address public permit2 = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
+    function setUp() public virtual override {
+        super.setUp();
 
-    function setUp() public virtual {
         prexPoint = new PrexPoint(owner, address(permit2));
-        policyManager = new PolicyManager(address(prexPoint), owner);
+        policyManager = new PolicyManagerWrapper(address(prexPoint), owner);
 
         prexPoint.setOrderExecutor(address(policyManager));
 
