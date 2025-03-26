@@ -49,8 +49,10 @@ contract ValidatePolicyTest is PolicyManagerSetup {
         appId = policyManager.registerApp(appOwner1, "test");
 
         vm.startPrank(appOwner1);
-        policyIdTrue = policyManager.registerPolicy(appId, address(validator), policyPublicKey, abi.encode(true));
-        policyIdFalse = policyManager.registerPolicy(appId, address(validator), policyPublicKey, abi.encode(false));
+        policyIdTrue =
+            policyManager.registerPolicy(appId, address(validator), policyPublicKey, abi.encode(true), "true");
+        policyIdFalse =
+            policyManager.registerPolicy(appId, address(validator), policyPublicKey, abi.encode(false), "false");
         vm.stopPrank();
     }
 

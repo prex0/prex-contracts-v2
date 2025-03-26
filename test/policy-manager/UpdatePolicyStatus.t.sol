@@ -14,7 +14,7 @@ contract UpdatePolicyStatusTest is PolicyManagerSetup {
         uint256 appId = policyManager.registerApp(appOwner1, "test");
 
         vm.startPrank(appOwner1);
-        policyId = policyManager.registerPolicy(appId, address(0), address(0), "");
+        policyId = policyManager.registerPolicy(appId, address(0), address(0), "", "test");
         vm.stopPrank();
     }
 

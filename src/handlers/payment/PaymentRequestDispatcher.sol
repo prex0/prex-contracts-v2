@@ -61,7 +61,7 @@ contract PaymentRequestDispatcher is ReentrancyGuard {
     error RequestNotExpired();
 
     event PaymentRequestCreated(
-        bytes32 id, address creator, address recipient, uint256 amount, uint256 expiry, string name
+        bytes32 id, address creator, address recipient, address token, uint256 amount, uint256 expiry, string name
     );
     event PaymentMade(bytes32 id, address sender, bytes metadata);
     event PaymentRequestCancelled(bytes32 id);
@@ -120,7 +120,7 @@ contract PaymentRequestDispatcher is ReentrancyGuard {
         });
 
         emit PaymentRequestCreated(
-            id, request.creator, request.recipient, request.amount, request.deadline, request.name
+            id, request.creator, request.recipient, request.token, request.amount, request.deadline, request.name
         );
 
         return request.getOrderReceipt(POINTS);

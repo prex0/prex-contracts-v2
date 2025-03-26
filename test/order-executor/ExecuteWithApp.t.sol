@@ -30,7 +30,8 @@ contract ExecuteWithAppTest is OrderExecutorSetup {
 
             bytes memory policyParams = abi.encode(whitelist, 1, 1 days);
 
-            textPolicyId = orderExecutor.registerPolicy(appId, address(policyValidator), policyPublicKey, policyParams);
+            textPolicyId =
+                orderExecutor.registerPolicy(appId, address(policyValidator), policyPublicKey, policyParams, "test");
         }
 
         prexPoint.approve(address(orderExecutor), 1000 * 1e6);

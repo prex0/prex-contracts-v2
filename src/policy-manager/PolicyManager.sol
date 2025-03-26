@@ -42,7 +42,9 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
     uint256 appCounts;
 
     event AppRegistered(uint256 appId, address owner, string appName);
-    event PolicyRegistered(uint256 appId, uint256 policyId, address validator, address publicKey, bytes policyParams);
+    event PolicyRegistered(
+        uint256 appId, uint256 policyId, address validator, address publicKey, bytes policyParams, string policyName
+    );
     event PolicyStatusUpdated(uint256 appId, uint256 policyId, bool isActive);
 
     modifier onlyPolicyOwner(uint256 policyId) {
@@ -86,16 +88,18 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
      * @param appId アプリID
      * @return policyId ポリシーID
      */
-    function registerPolicy(uint256 appId, address validator, address publicKey, bytes calldata policyParams)
-        external
-        onlyAppOwner(appId)
-        returns (uint256 policyId)
-    {
+    function registerPolicy(
+        uint256 appId,
+        address validator,
+        address publicKey,
+        bytes calldata policyParams,
+        string calldata policyName
+    ) external onlyAppOwner(appId) returns (uint256 policyId) {
         policyId = policyCounts++;
 
         policies[policyId] = Policy(validator, policyId, publicKey, appId, policyParams, true);
 
-        emit PolicyRegistered(appId, policyId, validator, publicKey, policyParams);
+        emit PolicyRegistered(appId, policyId, validator, publicKey, policyParams, policyName);
     }
 
     /**
