@@ -5,6 +5,7 @@ import {OrderReceipt} from "../interfaces/IOrderHandler.sol";
 
 struct BuyPointOrder {
     address dispatcher;
+    uint256 policyId;
     address buyer;
     uint256 deadline;
     uint256 nonce;
@@ -16,6 +17,7 @@ library BuyPointOrderLib {
     bytes internal constant BUY_POINT_ORDER_TYPE_S = abi.encodePacked(
         "BuyPointOrder(",
         "address dispatcher,",
+        "uint256 policyId,",
         "address buyer,",
         "uint256 deadline,",
         "uint256 nonce,",
@@ -37,13 +39,19 @@ library BuyPointOrderLib {
     function hash(BuyPointOrder memory order) internal pure returns (bytes32) {
         return keccak256(
             abi.encode(
-                BUY_POINT_ORDER_TYPE_HASH, order.dispatcher, order.buyer, order.deadline, order.nonce, order.amount
+                BUY_POINT_ORDER_TYPE_HASH,
+                order.dispatcher,
+                order.policyId,
+                order.buyer,
+                order.deadline,
+                order.nonce,
+                order.amount
             )
         );
     }
 
     function getOrderReceipt(BuyPointOrder memory order) internal pure returns (OrderReceipt memory) {
         address[] memory tokens = new address[](0);
-        return OrderReceipt({user: order.buyer, policyId: 0, points: 0, tokens: tokens});
+        return OrderReceipt({user: order.buyer, policyId: order.policyId, points: 0, tokens: tokens});
     }
 }
