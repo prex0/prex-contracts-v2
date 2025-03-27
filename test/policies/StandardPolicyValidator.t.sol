@@ -18,7 +18,7 @@ contract StandardPolicyValidatorText is PolicyPrimitiveSetup {
         standardPolicyValidator = new StandardPolicyValidator();
     }
 
-    function getOrderReceipt(address token) internal returns (OrderReceipt memory) {
+    function getOrderReceipt(address token) internal view returns (OrderReceipt memory) {
         address[] memory tokens = new address[](1);
 
         tokens[0] = token;

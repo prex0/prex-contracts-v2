@@ -6,6 +6,7 @@ import "../../../src/interfaces/IOrderHandler.sol";
 struct CreateDropRequest {
     address dispatcher;
     uint256 policyId;
+    uint256 dropPolicyId;
     address sender;
     uint256 deadline;
     uint256 nonce;
@@ -22,6 +23,7 @@ library CreateDropRequestLib {
         "CreateDropRequest(",
         "address dispatcher,",
         "uint256 policyId,",
+        "uint156 dropPolicyId,",
         "address sender,",
         "uint256 deadline,",
         "uint256 nonce,",
@@ -54,6 +56,7 @@ library CreateDropRequestLib {
                 CREATE_DROP_REQUEST_TYPE_HASH,
                 request.dispatcher,
                 request.policyId,
+                request.dropPolicyId,
                 request.sender,
                 request.deadline,
                 request.nonce,

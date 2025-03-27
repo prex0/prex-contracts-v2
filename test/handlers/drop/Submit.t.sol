@@ -7,6 +7,7 @@ import {SignatureVerification} from "../../../lib/permit2/src/libraries/Signatur
 
 contract TestDropRequestDispatcherSubmit is DropRequestSetup {
     uint256 public tmpPrivKey = 11111000002;
+    address tmpPublicKey = vm.addr(tmpPrivKey);
 
     function setUp() public virtual override(DropRequestSetup) {
         super.setUp();
@@ -17,10 +18,9 @@ contract TestDropRequestDispatcherSubmit is DropRequestSetup {
         view
         returns (CreateDropRequest memory)
     {
-        address tmpPublicKey = vm.addr(tmpPrivKey);
-
         return CreateDropRequest({
             policyId: 0,
+            dropPolicyId: 0,
             dispatcher: _dispatcher,
             sender: sender,
             deadline: _deadline,

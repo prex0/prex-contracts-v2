@@ -36,7 +36,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
         uint256 expiry;
         RequestStatus status;
         string name;
-        uint256 policyId;
+        uint256 dropPolicyId;
     }
 
     mapping(bytes32 => PendingRequest) public pendingRequests;
@@ -129,7 +129,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
             expiry: request.expiry,
             status: RequestStatus.Pending,
             name: request.name,
-            policyId: request.policyId
+            dropPolicyId: request.dropPolicyId
         });
 
         emit Submitted(
@@ -182,7 +182,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
 
         tokens[0] = request.token;
 
-        return OrderReceipt({tokens: tokens, user: request.sender, policyId: request.policyId, points: 0});
+        return OrderReceipt({tokens: tokens, user: request.sender, policyId: request.dropPolicyId, points: 0});
     }
 
     /**

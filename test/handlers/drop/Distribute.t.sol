@@ -21,25 +21,30 @@ contract TestDropRequestDispatcherDistribute is DropRequestSetup {
 
         address tmpPublicKey = vm.addr(tmpPrivKey);
 
-        request = CreateDropRequest({
-            policyId: 0,
-            dispatcher: address(dropHandler),
-            sender: sender,
-            deadline: block.timestamp + EXPIRY_UNTIL,
-            nonce: 0,
-            token: address(token),
-            publicKey: tmpPublicKey,
-            amount: AMOUNT,
-            amountPerWithdrawal: 1,
-            expiry: block.timestamp + EXPIRY_UNTIL,
-            name: "test"
-        });
+        request = _createCreateDropRequest(tmpPublicKey);
 
         requestId = dropHandler.getRequestId(request);
 
         bytes memory sig = _sign(request, privateKey);
 
         _submit(request, sig);
+    }
+
+    function _createCreateDropRequest(address _tmpPublicKey) internal view returns (CreateDropRequest memory) {
+        return CreateDropRequest({
+            policyId: 0,
+            dropPolicyId: 0,
+            dispatcher: address(dropHandler),
+            sender: sender,
+            deadline: block.timestamp + EXPIRY_UNTIL,
+            nonce: 0,
+            token: address(token),
+            publicKey: _tmpPublicKey,
+            amount: AMOUNT,
+            amountPerWithdrawal: 1,
+            expiry: block.timestamp + EXPIRY_UNTIL,
+            name: "test"
+        });
     }
 
     // distribute
