@@ -42,13 +42,22 @@ contract MultiPrizeLottery {
     event LotteryCreated(uint256 indexed lotteryId, uint256 totalTickets);
     event LotteryDrawn(uint256 indexed lotteryId, address indexed player, uint256 prizeType, uint256 ticketNumber);
 
+    // errors
+    error CallerIsNotLotteryOwner();
+    error LotteryNotFound();
+    error LotteryNotActive();
+
     modifier onlyLotteryOwner(uint256 _lotteryId) {
-        require(msg.sender == lotteries[_lotteryId].owner, "Not the owner");
+        if (msg.sender != lotteries[_lotteryId].owner) {
+            revert CallerIsNotLotteryOwner();
+        }
         _;
     }
 
     modifier isLotteryActive(uint256 _lotteryId) {
-        require(lotteries[_lotteryId].active, "Lottery is not active");
+        if (!lotteries[_lotteryId].active) {
+            revert LotteryNotActive();
+        }
         _;
     }
 
@@ -82,6 +91,14 @@ contract MultiPrizeLottery {
         emit LotteryCreated(lotteryCounter, order.totalTickets);
 
         return CreateLotteryOrderLib.getOrderReceipt(order, POINTS);
+    }
+
+    /**
+     * @notice くじをキャンセル
+     * @param _lotteryId くじのID
+     */
+    function cancelLottery(uint256 _lotteryId) external onlyLotteryOwner(_lotteryId) {
+        lotteries[_lotteryId].active = false;
     }
 
     /// @notice くじを引く

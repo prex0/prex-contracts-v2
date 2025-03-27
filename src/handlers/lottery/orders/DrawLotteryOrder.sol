@@ -7,7 +7,6 @@ struct DrawLotteryOrder {
     uint256 deadline;
     uint256 nonce;
     uint256 lotteryId;
-    uint256 amount;
 }
 
 /// @notice helpers for handling DrawLotteryOrder

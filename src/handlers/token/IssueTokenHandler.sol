@@ -8,7 +8,7 @@ import "../../../lib/permit2/src/interfaces/ISignatureTransfer.sol";
 import "../../../lib/permit2/src/interfaces/IPermit2.sol";
 import {PrexTokenFactory} from "../../token-factory/PrexTokenFactory.sol";
 import {ITokenRegistry} from "../../interfaces/ITokenRegistry.sol";
-import {ICreatorCoin} from "../../interfaces/ICreatorCoin.sol";
+import {CreateTokenParameters} from "../../token-factory/TokenParams.sol";
 
 /**
  * @notice ユーザのトークンを発行注文を処理するハンドラー
@@ -39,19 +39,18 @@ contract IssueTokenHandler is IOrderHandler {
         // オーダーのリクエストを検証する
         _verifyRequest(request, order.signature);
 
-        // トークンを発行する
-        address token = tokenFactory.createMintableCreatorToken(
-            request.name,
-            request.symbol,
-            request.initialSupply,
-            request.recipient,
-            request.issuer,
-            address(permit2),
-            address(tokenRegistry)
-        );
+        CreateTokenParameters memory params = CreateTokenParameters({
+            name: request.name,
+            symbol: request.symbol,
+            initialSupply: request.initialSupply,
+            recipient: request.recipient,
+            issuer: request.issuer,
+            pictureHash: request.pictureHash,
+            metadata: request.metadata
+        });
 
-        // トークンの画像と詳細を更新する
-        ICreatorCoin(token).updateTokenDetails(request.pictureHash, request.metadata);
+        // トークンを発行する
+        tokenFactory.createMintableCreatorToken(params, address(permit2), address(tokenRegistry));
 
         return request.getOrderReceipt(POINTS);
     }

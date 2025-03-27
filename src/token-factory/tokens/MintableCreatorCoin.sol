@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {BaseCreatorCoin} from "./BaseCreatorCoin.sol";
+import {CreateTokenParameters} from "../TokenParams.sol";
 
 /**
  * @notice MintableCreatorCoin is a token that can be created by the creator.
@@ -11,20 +12,16 @@ contract MintableCreatorCoin is BaseCreatorCoin {
 
     error MaxSupplyReached();
 
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        uint256 _initialSupply,
-        address _recipient,
-        address _issuer,
-        address _permit2,
-        address _tokenRegistry
-    ) BaseCreatorCoin(_name, _symbol, _issuer, _permit2, _tokenRegistry) {
-        if (_initialSupply > MAX_SUPPLY) {
+    constructor(CreateTokenParameters memory params, address _permit2, address _tokenRegistry)
+        BaseCreatorCoin(params.name, params.symbol, params.issuer, _permit2, _tokenRegistry)
+    {
+        if (params.initialSupply > MAX_SUPPLY) {
             revert MaxSupplyReached();
         }
 
-        _mint(_recipient, _initialSupply);
+        _mint(params.recipient, params.initialSupply);
+
+        tokenRegistry.updateToken(address(this), params.pictureHash, params.metadata);
     }
 
     /**
