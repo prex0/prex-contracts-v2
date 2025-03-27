@@ -14,8 +14,7 @@ contract TestLotteryDraw is LotterySetup {
     function setUp() public virtual override(LotterySetup) {
         super.setUp();
 
-        CreateLotteryOrder memory request =
-            _getCreateLotteryOrder(address(lotteryHandler), block.timestamp + 100, block.timestamp + 100);
+        CreateLotteryOrder memory request = _getCreateLotteryOrder(address(lotteryHandler), block.timestamp + 100);
 
         bytes memory sig = _sign(request, privateKey);
 
@@ -27,7 +26,7 @@ contract TestLotteryDraw is LotterySetup {
         token.approve(address(permit2), 2 * 1e18);
     }
 
-    function _getCreateLotteryOrder(address _dispatcher, uint256 _deadline, uint256 _expiry)
+    function _getCreateLotteryOrder(address _dispatcher, uint256 _deadline)
         internal
         view
         returns (CreateLotteryOrder memory)

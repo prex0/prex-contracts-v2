@@ -124,11 +124,10 @@ contract DropRequestSetup is Test, TestUtils {
         address _recipient,
         uint256 _privateKey,
         uint256 _expiry,
+        address _subPublicKey,
         uint256 _subPrivateKey
     ) internal view returns (ClaimDropRequest memory) {
-        address subPublicKey = vm.addr(_subPrivateKey);
-
-        bytes32 messageHash = keccak256(abi.encode(address(dropHandler), _idempotencyKey, _expiry, subPublicKey));
+        bytes32 messageHash = keccak256(abi.encode(address(dropHandler), _idempotencyKey, _expiry, _subPublicKey));
 
         bytes32 subMessageHash = keccak256(abi.encode(address(dropHandler), _idempotencyKey, _deadline, _recipient));
 
@@ -138,7 +137,7 @@ contract DropRequestSetup is Test, TestUtils {
             idempotencyKey: _idempotencyKey,
             deadline: _deadline,
             sig: _signMessage(_privateKey, messageHash),
-            subPublicKey: subPublicKey,
+            subPublicKey: _subPublicKey,
             subSig: _signMessage(_subPrivateKey, subMessageHash)
         });
     }

@@ -13,6 +13,7 @@ contract TestDropRequestDispatcherDistribute is DropRequestSetup {
 
     uint256 public constant tmpPrivKey = 11111000002;
     uint256 public constant subPrivKey = 11111000003;
+    address public subPublicKey = vm.addr(subPrivKey);
 
     function setUp() public virtual override(DropRequestSetup) {
         super.setUp();
@@ -61,7 +62,14 @@ contract TestDropRequestDispatcherDistribute is DropRequestSetup {
 
     function testDistributeWithSub() public {
         ClaimDropRequest memory recipientData = _getRecipientDataWithSub(
-            requestId, "0", block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey, request.expiry, subPrivKey
+            requestId,
+            "0",
+            block.timestamp + EXPIRY_UNTIL,
+            recipient,
+            tmpPrivKey,
+            request.expiry,
+            subPublicKey,
+            subPrivKey
         );
 
         assertEq(token.balanceOf(recipient), 0);
