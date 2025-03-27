@@ -63,8 +63,6 @@ contract TestDropRequestDispatcherSubmit is DropRequestSetup {
 
         bytes memory sig = _sign(request, privateKey2);
 
-        vm.startPrank(facilitator);
-
         vm.expectRevert(IOrderHandler.InvalidDispatcher.selector);
         _submit(request, sig);
     }
@@ -90,8 +88,6 @@ contract TestDropRequestDispatcherSubmit is DropRequestSetup {
 
         bytes memory sig = _sign(request, privateKey);
 
-        vm.startPrank(facilitator);
-
         vm.expectRevert(DropRequestDispatcher.InvalidRequest.selector);
         _submit(request, sig);
 
@@ -107,8 +103,6 @@ contract TestDropRequestDispatcherSubmit is DropRequestSetup {
 
         bytes memory sig = _sign(request, privateKey);
 
-        vm.startPrank(facilitator);
-
         vm.expectRevert(DropRequestDispatcher.InvalidRequest.selector);
         _submit(request, sig);
 
@@ -120,8 +114,6 @@ contract TestDropRequestDispatcherSubmit is DropRequestSetup {
         CreateDropRequest memory request = _getRequest(address(dropHandler), block.timestamp - 1, block.timestamp + 100);
 
         bytes memory sig = _sign(request, privateKey);
-
-        vm.startPrank(facilitator);
 
         vm.expectRevert(IOrderHandler.DeadlinePassed.selector);
         _submit(request, sig);

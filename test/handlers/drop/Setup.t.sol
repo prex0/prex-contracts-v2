@@ -19,7 +19,6 @@ contract DropRequestSetup is Test, TestUtils {
     uint256 internal privateKey2 = 32156;
     uint256 internal privateKey3 = 654321;
     address internal sender = vm.addr(privateKey);
-    address internal facilitator = vm.addr(privateKey2);
     address internal recipient = vm.addr(privateKey3);
 
     MockToken public token;

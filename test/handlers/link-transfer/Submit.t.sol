@@ -11,6 +11,7 @@ import {ERC20} from "../../../lib/solmate/src/tokens/ERC20.sol";
 import {OrderReceipt, SignedOrder} from "../../../src/interfaces/IOrderHandler.sol";
 import {OrderHeader} from "../../../src/interfaces/IOrderExecutor.sol";
 import {MockToken} from "../../mock/MockToken.sol";
+import {LinkTransferRequestDispatcher} from "../../../src/handlers/link-transfer/LinkTransferRequestDispatcher.sol";
 
 contract LinkTransferTest is LinkTransferSetup {
     using LinkTransferRequestLib for LinkTransferRequest;
@@ -68,6 +69,34 @@ contract LinkTransferTest is LinkTransferSetup {
         assertEq(receipt.policyId, 0);
         assertEq(receipt.points, 1);
 
-        // assertEq(ERC20(address(mockToken)).balanceOf(recipient), 1e18);
+        assertEq(mockToken.balanceOf(address(linkTransferHandler)), 1e18);
+    }
+
+    function test_SubmitLinkTransferRequest_Expired() public {
+        LinkTransferRequest memory request = LinkTransferRequest({
+            dispatcher: address(linkTransferHandler),
+            policyId: 0,
+            sender: user,
+            deadline: block.timestamp + 181 days,
+            nonce: 1,
+            amount: 1e18,
+            token: address(mockToken),
+            publicKey: tmpPublicKey,
+            metadata: bytes("")
+        });
+
+        vm.expectRevert(LinkTransferRequestDispatcher.InvalidDeadline.selector);
+        linkTransferHandler.execute(
+            address(this),
+            SignedOrder({
+                dispatcher: address(linkTransferHandler),
+                methodId: 1,
+                order: abi.encode(request),
+                signature: _sign(request, userPrivateKey),
+                appSig: bytes(""),
+                identifier: bytes32(0)
+            }),
+            bytes("")
+        );
     }
 }

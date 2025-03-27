@@ -64,13 +64,9 @@ contract TestDropRequestDispatcherDistribute is DropRequestSetup {
             requestId, "0", block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey, request.expiry, subPrivKey
         );
 
-        vm.startPrank(facilitator);
-
         assertEq(token.balanceOf(recipient), 0);
         _drop(recipientData);
         assertEq(token.balanceOf(recipient), 1);
-
-        vm.stopPrank();
 
         assertEq(token.balanceOf(recipient), 1);
     }
