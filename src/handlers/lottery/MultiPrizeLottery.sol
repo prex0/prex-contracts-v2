@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import "../../../lib/permit2/src/interfaces/ISignatureTransfer.sol";
 import "../../../lib/permit2/src/interfaces/IPermit2.sol";
 import "./orders/CreateLotteryOrder.sol";
 import "./orders/DrawLotteryOrder.sol";
 import {OrderReceipt} from "../../interfaces/IOrderHandler.sol";
 import {IOrderHandler} from "../../interfaces/IOrderHandler.sol";
+import "./LotteryLib.sol";
 
 /**
  * @notice 複数の賞を持つくじ
@@ -15,32 +15,17 @@ import {IOrderHandler} from "../../interfaces/IOrderHandler.sol";
 contract MultiPrizeLottery {
     using CreateLotteryOrderLib for CreateLotteryOrder;
     using DrawLotteryOrderLib for DrawLotteryOrder;
-
-    struct Prize {
-        uint256 count; // 当たりの枚数
-        uint256 remaining; // 残りの当たり枚数
-    }
-
-    struct Lottery {
-        uint256 policyId;
-        address owner;
-        address token;
-        uint256 entryFee;
-        uint256 totalTickets;
-        uint256 remainingTickets;
-        bool active;
-        Prize[8] prizes;
-    }
+    using LotteryLib for LotteryLib.Lottery;
 
     uint256 public lotteryCounter;
-    mapping(uint256 => Lottery) public lotteries;
+    mapping(uint256 => LotteryLib.Lottery) public lotteries;
 
     IPermit2 public immutable permit2;
 
     uint256 public constant POINTS = 1;
 
-    event LotteryCreated(uint256 indexed lotteryId, uint256 totalTickets);
-    event LotteryDrawn(uint256 indexed lotteryId, address indexed player, uint256 prizeType, uint256 ticketNumber);
+    event LotteryCreated(uint256 indexed lotteryId, uint256[] prizeCounts, string[] prizeNames);
+    event LotteryDrawn(uint256 indexed lotteryId, address indexed player, uint256 ticketNumber, uint256 prizeType);
 
     // errors
     error CallerIsNotLotteryOwner();
@@ -70,25 +55,11 @@ contract MultiPrizeLottery {
         _verifyCreateOrder(order, sig);
 
         lotteryCounter++;
-        Lottery storage newLottery = lotteries[lotteryCounter];
+        uint256 lotteryId = lotteryCounter;
 
-        newLottery.owner = order.sender;
-        newLottery.token = order.token;
-        newLottery.entryFee = order.entryFee;
-        newLottery.totalTickets = order.totalTickets;
-        newLottery.remainingTickets = order.totalTickets;
-        newLottery.active = true;
-        newLottery.policyId = order.policyId;
+        lotteries[lotteryId] = LotteryLib.create(order);
 
-        uint256 totalPrizes = 0;
-        for (uint256 i = 0; i < order.prizeCounts.length; i++) {
-            newLottery.prizes[i] = Prize(order.prizeCounts[i], order.prizeCounts[i]);
-            totalPrizes += order.prizeCounts[i];
-        }
-
-        require(totalPrizes <= order.totalTickets, "Too many prize tickets");
-
-        emit LotteryCreated(lotteryCounter, order.totalTickets);
+        emit LotteryCreated(lotteryId, order.prizeCounts, order.prizeNames);
 
         return CreateLotteryOrderLib.getOrderReceipt(order, POINTS);
     }
@@ -107,7 +78,7 @@ contract MultiPrizeLottery {
         isLotteryActive(order.lotteryId)
         returns (OrderReceipt memory)
     {
-        Lottery storage lottery = lotteries[order.lotteryId];
+        LotteryLib.Lottery storage lottery = lotteries[order.lotteryId];
 
         require(lottery.remainingTickets > 0, "No tickets left");
 
@@ -118,39 +89,23 @@ contract MultiPrizeLottery {
         bytes32 blockHash = blockhash(block.number - 1);
         require(blockHash != bytes32(0), "Invalid blockhash");
 
-        uint256 ticketNumber = lottery.totalTickets - lottery.remainingTickets;
-        uint256 randomValue = uint256(blockHash) % lottery.remainingTickets;
+        (uint256 ticketNumber, uint256 prizeType) = lottery.draw(blockHash);
 
-        uint256 prizeType = 0;
-        for (uint256 i = 0; i < lottery.prizes.length; i++) {
-            uint256 typeId = i;
+        emit LotteryDrawn(order.lotteryId, order.sender, ticketNumber, prizeType);
 
-            if (lottery.prizes[typeId].remaining > 0 && randomValue < lottery.prizes[typeId].remaining) {
-                prizeType = typeId;
-                lottery.prizes[typeId].remaining--;
-                break;
-            }
-        }
-
-        // くじの残り枚数を減らす
-        lottery.remainingTickets--;
-
-        // すべてのくじが引かれたら終了
-        if (lottery.remainingTickets == 0) {
-            lottery.active = false;
-        }
-
-        emit LotteryDrawn(order.lotteryId, msg.sender, prizeType, ticketNumber);
-
-        return getOrderReceipt(lottery);
+        return getOrderReceipt(lottery, abi.encode(ticketNumber, prizeType));
     }
 
-    function getOrderReceipt(Lottery memory lottery) internal pure returns (OrderReceipt memory) {
+    function getOrderReceipt(LotteryLib.Lottery memory lottery, bytes memory result)
+        internal
+        pure
+        returns (OrderReceipt memory)
+    {
         address[] memory tokens = new address[](1);
 
         tokens[0] = lottery.token;
 
-        return OrderReceipt({tokens: tokens, user: lottery.owner, policyId: lottery.policyId, points: 0});
+        return OrderReceipt({tokens: tokens, user: lottery.owner, policyId: lottery.policyId, points: 0, result: result});
     }
 
     /// @notice くじの情報を取得
@@ -159,7 +114,7 @@ contract MultiPrizeLottery {
         view
         returns (uint256 entryFee, uint256 totalTickets, uint256 remainingTickets, bool active)
     {
-        Lottery storage lottery = lotteries[_lotteryId];
+        LotteryLib.Lottery memory lottery = lotteries[_lotteryId];
         return (lottery.entryFee, lottery.totalTickets, lottery.remainingTickets, lottery.active);
     }
 

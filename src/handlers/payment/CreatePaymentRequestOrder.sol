@@ -71,6 +71,6 @@ library CreatePaymentRequestOrderLib {
 
         tokens[0] = request.token;
 
-        return OrderReceipt({tokens: tokens, user: request.creator, policyId: request.policyId, points: points});
+        return OrderReceipt({tokens: tokens, user: request.creator, policyId: request.policyId, points: points, result: ""});
     }
 }

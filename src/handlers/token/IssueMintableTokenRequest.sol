@@ -75,6 +75,6 @@ library IssueMintableTokenRequestLib {
     {
         address[] memory tokens = new address[](0);
 
-        return OrderReceipt({tokens: tokens, user: request.issuer, policyId: request.policyId, points: points});
+        return OrderReceipt({tokens: tokens, user: request.issuer, policyId: request.policyId, points: points, result: ""});
     }
 }

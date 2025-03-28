@@ -14,6 +14,14 @@ contract TestLotteryRequestDispatcherSubmit is LotterySetup {
     }
 
     function _getRequest(address _dispatcher, uint256 _deadline) internal view returns (CreateLotteryOrder memory) {
+        uint256[] memory prizeCounts = new uint256[](2);
+        prizeCounts[0] = 1;
+        prizeCounts[1] = 1;
+
+        string[] memory prizeNames = new string[](2);
+        prizeNames[0] = "prize1";
+        prizeNames[1] = "prize2";
+
         return CreateLotteryOrder({
             policyId: 0,
             dispatcher: _dispatcher,
@@ -23,8 +31,8 @@ contract TestLotteryRequestDispatcherSubmit is LotterySetup {
             token: address(token),
             name: "test",
             entryFee: 1,
-            totalTickets: 100,
-            prizeCounts: new uint256[](0)
+            prizeCounts: prizeCounts,
+            prizeNames: prizeNames
         });
     }
 

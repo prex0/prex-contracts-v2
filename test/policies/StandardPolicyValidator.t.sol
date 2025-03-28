@@ -23,7 +23,7 @@ contract StandardPolicyValidatorText is PolicyPrimitiveSetup {
 
         tokens[0] = token;
 
-        return OrderReceipt({tokens: tokens, user: address(0), policyId: 0, points: 0});
+        return OrderReceipt({tokens: tokens, user: address(0), policyId: 0, points: 0, result: ""});
     }
 
     function test_validatePolicy() public {

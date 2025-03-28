@@ -68,6 +68,6 @@ library LinkTransferRequestLib {
 
         tokens[0] = request.token;
 
-        return OrderReceipt({tokens: tokens, user: request.sender, policyId: request.policyId, points: points});
+        return OrderReceipt({tokens: tokens, user: request.sender, policyId: request.policyId, points: points, result: ""});
     }
 }

@@ -61,7 +61,7 @@ contract ValidatePolicyTest is PolicyManagerSetup {
         vm.expectRevert(abi.encodeWithSelector(IPolicyErrors.InvalidHandler.selector));
         policyManager.validatePolicy(
             OrderHeader({dispatcher: handlerNotFound, methodId: 0, orderHash: orderHash, identifier: bytes32(0)}),
-            OrderReceipt({user: address(0), policyId: policyIdTrue, tokens: new address[](0), points: 0}),
+            OrderReceipt({user: address(0), policyId: policyIdTrue, tokens: new address[](0), points: 0, result: ""}),
             _signMessage(policyPrivateKey, orderHash)
         );
     }
@@ -71,7 +71,7 @@ contract ValidatePolicyTest is PolicyManagerSetup {
         vm.expectRevert(abi.encodeWithSelector(IPolicyErrors.InvalidPolicy.selector));
         policyManager.validatePolicy(
             OrderHeader({dispatcher: handler, methodId: 0, orderHash: orderHash, identifier: bytes32(0)}),
-            OrderReceipt({user: address(0), policyId: policyIdFalse, tokens: new address[](0), points: 0}),
+            OrderReceipt({user: address(0), policyId: policyIdFalse, tokens: new address[](0), points: 0, result: ""}),
             _signMessage(policyPrivateKey, orderHash)
         );
     }
@@ -85,7 +85,7 @@ contract ValidatePolicyTest is PolicyManagerSetup {
         vm.expectRevert(abi.encodeWithSelector(IPolicyErrors.InactivePolicy.selector));
         policyManager.validatePolicy(
             OrderHeader({dispatcher: handler, methodId: 0, orderHash: orderHash, identifier: bytes32(0)}),
-            OrderReceipt({user: address(0), policyId: policyIdTrue, tokens: new address[](0), points: 0}),
+            OrderReceipt({user: address(0), policyId: policyIdTrue, tokens: new address[](0), points: 0, result: ""}),
             _signMessage(policyPrivateKey, orderHash)
         );
     }
@@ -95,7 +95,7 @@ contract ValidatePolicyTest is PolicyManagerSetup {
         vm.expectRevert(SignatureVerification.InvalidSigner.selector);
         policyManager.validatePolicy(
             OrderHeader({dispatcher: handler, methodId: 0, orderHash: orderHash, identifier: bytes32(0)}),
-            OrderReceipt({user: address(0), policyId: policyIdTrue, tokens: new address[](0), points: 0}),
+            OrderReceipt({user: address(0), policyId: policyIdTrue, tokens: new address[](0), points: 0, result: ""}),
             _signMessage(policyPrivateKeyInvalid, orderHash)
         );
     }
@@ -109,7 +109,7 @@ contract ValidatePolicyTest is PolicyManagerSetup {
 
         policyManager.validatePolicy(
             OrderHeader({dispatcher: handler, methodId: 0, orderHash: orderHash, identifier: bytes32(0)}),
-            OrderReceipt({user: address(0), policyId: policyIdTrue, tokens: new address[](0), points: 1}),
+            OrderReceipt({user: address(0), policyId: policyIdTrue, tokens: new address[](0), points: 1, result: ""}),
             _signMessage(policyPrivateKey, orderHash)
         );
 
@@ -124,7 +124,7 @@ contract ValidatePolicyTest is PolicyManagerSetup {
         vm.expectRevert(abi.encodeWithSelector(IPolicyErrors.InsufficientCredit.selector));
         policyManager.validatePolicy(
             OrderHeader({dispatcher: handler, methodId: 0, orderHash: orderHash, identifier: bytes32(0)}),
-            OrderReceipt({user: address(0), policyId: policyIdTrue, tokens: new address[](0), points: 1}),
+            OrderReceipt({user: address(0), policyId: policyIdTrue, tokens: new address[](0), points: 1, result: ""}),
             _signMessage(policyPrivateKey, orderHash)
         );
     }
@@ -138,7 +138,8 @@ contract ValidatePolicyTest is PolicyManagerSetup {
                 // ポリシーIDが0の場合はユーザーが消費する
                 policyId: 0,
                 tokens: new address[](0),
-                points: 0
+                points: 0,
+                result: ""
             }),
             bytes("")
         );

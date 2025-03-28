@@ -15,7 +15,7 @@ contract TestLotteryCancel is LotterySetup {
         super.setUp();
 
         CreateLotteryOrder memory request =
-            _getCreateLotteryOrder(address(lotteryHandler), block.timestamp + 100, block.timestamp + 100);
+            _getCreateLotteryOrder(address(lotteryHandler), block.timestamp + 100);
 
         bytes memory sig = _sign(request, privateKey);
 
@@ -27,11 +27,19 @@ contract TestLotteryCancel is LotterySetup {
         token.approve(address(permit2), 2 * 1e18);
     }
 
-    function _getCreateLotteryOrder(address _dispatcher, uint256 _deadline, uint256 _expiry)
+    function _getCreateLotteryOrder(address _dispatcher, uint256 _deadline)
         internal
         view
         returns (CreateLotteryOrder memory)
     {
+        uint256[] memory prizeCounts = new uint256[](2);
+        prizeCounts[0] = 1;
+        prizeCounts[1] = 1;
+
+        string[] memory prizeNames = new string[](2);
+        prizeNames[0] = "prize1";
+        prizeNames[1] = "prize2";
+
         return CreateLotteryOrder({
             policyId: 0,
             dispatcher: _dispatcher,
@@ -41,8 +49,8 @@ contract TestLotteryCancel is LotterySetup {
             token: address(token),
             name: "test",
             entryFee: 1e18,
-            totalTickets: 100,
-            prizeCounts: new uint256[](0)
+            prizeCounts: prizeCounts,
+            prizeNames: prizeNames
         });
     }
 

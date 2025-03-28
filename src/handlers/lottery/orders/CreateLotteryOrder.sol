@@ -12,8 +12,8 @@ struct CreateLotteryOrder {
     address token;
     string name;
     uint256 entryFee;
-    uint256 totalTickets;
     uint256[] prizeCounts;
+    string[] prizeNames;
 }
 
 /// @notice helpers for handling CreateLotteryOrder
@@ -28,8 +28,8 @@ library CreateLotteryOrderLib {
         "address token,",
         "string name,",
         "uint256 entryFee,",
-        "uint256 totalTickets,",
-        "uint256[] prizeCounts)"
+        "uint256[] prizeCounts,",
+        "string[] prizeNames)"
     );
 
     /// @dev Note that sub-structs have to be defined in alphabetical order in the EIP-712 spec
@@ -45,6 +45,12 @@ library CreateLotteryOrderLib {
     /// @param order the order to hash
     /// @return the eip-712 order hash
     function hash(CreateLotteryOrder memory order) internal pure returns (bytes32) {
+        bytes32[] memory prizeNameHashes = new bytes32[](order.prizeNames.length);
+        for (uint256 i = 0; i < order.prizeNames.length; i++) {
+            prizeNameHashes[i] = keccak256(bytes(order.prizeNames[i]));
+        }
+        bytes32 prizeNamesHash = keccak256(abi.encodePacked(prizeNameHashes));
+
         return keccak256(
             abi.encode(
                 CREATE_LOTTERY_ORDER_TYPE_HASH,
@@ -56,8 +62,8 @@ library CreateLotteryOrderLib {
                 order.token,
                 keccak256(bytes(order.name)),
                 order.entryFee,
-                order.totalTickets,
-                order.prizeCounts
+                keccak256(abi.encodePacked(order.prizeCounts)),
+                prizeNamesHash
             )
         );
     }
@@ -71,6 +77,6 @@ library CreateLotteryOrderLib {
 
         tokens[0] = order.token;
 
-        return OrderReceipt({policyId: order.policyId, user: order.sender, tokens: tokens, points: points});
+        return OrderReceipt({policyId: order.policyId, user: order.sender, tokens: tokens, points: points, result: ""});
     }
 }

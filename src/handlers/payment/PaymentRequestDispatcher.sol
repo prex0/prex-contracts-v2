@@ -157,7 +157,7 @@ contract PaymentRequestDispatcher is ReentrancyGuard {
 
         tokens[0] = request.token;
 
-        return OrderReceipt({tokens: tokens, user: request.creator, policyId: request.policyId, points: POINTS});
+        return OrderReceipt({tokens: tokens, user: request.creator, policyId: request.policyId, points: POINTS, result: ""});
     }
 
     /**

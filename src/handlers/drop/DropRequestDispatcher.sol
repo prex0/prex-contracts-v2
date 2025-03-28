@@ -182,7 +182,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
 
         tokens[0] = request.token;
 
-        return OrderReceipt({tokens: tokens, user: request.sender, policyId: request.dropPolicyId, points: 0});
+        return OrderReceipt({tokens: tokens, user: request.sender, policyId: request.dropPolicyId, points: 0, result: ""});
     }
 
     /**
