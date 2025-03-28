@@ -38,8 +38,11 @@ contract LotterySetup is Test, TestUtils {
         token.approve(address(permit2), 1e20);
     }
 
-    function _createLottery(CreateLotteryOrder memory request, bytes memory sig) internal {
-        lotteryHandler.execute(
+    function _createLottery(CreateLotteryOrder memory request, bytes memory sig)
+        internal
+        returns (OrderReceipt memory)
+    {
+        return lotteryHandler.execute(
             address(this),
             SignedOrder({
                 dispatcher: address(lotteryHandler),
@@ -53,8 +56,8 @@ contract LotterySetup is Test, TestUtils {
         );
     }
 
-    function _drawLottery(DrawLotteryOrder memory request, bytes memory sig) internal {
-        lotteryHandler.execute(
+    function _drawLottery(DrawLotteryOrder memory request, bytes memory sig) internal returns (OrderReceipt memory) {
+        return lotteryHandler.execute(
             address(this),
             SignedOrder({
                 dispatcher: address(lotteryHandler),

@@ -14,7 +14,7 @@ contract TestLotteryRequestDispatcherSubmit is LotterySetup {
         super.setUp();
     }
 
-    function _getRequest(address _dispatcher, uint256 _deadline) internal view returns (CreateLotteryOrder memory) {
+    function _getRequest(bool _isPrepaid, uint256 _deadline) internal view returns (CreateLotteryOrder memory) {
         uint256[] memory prizeCounts = new uint256[](2);
         prizeCounts[0] = 1;
         prizeCounts[1] = 1;
@@ -25,7 +25,8 @@ contract TestLotteryRequestDispatcherSubmit is LotterySetup {
 
         return CreateLotteryOrder({
             policyId: 0,
-            dispatcher: _dispatcher,
+            dispatcher: address(lotteryHandler),
+            isPrepaid: _isPrepaid,
             sender: sender,
             deadline: _deadline,
             nonce: 0,
@@ -38,12 +39,32 @@ contract TestLotteryRequestDispatcherSubmit is LotterySetup {
     }
 
     // submit request
-    function testCreateLottery() public {
-        CreateLotteryOrder memory request = _getRequest(address(lotteryHandler), block.timestamp + 100);
+    function testCreateLottery_Prepaid() public {
+        CreateLotteryOrder memory request = _getRequest(true, block.timestamp + 100);
 
         bytes memory sig = _sign(request, privateKey);
 
-        _createLottery(request, sig);
+        OrderReceipt memory receipt = _createLottery(request, sig);
+
+        assertEq(receipt.policyId, 0);
+        assertEq(receipt.points, 2);
+
+        LotteryLib.Lottery memory lottery = lotteryHandler.getLotteryInfo(1);
+
+        assertEq(lottery.totalTickets, 2);
+        assertEq(lottery.remainingTickets, 2);
+        assertEq(lottery.active, true);
+    }
+
+    function testCreateLottery_NotPrepaid() public {
+        CreateLotteryOrder memory request = _getRequest(false, block.timestamp + 100);
+
+        bytes memory sig = _sign(request, privateKey);
+
+        OrderReceipt memory receipt = _createLottery(request, sig);
+
+        assertEq(receipt.policyId, 0);
+        assertEq(receipt.points, 1);
 
         LotteryLib.Lottery memory lottery = lotteryHandler.getLotteryInfo(1);
 

@@ -5,6 +5,7 @@ import {OrderReceipt} from "../../../interfaces/IOrderHandler.sol";
 
 struct CreateLotteryOrder {
     uint256 policyId;
+    bool isPrepaid;
     address dispatcher;
     address sender;
     uint256 deadline;
@@ -21,6 +22,7 @@ library CreateLotteryOrderLib {
     bytes internal constant CREATE_LOTTERY_ORDER_TYPE_S = abi.encodePacked(
         "CreateLotteryOrder(",
         "uint256 policyId,",
+        "bool isPrepaid,",
         "address dispatcher,",
         "address sender,",
         "uint256 deadline,",
@@ -55,6 +57,7 @@ library CreateLotteryOrderLib {
             abi.encode(
                 CREATE_LOTTERY_ORDER_TYPE_HASH,
                 order.policyId,
+                order.isPrepaid,
                 order.dispatcher,
                 order.sender,
                 order.deadline,

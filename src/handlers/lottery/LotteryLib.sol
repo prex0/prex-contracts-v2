@@ -14,6 +14,7 @@ library LotteryLib {
 
     struct Lottery {
         uint256 policyId;
+        bool isPrepaid;
         address owner;
         address token;
         uint256 entryFee;
@@ -27,11 +28,12 @@ library LotteryLib {
     function create(CreateLotteryOrder memory order) internal pure returns (Lottery memory) {
         Lottery memory newLottery;
 
+        newLottery.policyId = order.policyId;
+        newLottery.isPrepaid = order.isPrepaid;
         newLottery.owner = order.sender;
         newLottery.token = order.token;
         newLottery.entryFee = order.entryFee;
         newLottery.active = true;
-        newLottery.policyId = order.policyId;
         newLottery.name = order.name;
 
         uint256 totalTickets = 0;

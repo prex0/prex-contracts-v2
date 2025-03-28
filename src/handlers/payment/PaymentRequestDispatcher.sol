@@ -223,7 +223,7 @@ contract PaymentRequestDispatcher is ReentrancyGuard {
 
         permit2.permitWitnessTransferFrom(
             ISignatureTransfer.PermitTransferFrom({
-                permitted: ISignatureTransfer.TokenPermissions({token: request.token, amount: 0}),
+                permitted: ISignatureTransfer.TokenPermissions({token: address(0), amount: 0}),
                 nonce: request.nonce,
                 deadline: request.deadline
             }),

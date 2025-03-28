@@ -68,7 +68,15 @@ contract MultiPrizeLottery {
 
         emit LotteryCreated(lotteryId, order.token, order.entryFee, order.name, order.prizeCounts, order.prizeNames);
 
-        return CreateLotteryOrderLib.getOrderReceipt(order, POINTS);
+        return CreateLotteryOrderLib.getOrderReceipt(order, _getRequiredPoints(lotteryId));
+    }
+
+    function _getRequiredPoints(uint256 _lotteryId) internal view returns (uint256) {
+        if (lotteries[_lotteryId].isPrepaid) {
+            return lotteries[_lotteryId].totalTickets * POINTS;
+        }
+
+        return POINTS;
     }
 
     /**
@@ -112,7 +120,12 @@ contract MultiPrizeLottery {
 
         tokens[0] = lottery.token;
 
-        return OrderReceipt({tokens: tokens, user: lottery.owner, policyId: lottery.policyId, points: 0});
+        return OrderReceipt({
+            tokens: tokens,
+            user: lottery.owner,
+            policyId: lottery.policyId,
+            points: lottery.isPrepaid ? 0 : POINTS
+        });
     }
 
     /// @notice くじの情報を取得

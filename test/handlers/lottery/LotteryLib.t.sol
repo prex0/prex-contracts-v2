@@ -21,6 +21,7 @@ contract LotteryLibTest is Test {
         return CreateLotteryOrder({
             policyId: 0,
             dispatcher: address(this),
+            isPrepaid: false,
             sender: address(this),
             deadline: block.timestamp + 100,
             nonce: 0,

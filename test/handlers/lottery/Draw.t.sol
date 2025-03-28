@@ -42,6 +42,7 @@ contract TestLotteryDraw is LotterySetup {
         return CreateLotteryOrder({
             policyId: 0,
             dispatcher: _dispatcher,
+            isPrepaid: false,
             sender: sender,
             deadline: _deadline,
             nonce: 0,
