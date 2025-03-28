@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import {DropRequestSetup} from "./Setup.t.sol";
 import "../../../src/handlers/drop/DropRequestDispatcher.sol";
+import {CreateDropRequest, OrderInfo} from "../../../src/handlers/drop/CreateDropRequest.sol";
 
 contract TestDropRequestDispatcherDistribute is DropRequestSetup {
     CreateDropRequest internal request;
@@ -33,13 +34,16 @@ contract TestDropRequestDispatcherDistribute is DropRequestSetup {
 
     function _createCreateDropRequest(address _tmpPublicKey) internal view returns (CreateDropRequest memory) {
         return CreateDropRequest({
-            policyId: 0,
+            orderInfo: OrderInfo({
+                policyId: 0,
+                isPrepaid: true,
+                dispatcher: address(dropHandler),
+                sender: sender,
+                deadline: block.timestamp + EXPIRY_UNTIL,
+                nonce: 0,
+                token: address(token)
+            }),
             dropPolicyId: 0,
-            dispatcher: address(dropHandler),
-            sender: sender,
-            deadline: block.timestamp + EXPIRY_UNTIL,
-            nonce: 0,
-            token: address(token),
             publicKey: _tmpPublicKey,
             amount: AMOUNT,
             amountPerWithdrawal: 1,

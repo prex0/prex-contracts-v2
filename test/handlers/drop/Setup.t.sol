@@ -91,9 +91,9 @@ contract DropRequestSetup is Test, TestUtils {
         returns (ISignatureTransfer.PermitTransferFrom memory)
     {
         return ISignatureTransfer.PermitTransferFrom({
-            permitted: ISignatureTransfer.TokenPermissions({token: request.token, amount: request.amount}),
-            nonce: request.nonce,
-            deadline: request.deadline
+            permitted: ISignatureTransfer.TokenPermissions({token: request.orderInfo.token, amount: request.amount}),
+            nonce: request.orderInfo.nonce,
+            deadline: request.orderInfo.deadline
         });
     }
 

@@ -24,10 +24,12 @@ contract PaymentRequestDispatcher is ReentrancyGuard {
     struct PaymentRequest {
         uint256 policyId;
         address creator;
+        bool isPrepaid;
         address token;
         uint256 amount;
         address recipient;
         uint256 expiry;
+        uint256 leftPayments;
         string name;
         RequestStatus status;
     }
@@ -111,10 +113,12 @@ contract PaymentRequestDispatcher is ReentrancyGuard {
         paymentRequests[id] = PaymentRequest({
             policyId: request.policyId,
             creator: request.creator,
+            isPrepaid: request.isPrepaid,
             token: request.token,
             amount: request.amount,
             recipient: request.recipient,
             expiry: request.deadline,
+            leftPayments: request.maxPayments,
             name: request.name,
             status: RequestStatus.Opened
         });
@@ -123,7 +127,7 @@ contract PaymentRequestDispatcher is ReentrancyGuard {
             id, request.creator, request.recipient, request.token, request.amount, request.deadline, request.name
         );
 
-        return request.getOrderReceipt(POINTS);
+        return request.getOrderReceipt(request.isPrepaid ? (POINTS * request.maxPayments) : POINTS);
     }
 
     /**
@@ -147,6 +151,14 @@ contract PaymentRequestDispatcher is ReentrancyGuard {
 
         _verifyPaymentRequest(request, paymentOrder, sig);
 
+        request.leftPayments--;
+
+        if (request.leftPayments == 0) {
+            request.status = RequestStatus.Closed;
+
+            emit PaymentRequestCancelled(paymentOrder.requestId);
+        }
+
         emit PaymentMade(paymentOrder.requestId, paymentOrder.sender, paymentOrder.metadata);
 
         return _getOrderReceipt(request);
@@ -157,7 +169,12 @@ contract PaymentRequestDispatcher is ReentrancyGuard {
 
         tokens[0] = request.token;
 
-        return OrderReceipt({tokens: tokens, user: request.creator, policyId: request.policyId, points: POINTS});
+        return OrderReceipt({
+            tokens: tokens,
+            user: request.creator,
+            policyId: request.policyId,
+            points: request.isPrepaid ? 0 : POINTS
+        });
     }
 
     /**

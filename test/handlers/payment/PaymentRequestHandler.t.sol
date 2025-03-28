@@ -43,7 +43,9 @@ contract PaymentRequestTest is PaymentSetup {
             nonce: 1,
             amount: 1e18,
             token: address(mockToken),
-            name: "test"
+            name: "test",
+            isPrepaid: true,
+            maxPayments: 10
         });
 
         OrderReceipt memory receipt = paymentRequestHandler.execute(
@@ -60,6 +62,6 @@ contract PaymentRequestTest is PaymentSetup {
         );
 
         assertEq(receipt.policyId, 0);
-        assertEq(receipt.points, 1);
+        assertEq(receipt.points, 10);
     }
 }

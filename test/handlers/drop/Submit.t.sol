@@ -19,13 +19,16 @@ contract TestDropRequestDispatcherSubmit is DropRequestSetup {
         returns (CreateDropRequest memory)
     {
         return CreateDropRequest({
-            policyId: 0,
+            orderInfo: OrderInfo({
+                policyId: 0,
+                isPrepaid: true,
+                dispatcher: _dispatcher,
+                sender: sender,
+                deadline: _deadline,
+                nonce: 0,
+                token: address(token)
+            }),
             dropPolicyId: 0,
-            dispatcher: _dispatcher,
-            sender: sender,
-            deadline: _deadline,
-            nonce: 0,
-            token: address(token),
             publicKey: tmpPublicKey,
             amount: 1,
             amountPerWithdrawal: 1,

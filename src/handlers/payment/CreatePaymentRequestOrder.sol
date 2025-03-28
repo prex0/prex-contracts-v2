@@ -6,11 +6,13 @@ import "../../../src/interfaces/IOrderHandler.sol";
 struct CreatePaymentRequestOrder {
     address dispatcher;
     uint256 policyId;
+    bool isPrepaid;
     address creator;
     address recipient;
     uint256 deadline;
     uint256 nonce;
     uint256 amount;
+    uint256 maxPayments;
     address token;
     string name;
 }
@@ -21,11 +23,13 @@ library CreatePaymentRequestOrderLib {
         "CreatePaymentRequestOrder(",
         "address dispatcher,",
         "uint256 policyId,",
+        "bool isPrepaid,",
         "address creator,",
         "address recipient,",
         "uint256 deadline,",
         "uint256 nonce,",
         "uint256 amount,",
+        "uint256 maxPayments,",
         "address token,",
         "string name)"
     );
@@ -51,11 +55,13 @@ library CreatePaymentRequestOrderLib {
                 CREATE_PAYMENT_REQUEST_ORDER_TYPE_HASH,
                 request.dispatcher,
                 request.policyId,
+                request.isPrepaid,
                 request.creator,
                 request.recipient,
                 request.deadline,
                 request.nonce,
                 request.amount,
+                request.maxPayments,
                 request.token,
                 request.name
             )

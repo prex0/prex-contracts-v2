@@ -3,14 +3,19 @@ pragma solidity ^0.8.20;
 
 import "../../../src/interfaces/IOrderHandler.sol";
 
-struct CreateDropRequest {
+struct OrderInfo {
     address dispatcher;
     uint256 policyId;
-    uint256 dropPolicyId;
+    bool isPrepaid;
     address sender;
     uint256 deadline;
     uint256 nonce;
     address token;
+}
+
+struct CreateDropRequest {
+    OrderInfo orderInfo;
+    uint256 dropPolicyId;
     address publicKey;
     uint256 amount;
     uint256 amountPerWithdrawal;
@@ -18,16 +23,44 @@ struct CreateDropRequest {
     string name;
 }
 
-library CreateDropRequestLib {
-    bytes internal constant CREATE_DROP_REQUEST_TYPE_S = abi.encodePacked(
-        "CreateDropRequest(",
+library OrderInfoLib {
+    bytes internal constant ORDER_INFO_TYPE_S = abi.encodePacked(
+        "OrderInfo(",
         "address dispatcher,",
         "uint256 policyId,",
-        "uint156 dropPolicyId,",
+        "bool isPrepaid,",
         "address sender,",
         "uint256 deadline,",
         "uint256 nonce,",
-        "address token,",
+        "address token)"
+    );
+
+    bytes32 internal constant ORDER_INFO_TYPE_HASH = keccak256(ORDER_INFO_TYPE_S);
+
+    /// @notice hash the given order info
+    /// @param orderInfo the order info to hash
+    /// @return the eip-712 order info hash
+    function hash(OrderInfo memory orderInfo) internal pure returns (bytes32) {
+        return keccak256(
+            abi.encode(
+                ORDER_INFO_TYPE_HASH,
+                orderInfo.dispatcher,
+                orderInfo.policyId,
+                orderInfo.isPrepaid,
+                orderInfo.sender,
+                orderInfo.deadline,
+                orderInfo.nonce,
+                orderInfo.token
+            )
+        );
+    }
+}
+
+library CreateDropRequestLib {
+    bytes internal constant CREATE_DROP_REQUEST_TYPE_S = abi.encodePacked(
+        "CreateDropRequest(",
+        "OrderInfo orderInfo,",
+        "uint256 dropPolicyId,",
         "address publicKey,",
         "uint256 amount,",
         "uint256 amountPerWithdrawal,",
@@ -42,8 +75,14 @@ library CreateDropRequestLib {
 
     string internal constant TOKEN_PERMISSIONS_TYPE = "TokenPermissions(address token,uint256 amount)";
 
-    string internal constant PERMIT2_ORDER_TYPE =
-        string(abi.encodePacked("CreateDropRequest witness)", CREATE_DROP_REQUEST_TYPE_S, TOKEN_PERMISSIONS_TYPE));
+    string internal constant PERMIT2_ORDER_TYPE = string(
+        abi.encodePacked(
+            "CreateDropRequest witness)",
+            CREATE_DROP_REQUEST_TYPE_S,
+            OrderInfoLib.ORDER_INFO_TYPE_S,
+            TOKEN_PERMISSIONS_TYPE
+        )
+    );
 
     uint256 private constant MAX_EXPIRY = 360 days;
 
@@ -54,13 +93,8 @@ library CreateDropRequestLib {
         return keccak256(
             abi.encode(
                 CREATE_DROP_REQUEST_TYPE_HASH,
-                request.dispatcher,
-                request.policyId,
+                OrderInfoLib.hash(request.orderInfo),
                 request.dropPolicyId,
-                request.sender,
-                request.deadline,
-                request.nonce,
-                request.token,
                 request.publicKey,
                 request.amount,
                 request.amountPerWithdrawal,
@@ -97,15 +131,15 @@ library CreateDropRequestLib {
     {
         address[] memory tokens = new address[](1);
 
-        tokens[0] = request.token;
+        tokens[0] = request.orderInfo.token;
 
         uint256 numberOfWithdrawals = getNumberOfWithdrawals(request);
 
         return OrderReceipt({
             tokens: tokens,
-            user: request.sender,
-            policyId: request.policyId,
-            points: points * numberOfWithdrawals
+            user: request.orderInfo.sender,
+            policyId: request.dropPolicyId,
+            points: request.orderInfo.isPrepaid ? points * numberOfWithdrawals : points
         });
     }
 

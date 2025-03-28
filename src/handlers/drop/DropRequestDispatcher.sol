@@ -123,9 +123,9 @@ contract DropRequestDispatcher is ReentrancyGuard {
         pendingRequests[id] = PendingRequest({
             amount: request.amount,
             amountPerWithdrawal: request.amountPerWithdrawal,
-            token: request.token,
+            token: request.orderInfo.token,
             publicKey: request.publicKey,
-            sender: request.sender,
+            sender: request.orderInfo.sender,
             expiry: request.expiry,
             status: RequestStatus.Pending,
             name: request.name,
@@ -134,8 +134,8 @@ contract DropRequestDispatcher is ReentrancyGuard {
 
         emit Submitted(
             id,
-            request.token,
-            request.sender,
+            request.orderInfo.token,
+            request.orderInfo.sender,
             request.publicKey,
             request.amount,
             request.amountPerWithdrawal,
@@ -249,22 +249,22 @@ contract DropRequestDispatcher is ReentrancyGuard {
      * @notice Verifies the request and the signature.
      */
     function _verifySubmitRequest(CreateDropRequest memory request, bytes memory sig) internal {
-        if (address(this) != address(request.dispatcher)) {
+        if (address(this) != address(request.orderInfo.dispatcher)) {
             revert IOrderHandler.InvalidDispatcher();
         }
 
-        if (block.timestamp > request.deadline) {
+        if (block.timestamp > request.orderInfo.deadline) {
             revert IOrderHandler.DeadlinePassed();
         }
 
         permit2.permitWitnessTransferFrom(
             ISignatureTransfer.PermitTransferFrom({
-                permitted: ISignatureTransfer.TokenPermissions({token: request.token, amount: request.amount}),
-                nonce: request.nonce,
-                deadline: request.deadline
+                permitted: ISignatureTransfer.TokenPermissions({token: request.orderInfo.token, amount: request.amount}),
+                nonce: request.orderInfo.nonce,
+                deadline: request.orderInfo.deadline
             }),
             ISignatureTransfer.SignatureTransferDetails({to: address(this), requestedAmount: request.amount}),
-            request.sender,
+            request.orderInfo.sender,
             request.hash(),
             CreateDropRequestLib.PERMIT2_ORDER_TYPE,
             sig

@@ -12,6 +12,7 @@ import {
     CreatePaymentRequestOrderLib
 } from "../../../src/handlers/payment/CreatePaymentRequestOrder.sol";
 import {PaymentOrder, PaymentOrderLib} from "../../../src/handlers/payment/PaymentOrder.sol";
+import {PaymentRequestDispatcher} from "../../../src/handlers/payment/PaymentRequestDispatcher.sol";
 
 contract PaymentTest is PaymentSetup {
     using CreatePaymentRequestOrderLib for CreatePaymentRequestOrder;
@@ -47,7 +48,9 @@ contract PaymentTest is PaymentSetup {
             nonce: 1,
             amount: 1e18,
             token: address(mockToken),
-            name: "test"
+            name: "test",
+            isPrepaid: false,
+            maxPayments: 1
         });
 
         paymentRequestHandler.execute(
@@ -67,14 +70,7 @@ contract PaymentTest is PaymentSetup {
     }
 
     function test_Payment() public {
-        PaymentOrder memory order = PaymentOrder({
-            dispatcher: address(paymentRequestHandler),
-            sender: user,
-            deadline: 1,
-            nonce: 2,
-            requestId: requestId,
-            metadata: bytes("test")
-        });
+        PaymentOrder memory order = _getPaymentOrder(user, 1, 2);
 
         OrderReceipt memory receipt = paymentRequestHandler.execute(
             address(this),
@@ -94,5 +90,38 @@ contract PaymentTest is PaymentSetup {
 
         assertEq(mockToken.balanceOf(user), 99 * 1e18);
         assertEq(mockToken.balanceOf(recipient), 1e18);
+
+        {
+            PaymentOrder memory order2 = _getPaymentOrder(user, 1, 3);
+
+            vm.expectRevert(PaymentRequestDispatcher.RequestIsNotOpened.selector);
+            paymentRequestHandler.execute(
+                address(this),
+                SignedOrder({
+                    dispatcher: address(paymentRequestHandler),
+                    methodId: 2,
+                    order: abi.encode(order2),
+                    signature: _sign(order2, address(mockToken), 1e18, userPrivateKey),
+                    appSig: bytes(""),
+                    identifier: bytes32(0)
+                }),
+                bytes("")
+            );
+        }
+    }
+
+    function _getPaymentOrder(address _sender, uint256 _deadline, uint256 _nonce)
+        internal
+        view
+        returns (PaymentOrder memory)
+    {
+        return PaymentOrder({
+            dispatcher: address(paymentRequestHandler),
+            sender: _sender,
+            deadline: _deadline,
+            nonce: _nonce,
+            requestId: requestId,
+            metadata: bytes("test")
+        });
     }
 }
