@@ -24,7 +24,14 @@ contract MultiPrizeLottery {
 
     uint256 public constant POINTS = 1;
 
-    event LotteryCreated(uint256 indexed lotteryId, uint256[] prizeCounts, string[] prizeNames);
+    event LotteryCreated(
+        uint256 indexed lotteryId,
+        address token,
+        uint256 entryFee,
+        string name,
+        uint256[] prizeCounts,
+        string[] prizeNames
+    );
     event LotteryDrawn(uint256 indexed lotteryId, address indexed player, uint256 ticketNumber, uint256 prizeType);
 
     // errors
@@ -59,7 +66,7 @@ contract MultiPrizeLottery {
 
         lotteries[lotteryId] = LotteryLib.create(order);
 
-        emit LotteryCreated(lotteryId, order.prizeCounts, order.prizeNames);
+        emit LotteryCreated(lotteryId, order.token, order.entryFee, order.name, order.prizeCounts, order.prizeNames);
 
         return CreateLotteryOrderLib.getOrderReceipt(order, POINTS);
     }
@@ -89,33 +96,28 @@ contract MultiPrizeLottery {
         bytes32 blockHash = blockhash(block.number - 1);
         require(blockHash != bytes32(0), "Invalid blockhash");
 
-        (uint256 ticketNumber, uint256 prizeType) = lottery.draw(blockHash);
+        (bool success, uint256 ticketNumber, uint256 prizeType) = lottery.draw(blockHash);
+
+        if (!success) {
+            revert LotteryNotActive();
+        }
 
         emit LotteryDrawn(order.lotteryId, order.sender, ticketNumber, prizeType);
 
-        return getOrderReceipt(lottery, abi.encode(ticketNumber, prizeType));
+        return _getOrderReceipt(lottery);
     }
 
-    function getOrderReceipt(LotteryLib.Lottery memory lottery, bytes memory result)
-        internal
-        pure
-        returns (OrderReceipt memory)
-    {
+    function _getOrderReceipt(LotteryLib.Lottery memory lottery) internal pure returns (OrderReceipt memory) {
         address[] memory tokens = new address[](1);
 
         tokens[0] = lottery.token;
 
-        return OrderReceipt({tokens: tokens, user: lottery.owner, policyId: lottery.policyId, points: 0, result: result});
+        return OrderReceipt({tokens: tokens, user: lottery.owner, policyId: lottery.policyId, points: 0});
     }
 
     /// @notice くじの情報を取得
-    function getLotteryInfo(uint256 _lotteryId)
-        external
-        view
-        returns (uint256 entryFee, uint256 totalTickets, uint256 remainingTickets, bool active)
-    {
-        LotteryLib.Lottery memory lottery = lotteries[_lotteryId];
-        return (lottery.entryFee, lottery.totalTickets, lottery.remainingTickets, lottery.active);
+    function getLotteryInfo(uint256 _lotteryId) external view returns (LotteryLib.Lottery memory) {
+        return lotteries[_lotteryId];
     }
 
     function _verifyCreateOrder(CreateLotteryOrder memory order, bytes memory sig) internal {

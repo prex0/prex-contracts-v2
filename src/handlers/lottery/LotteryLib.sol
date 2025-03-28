@@ -17,6 +17,7 @@ library LotteryLib {
         address owner;
         address token;
         uint256 entryFee;
+        string name;
         uint256 totalTickets;
         uint256 remainingTickets;
         bool active;
@@ -31,6 +32,7 @@ library LotteryLib {
         newLottery.entryFee = order.entryFee;
         newLottery.active = true;
         newLottery.policyId = order.policyId;
+        newLottery.name = order.name;
 
         uint256 totalTickets = 0;
         for (uint256 i = 0; i < order.prizeCounts.length; i++) {
@@ -44,9 +46,10 @@ library LotteryLib {
         return newLottery;
     }
 
-    function draw(Lottery storage lottery, bytes32 randomHash) internal returns (uint256, uint256) {
-        require(lottery.active, "Lottery is not active");
-        require(lottery.remainingTickets > 0, "No tickets left");
+    function draw(Lottery storage lottery, bytes32 randomHash) internal returns (bool, uint256, uint256) {
+        if (lottery.remainingTickets == 0 || !lottery.active) {
+            return (false, 0, 0);
+        }
 
         uint256 ticketNumber = lottery.totalTickets - lottery.remainingTickets;
         uint256 randomValue = uint256(randomHash) % lottery.remainingTickets;
@@ -59,6 +62,8 @@ library LotteryLib {
                 prizeType = typeId;
                 lottery.prizes[typeId].remaining--;
                 break;
+            } else {
+                randomValue -= lottery.prizes[typeId].remaining;
             }
         }
 
@@ -70,6 +75,6 @@ library LotteryLib {
             lottery.active = false;
         }
 
-        return (ticketNumber, prizeType);
+        return (true, ticketNumber, prizeType);
     }
 }

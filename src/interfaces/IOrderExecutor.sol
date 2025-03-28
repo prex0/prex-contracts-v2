@@ -11,5 +11,7 @@ struct OrderHeader {
 }
 
 interface IOrderExecutor {
-    function execute(SignedOrder calldata order, bytes calldata facilitatorData) external returns (OrderReceipt memory);
+    function execute(SignedOrder calldata order, bytes calldata facilitatorData)
+        external
+        returns (OrderReceipt memory);
 }

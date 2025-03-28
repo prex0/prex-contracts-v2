@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import {LotterySetup} from "./Setup.t.sol";
 import "../../../src/handlers/lottery/orders/CreateLotteryOrder.sol";
 import {SignatureVerification} from "../../../lib/permit2/src/libraries/SignatureVerification.sol";
+import {LotteryLib} from "../../../src/handlers/lottery/LotteryLib.sol";
 
 contract TestLotteryRequestDispatcherSubmit is LotterySetup {
     uint256 public tmpPrivKey = 11111000002;
@@ -43,5 +44,11 @@ contract TestLotteryRequestDispatcherSubmit is LotterySetup {
         bytes memory sig = _sign(request, privateKey);
 
         _createLottery(request, sig);
+
+        LotteryLib.Lottery memory lottery = lotteryHandler.getLotteryInfo(1);
+
+        assertEq(lottery.totalTickets, 2);
+        assertEq(lottery.remainingTickets, 2);
+        assertEq(lottery.active, true);
     }
 }

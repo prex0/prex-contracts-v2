@@ -16,7 +16,6 @@ struct OrderReceipt {
     uint256 policyId;
     address[] tokens;
     uint256 points;
-    bytes result;
 }
 
 interface IOrderHandler {

@@ -105,8 +105,7 @@ library CreateDropRequestLib {
             tokens: tokens,
             user: request.sender,
             policyId: request.policyId,
-            points: points * numberOfWithdrawals,
-            result: ""
+            points: points * numberOfWithdrawals
         });
     }
 

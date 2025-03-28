@@ -77,6 +77,6 @@ library CreateLotteryOrderLib {
 
         tokens[0] = order.token;
 
-        return OrderReceipt({policyId: order.policyId, user: order.sender, tokens: tokens, points: points, result: ""});
+        return OrderReceipt({policyId: order.policyId, user: order.sender, tokens: tokens, points: points});
     }
 }

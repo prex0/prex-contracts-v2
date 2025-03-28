@@ -52,6 +52,6 @@ library BuyPointOrderLib {
 
     function getOrderReceipt(BuyPointOrder memory order) internal pure returns (OrderReceipt memory) {
         address[] memory tokens = new address[](0);
-        return OrderReceipt({user: order.buyer, policyId: order.policyId, points: 0, tokens: tokens, result: ""});
+        return OrderReceipt({user: order.buyer, policyId: order.policyId, points: 0, tokens: tokens});
     }
 }

@@ -14,8 +14,7 @@ contract TestLotteryCancel is LotterySetup {
     function setUp() public virtual override(LotterySetup) {
         super.setUp();
 
-        CreateLotteryOrder memory request =
-            _getCreateLotteryOrder(address(lotteryHandler), block.timestamp + 100);
+        CreateLotteryOrder memory request = _getCreateLotteryOrder(address(lotteryHandler), block.timestamp + 100);
 
         bytes memory sig = _sign(request, privateKey);
 

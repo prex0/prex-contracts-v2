@@ -21,7 +21,10 @@ contract OrderExecutor is IOrderExecutor, PolicyManager {
      * @param order オーダーデータ
      * @param facilitatorData ファシリテーターのデータ
      */
-    function execute(SignedOrder calldata order, bytes calldata facilitatorData) external returns (OrderReceipt memory) {
+    function execute(SignedOrder calldata order, bytes calldata facilitatorData)
+        external
+        returns (OrderReceipt memory)
+    {
         // オーダーを実行して、注文結果を取得する
         OrderReceipt memory receipt = IOrderHandler(order.dispatcher).execute(msg.sender, order, facilitatorData);
 
