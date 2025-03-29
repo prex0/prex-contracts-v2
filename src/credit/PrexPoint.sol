@@ -3,13 +3,14 @@ pragma solidity ^0.8.20;
 
 import {BasePrexToken} from "../base/BasePrexToken.sol";
 import {Owned} from "../../lib/solmate/src/auth/Owned.sol";
-import {IUserPoints} from "../interfaces/IUserPoints.sol";
+import {IPrexPoints} from "../interfaces/IPrexPoints.sol";
 
 /**
  * @notice Prexポイントは、ERC20です。
- * OrderExecutorは、Prexポイントを消費してオーダーを実行します。
+ * ownerは、ポイントを発行します。
+ * consumerは、ポイントを消費します。
  */
-contract PrexPoint is IUserPoints, BasePrexToken, Owned {
+contract PrexPoint is IPrexPoints, BasePrexToken, Owned {
     address public orderExecutor;
 
     modifier onlyOrderExecutor() {

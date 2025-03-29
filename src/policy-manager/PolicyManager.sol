@@ -7,7 +7,7 @@ import {IPolicyValidator} from "../interfaces/IPolicyValidator.sol";
 import {SignatureVerification} from "../../lib/permit2/src/libraries/SignatureVerification.sol";
 import {IERC20} from "../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {MessageHashUtils} from "../../lib/openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
-import {IUserPoints} from "../interfaces/IUserPoints.sol";
+import {IPrexPoints} from "../interfaces/IPrexPoints.sol";
 import {CreditPrice} from "./CreditPrice.sol";
 import {IPolicyErrors} from "../interfaces/IPolicyErrors.sol";
 
@@ -151,7 +151,7 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
         }
 
         if (receipt.policyId == 0) {
-            IUserPoints(prexPoint).consumePoints(receipt.user, receipt.points * creditPrice);
+            IPrexPoints(prexPoint).consumePoints(receipt.user, receipt.points * creditPrice);
         } else {
             Policy memory policy = policies[receipt.policyId];
 
@@ -196,6 +196,6 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
 
         apps[appId].credit -= amount;
 
-        IUserPoints(prexPoint).burn(amount);
+        IPrexPoints(prexPoint).burn(amount);
     }
 }

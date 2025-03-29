@@ -25,6 +25,34 @@ contract OrderExecutor is IOrderExecutor, PolicyManager {
         external
         returns (OrderReceipt memory)
     {
+        return _execute(order, facilitatorData);
+    }
+
+    /**
+     * @notice オーダーをバッチで実行する関数
+     * @param orders オーダーデータ
+     * @param facilitatorData ファシリテーターのデータ
+     */
+    function executeBatch(SignedOrder[] calldata orders, bytes[] calldata facilitatorData)
+        external
+        returns (OrderReceipt[] memory)
+    {
+        OrderReceipt[] memory receipts = new OrderReceipt[](orders.length);
+        for (uint256 i = 0; i < orders.length; i += 1) {
+            receipts[i] = _execute(orders[i], facilitatorData[i]);
+        }
+        return receipts;
+    }
+
+    /**
+     * @notice オーダーを実行する関数
+     * @param order オーダーデータ
+     * @param facilitatorData ファシリテーターのデータ
+     */
+    function _execute(SignedOrder calldata order, bytes calldata facilitatorData)
+        internal
+        returns (OrderReceipt memory)
+    {
         // オーダーを実行して、注文結果を取得する
         OrderReceipt memory receipt = IOrderHandler(order.dispatcher).execute(msg.sender, order, facilitatorData);
 
