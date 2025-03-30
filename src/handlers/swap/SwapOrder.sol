@@ -65,12 +65,12 @@ library SwapRequestLib {
         );
     }
 
-    function getOrderReceipt(SwapRequest memory request, uint256 points) internal pure returns (OrderReceipt memory) {
+    function getOrderReceipt(SwapRequest memory request) internal pure returns (OrderReceipt memory) {
         address[] memory tokens = new address[](1);
 
         tokens[0] = request.tokenIn;
         tokens[1] = request.tokenOut;
 
-        return OrderReceipt({tokens: tokens, user: request.swapper, policyId: request.policyId, points: points});
+        return OrderReceipt({tokens: tokens, user: request.swapper, policyId: request.policyId, points: 0});
     }
 }

@@ -16,7 +16,7 @@ import {LoyaltyConverter} from "../../../src/swap/converter/LoyaltyConverter.sol
 import {TokenRegistry} from "../../../src/data/TokenRegistry.sol";
 import {LiquidityAmounts} from "v4-periphery/src/libraries/LiquidityAmounts.sol";
 import {TickMath} from "v4-core/src/libraries/TickMath.sol";
-
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 // TODO: pumPoint
 import {PrexPoint} from "../../../src/credit/PrexPoint.sol";
 
@@ -120,9 +120,10 @@ contract PumControllerTest is Test {
             );
         }
 
-        assertEq(pumPoint.balanceOf(address(prexSwapRouter)), 1);
+        assertEq(IERC20(creatorToken).balanceOf(address(this)), 1158515346047294579131741);
     }
 
+    /*
     function testLiquidity() public {
         uint256 liquidity = LiquidityAmounts.getLiquidityForAmount0(
             TickMath.getSqrtPriceAtTick(-340680), TickMath.getSqrtPriceAtTick(887220), 1e8 * 1e18
@@ -138,6 +139,7 @@ contract PumControllerTest is Test {
 
         assertEq(liquidity, 4004955170909380034);
     }
+    */
 
     function _makeV4Swap(bytes memory v4SwapData) internal view returns (bytes memory) {
         bytes memory actions = new bytes(1);

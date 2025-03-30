@@ -27,6 +27,12 @@ contract PumController is PumConverter {
     address public tokenRegistry;
     IPermit2 public permit2;
 
+    uint256 public constant MAX_SUPPLY_CT = 1e8 * 1e18;
+
+    event TokenIssued(
+        address indexed communityToken, address indexed issuer, string name, string symbol, uint256 amountCT
+    );
+
     constructor(
         address _owner,
         address _prexPoint,
@@ -43,7 +49,14 @@ contract PumController is PumConverter {
         permit2.approve(address(carryToken), address(positionManager), type(uint160).max, type(uint48).max);
     }
 
-    //
+    /**
+     * @notice トークンを発行する
+     * @param issuer トークンの発行者
+     * @param name トークンの名前
+     * @param symbol トークンのシンボル
+     * @param pictureHash トークンの画像のハッシュ
+     * @param metadata トークンのメタデータ
+     */
     function issuePumToken(
         address issuer,
         string memory name,
@@ -53,8 +66,8 @@ contract PumController is PumConverter {
     ) public returns (address) {
         // Issue PUM token
         address creatorToken = _createCreatorToken(
-            CreateTokenParameters(issuer, address(this), 1e8 * 1e18, name, symbol, pictureHash, metadata),
-            address(0),
+            CreateTokenParameters(issuer, address(this), MAX_SUPPLY_CT, name, symbol, pictureHash, metadata),
+            address(permit2),
             tokenRegistry
         );
 
@@ -64,7 +77,10 @@ contract PumController is PumConverter {
         // TODO: approve
         IERC20(creatorToken).approve(address(permit2), type(uint256).max);
         permit2.approve(address(creatorToken), address(positionManager), type(uint160).max, type(uint48).max);
+
         _addLiquidity(creatorToken, address(carryToken));
+
+        emit TokenIssued(creatorToken, issuer, name, symbol, MAX_SUPPLY_CT);
 
         return creatorToken;
     }

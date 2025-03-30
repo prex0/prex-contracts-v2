@@ -11,6 +11,8 @@ contract LoyaltyConverter is Owned {
     // jpy price by dai
     uint256 public priceJpyByDai;
 
+    error InvalidLoyaltyCoin();
+
     constructor(address _owner, address _dai) Owned(_owner) {
         dai = IERC20(_dai);
         priceJpyByDai = 1e18;
@@ -28,6 +30,10 @@ contract LoyaltyConverter is Owned {
         // TODO: Implement convert logic
         // 1 LoyaltyCoin = 1 DAI
 
+        if (loyaltyCoin != _getLoyaltyCoin(loyaltyCoin)) {
+            revert InvalidLoyaltyCoin();
+        }
+
         daiAmount = loyaltyCoinAmount * priceJpyByDai / 1e6;
 
         ILoyaltyCoin(loyaltyCoin).burn(msg.sender, loyaltyCoinAmount);
@@ -42,13 +48,17 @@ contract LoyaltyConverter is Owned {
         // TODO: Implement convert logic
         // 1 DAI = 1 LoyaltyCoin
 
+        if (loyaltyCoin != _getLoyaltyCoin(loyaltyCoin)) {
+            revert InvalidLoyaltyCoin();
+        }
+
         loyaltyCoinAmount = daiAmount * 1e6 / priceJpyByDai;
 
         dai.transferFrom(msg.sender, address(this), daiAmount);
         ILoyaltyCoin(loyaltyCoin).mint(recipient, loyaltyCoinAmount);
     }
 
-    function _getLoyaltyCoin(address loyaltyCoin) internal virtual returns (address) {
+    function _getLoyaltyCoin(address) internal view virtual returns (address) {
         return address(0);
     }
 }

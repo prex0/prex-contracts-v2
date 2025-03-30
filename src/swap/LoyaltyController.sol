@@ -46,7 +46,7 @@ contract LoyaltyController is LoyaltyConverter {
         return address(token);
     }
 
-    function _getLoyaltyCoin(address loyaltyToken) internal override returns (address) {
+    function _getLoyaltyCoin(address loyaltyToken) internal view override returns (address) {
         return loyaltyTokens[loyaltyToken];
     }
 }
