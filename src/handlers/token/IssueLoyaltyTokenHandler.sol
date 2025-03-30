@@ -9,22 +9,23 @@ import "../../../lib/permit2/src/interfaces/IPermit2.sol";
 import {PrexTokenFactory} from "../../token-factory/PrexTokenFactory.sol";
 import {ITokenRegistry} from "../../interfaces/ITokenRegistry.sol";
 import {CreateTokenParameters} from "../../token-factory/TokenParams.sol";
+import {LoyaltyController} from "../../swap/LoyaltyController.sol";
 
 /**
  * @notice ユーザのトークンを発行注文を処理するハンドラー
  */
-contract IssueTokenHandler is IOrderHandler {
+contract IssueLoyaltyTokenHandler is IOrderHandler, LoyaltyController {
     using IssueMintableTokenRequestLib for IssueMintableTokenRequest;
 
     IPermit2 public immutable permit2;
-    PrexTokenFactory public immutable tokenFactory;
     ITokenRegistry public immutable tokenRegistry;
 
     uint256 constant POINTS = 10;
 
-    constructor(address _permit2, address _tokenFactory, address _tokenRegistry) {
+    constructor(address owner, address _dai, address _loyaltyPoint, address _permit2, address _tokenRegistry)
+        LoyaltyController(owner, _dai, _loyaltyPoint)
+    {
         permit2 = IPermit2(_permit2);
-        tokenFactory = PrexTokenFactory(_tokenFactory);
         tokenRegistry = ITokenRegistry(_tokenRegistry);
     }
 
@@ -49,8 +50,7 @@ contract IssueTokenHandler is IOrderHandler {
             metadata: request.metadata
         });
 
-        // トークンを発行する
-        tokenFactory.createMintableCreatorToken(params, address(permit2), address(tokenRegistry));
+        createLoyaltyToken(params, address(permit2), address(tokenRegistry));
 
         return request.getOrderReceipt(POINTS);
     }

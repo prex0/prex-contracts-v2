@@ -69,13 +69,11 @@ contract SwapRouterTest is Test {
         plan = plan.add(Actions.SWAP_EXACT_IN, abi.encode(params));
         bytes memory data = plan.encode();
 
-        /*
         prexSwapRouter.executeSwap(
             abi.encode(
                 new address[](0), PrexSwapRouter.ConvertParams(PrexSwapRouter.ConvertType.NOOP, address(0), 0), data
             )
         );
-        */
     }
 
     function _getExactInputParams(Currency[] memory _tokenPath, uint256 amountIn)

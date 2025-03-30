@@ -18,10 +18,11 @@ contract PolicyManagerSetup is Test, TestUtils {
     function setUp() public virtual override {
         super.setUp();
 
-        prexPoint = new PrexPoint(owner, address(permit2));
+        prexPoint = new PrexPoint("PrexPoint", "PREX", owner, address(permit2));
         policyManager = new PolicyManagerWrapper(address(prexPoint), owner);
 
-        prexPoint.setOrderExecutor(address(policyManager));
+        // Set policy manager as consumer
+        prexPoint.setConsumer(address(policyManager));
 
         prexPoint.mint(appOwner1, 1000 * 1e6);
         prexPoint.mint(appOwner2, 1000 * 1e6);

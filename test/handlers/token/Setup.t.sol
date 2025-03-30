@@ -6,7 +6,7 @@ import {IssueTokenHandler} from "../../../src/handlers/token/IssueTokenHandler.s
 import {
     IssueMintableTokenRequest,
     IssueMintableTokenRequestLib
-} from "../../../src/handlers/token/IssueMintableTokenRequest.sol";
+} from "../../../src/handlers/token/orders/IssueMintableTokenRequest.sol";
 import {TestUtils} from "../../utils/TestUtils.sol";
 import {ERC20} from "../../../lib/solmate/src/tokens/ERC20.sol";
 import {OrderReceipt, SignedOrder} from "../../../src/interfaces/IOrderHandler.sol";

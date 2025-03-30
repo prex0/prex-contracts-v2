@@ -9,24 +9,24 @@ import "../../../lib/permit2/src/interfaces/IPermit2.sol";
 import {PrexTokenFactory} from "../../token-factory/PrexTokenFactory.sol";
 import {ITokenRegistry} from "../../interfaces/ITokenRegistry.sol";
 import {CreateTokenParameters} from "../../token-factory/TokenParams.sol";
+import {PumController} from "../../swap/PumController.sol";
 
 /**
  * @notice ユーザのトークンを発行注文を処理するハンドラー
  */
-contract IssueTokenHandler is IOrderHandler {
+contract IssueCreatorTokenHandler is IOrderHandler, PumController {
     using IssueMintableTokenRequestLib for IssueMintableTokenRequest;
-
-    IPermit2 public immutable permit2;
-    PrexTokenFactory public immutable tokenFactory;
-    ITokenRegistry public immutable tokenRegistry;
 
     uint256 constant POINTS = 10;
 
-    constructor(address _permit2, address _tokenFactory, address _tokenRegistry) {
-        permit2 = IPermit2(_permit2);
-        tokenFactory = PrexTokenFactory(_tokenFactory);
-        tokenRegistry = ITokenRegistry(_tokenRegistry);
-    }
+    constructor(
+        address owner,
+        address _prexPoint,
+        address _dai,
+        address _positionManager,
+        address _tokenRegistry,
+        address _permit2
+    ) PumController(owner, _prexPoint, _dai, _positionManager, _tokenRegistry, _permit2) {}
 
     /**
      * @notice ユーザのトークンを発行注文を処理する
@@ -39,18 +39,7 @@ contract IssueTokenHandler is IOrderHandler {
         // オーダーのリクエストを検証する
         _verifyRequest(request, order.signature);
 
-        CreateTokenParameters memory params = CreateTokenParameters({
-            name: request.name,
-            symbol: request.symbol,
-            initialSupply: request.initialSupply,
-            recipient: request.recipient,
-            issuer: request.issuer,
-            pictureHash: request.pictureHash,
-            metadata: request.metadata
-        });
-
-        // トークンを発行する
-        tokenFactory.createMintableCreatorToken(params, address(permit2), address(tokenRegistry));
+        issuePumToken(request.issuer, request.name, request.symbol, request.pictureHash, request.metadata);
 
         return request.getOrderReceipt(POINTS);
     }

@@ -31,11 +31,12 @@ contract OrderExecutorSetup is Test, TestUtils {
     function setUp() public virtual override {
         super.setUp();
 
-        prexPoint = new PrexPoint(owner, address(permit2));
+        prexPoint = new PrexPoint("PrexPoint", "PREX", owner, address(permit2));
         orderExecutor = new OrderExecutor(address(prexPoint), owner);
         transferRequestHandler = new TransferRequestHandler(address(permit2));
 
-        prexPoint.setOrderExecutor(address(orderExecutor));
+        // Set order executor as consumer
+        prexPoint.setConsumer(address(orderExecutor));
 
         prexPoint.mint(user, 1000 * 1e6);
         prexPoint.mint(owner, 1000 * 1e6);

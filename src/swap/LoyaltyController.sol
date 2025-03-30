@@ -4,23 +4,26 @@ pragma solidity ^0.8.20;
 import {CreateTokenParameters} from "../token-factory/TokenParams.sol";
 import {LoyaltyCoin} from "../token-factory/tokens/LoyaltyCoin.sol";
 import {LoyaltyConverter} from "./converter/LoyaltyConverter.sol";
+import {IPrexPoints} from "../interfaces/IPrexPoints.sol";
 
 contract LoyaltyController is LoyaltyConverter {
     // loyalty token address -> loyalty coin address
     mapping(address => address) public loyaltyTokens;
 
+    address public immutable loyaltyPoint;
+
     event LoyaltyCoinCreated(address indexed loyaltyToken);
 
-    constructor(address _owner, address _dai) LoyaltyConverter(_owner, _dai) {}
-
-    // issue loyalty coin
-    function issueLoyaltyCoin() external {
-        // TODO: Implement swap logic
+    constructor(address _owner, address _dai, address _loyaltyPoint) LoyaltyConverter(_owner, _dai) {
+        loyaltyPoint = _loyaltyPoint;
     }
 
     // mint loyalty coin
-    function mintLoyaltyCoin() external {
-        // TODO: Implement swap logic
+    function mintLoyaltyCoin(address loyaltyCoinAddress, address recipient, uint256 amount) external {
+        uint256 loyaltyPointAmount = amount / 1e12;
+        require(loyaltyPointAmount * 1e12 == amount, "LoyaltyController: amount is not a multiple of 1e12");
+        IPrexPoints(loyaltyPoint).consumePoints(address(this), loyaltyPointAmount);
+        LoyaltyCoin(loyaltyCoinAddress).mint(recipient, amount);
     }
 
     /**

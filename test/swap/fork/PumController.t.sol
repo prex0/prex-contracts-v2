@@ -14,6 +14,8 @@ import {CreateTokenParameters} from "../../../src/token-factory/TokenParams.sol"
 import {PumController} from "../../../src/swap/PumController.sol";
 import {LoyaltyConverter} from "../../../src/swap/converter/LoyaltyConverter.sol";
 import {TokenRegistry} from "../../../src/data/TokenRegistry.sol";
+import {LiquidityAmounts} from "v4-periphery/src/libraries/LiquidityAmounts.sol";
+import {TickMath} from "v4-core/src/libraries/TickMath.sol";
 
 // TODO: pumPoint
 import {PrexPoint} from "../../../src/credit/PrexPoint.sol";
@@ -58,7 +60,8 @@ contract PumControllerTest is Test {
         vm.selectFork(optimismFork);
         vm.rollFork(133_850_000);
 
-        pumPoint = new PrexPoint(address(this), address(0x000000000022D473030F116dDEE9F6B43aC78BA3));
+        pumPoint =
+            new PrexPoint("PrexPoint", "PREX", address(this), address(0x000000000022D473030F116dDEE9F6B43aC78BA3));
         TokenRegistry tokenRegistry = new TokenRegistry();
 
         pumController = new PumController(
@@ -69,7 +72,9 @@ contract PumControllerTest is Test {
             address(tokenRegistry),
             address(0x000000000022D473030F116dDEE9F6B43aC78BA3)
         );
-        pumPoint.setOrderExecutor(address(pumController));
+
+        // Set pumController as consumer
+        pumPoint.setConsumer(address(pumController));
         loyaltyConverter = new LoyaltyConverter(address(0), address(0));
 
         prexSwapRouter = new PrexSwapRouter(
@@ -87,15 +92,15 @@ contract PumControllerTest is Test {
 
     // manage multiple forks in the same test
     function testIssuePumToken() public {
-        address creatorToken = pumController.issuePumToken(issuer);
+        address creatorToken = pumController.issuePumToken(issuer, "PUM", "PUM", bytes32(0), "");
 
         currency1 = Currency.wrap(address(creatorToken));
 
         // assertEq(creatorToken, address(0x4200000000000000000000000000000000000006));
-        pumPoint.mint(address(prexSwapRouter), 1000 * 1e6);
+        pumPoint.mint(address(prexSwapRouter), 2000 * 1e6);
 
         {
-            uint256 amountIn = 1000 * 1e6;
+            uint256 amountIn = 2000 * 1e6;
 
             tokenPath.push(currency0);
             tokenPath.push(currency1);
@@ -106,16 +111,32 @@ contract PumControllerTest is Test {
             address[] memory tokensToApproveForUniversalRouter = new address[](1);
             tokensToApproveForUniversalRouter[0] = address(pumController.carryToken());
 
-            /*
             prexSwapRouter.executeSwap(
                 abi.encode(
                     tokensToApproveForUniversalRouter,
-                    PrexSwapRouter.ConvertParams(PrexSwapRouter.ConvertType.PUM_TO_CARRY, address(0), 1000 * 1e6),
+                    PrexSwapRouter.ConvertParams(PrexSwapRouter.ConvertType.PUM_TO_CARRY, address(0), 2000 * 1e6),
                     data
                 )
             );
-            */
         }
+
+        assertEq(pumPoint.balanceOf(address(prexSwapRouter)), 1);
+    }
+
+    function testLiquidity() public {
+        uint256 liquidity = LiquidityAmounts.getLiquidityForAmount0(
+            TickMath.getSqrtPriceAtTick(-340680), TickMath.getSqrtPriceAtTick(887220), 1e8 * 1e18
+        );
+
+        assertEq(liquidity, 4004955170909380034);
+    }
+
+    function testLiquidity2() public {
+        uint256 liquidity = LiquidityAmounts.getLiquidityForAmount1(
+            TickMath.getSqrtPriceAtTick(-887220), TickMath.getSqrtPriceAtTick(340680), 1e8 * 1e18
+        );
+
+        assertEq(liquidity, 4004955170909380034);
     }
 
     function _makeV4Swap(bytes memory v4SwapData) internal view returns (bytes memory) {

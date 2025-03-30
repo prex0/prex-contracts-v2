@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {IssueMintableTokenRequestSetup} from "./Setup.t.sol";
-import {IssueMintableTokenRequest} from "../../../src/handlers/token/IssueMintableTokenRequest.sol";
+import {IssueMintableTokenRequest} from "../../../src/handlers/token/orders/IssueMintableTokenRequest.sol";
 import {ERC20} from "../../../lib/solmate/src/tokens/ERC20.sol";
 import {OrderReceipt, SignedOrder} from "../../../src/interfaces/IOrderHandler.sol";
 

@@ -11,23 +11,27 @@ import {IPrexPoints} from "../interfaces/IPrexPoints.sol";
  * consumerは、ポイントを消費します。
  */
 contract PrexPoint is IPrexPoints, BasePrexToken, Owned {
-    address public orderExecutor;
+    /// @dev ポイントを消費できるコントラクト
+    address public consumer;
 
-    modifier onlyOrderExecutor() {
-        if (msg.sender != orderExecutor) {
-            revert("Only order executor can call this function");
+    modifier onlyConsumer() {
+        if (msg.sender != consumer) {
+            revert("Only consumer can call this function");
         }
         _;
     }
 
-    constructor(address _owner, address _permit2) BasePrexToken("PrexPoint", "PREX", _permit2) Owned(_owner) {}
+    constructor(string memory name, string memory symbol, address _owner, address _permit2)
+        BasePrexToken(name, symbol, _permit2)
+        Owned(_owner)
+    {}
 
     function decimals() public pure override returns (uint8) {
         return 6;
     }
 
-    function setOrderExecutor(address _orderExecutor) external onlyOwner {
-        orderExecutor = _orderExecutor;
+    function setConsumer(address _consumer) external onlyOwner {
+        consumer = _consumer;
     }
 
     function mint(address to, uint256 amount) external onlyOwner {
@@ -38,7 +42,7 @@ contract PrexPoint is IPrexPoints, BasePrexToken, Owned {
         _burn(msg.sender, amount);
     }
 
-    function consumePoints(address user, uint256 points) external onlyOrderExecutor {
+    function consumePoints(address user, uint256 points) external onlyConsumer {
         _burn(user, points);
     }
 }

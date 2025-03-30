@@ -23,14 +23,10 @@ contract TestPointSetup is Test, TestUtils {
 
         stableToken = new MockToken();
 
-        prexPoint = new PrexPoint(address(this), address(permit2));
-
-        buyPrexPointHandler =
-            new BuyPrexPointHandler(address(this), address(permit2), address(this), address(prexPoint));
-
-        prexPoint.transferOwnership(address(buyPrexPointHandler));
-
+        buyPrexPointHandler = new BuyPrexPointHandler(address(this), address(permit2), address(this));
         buyPrexPointHandler.setStableToken(address(stableToken));
+
+        prexPoint = buyPrexPointHandler.point();
     }
 
     function _sign(BuyPointOrder memory request, uint256 fromPrivateKey) internal view returns (bytes memory) {

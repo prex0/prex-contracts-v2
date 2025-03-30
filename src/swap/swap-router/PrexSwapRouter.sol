@@ -39,6 +39,10 @@ contract PrexSwapRouter {
         permit2 = IPermit2(_permit2);
     }
 
+    function executeSwap(bytes memory callbackData) external {
+        _executeSwap(callbackData);
+    }
+
     function _executeSwap(bytes memory callbackData) internal {
         (address[] memory tokensToApproveForUniversalRouter, ConvertParams memory convertParams, bytes memory data) =
             abi.decode(callbackData, (address[], ConvertParams, bytes));

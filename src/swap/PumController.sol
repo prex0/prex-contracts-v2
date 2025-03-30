@@ -38,13 +38,22 @@ contract PumController is PumConverter {
         positionManager = _positionManager;
         tokenRegistry = _tokenRegistry;
         permit2 = IPermit2(_permit2);
+
+        carryToken.approve(address(permit2), type(uint256).max);
+        permit2.approve(address(carryToken), address(positionManager), type(uint160).max, type(uint48).max);
     }
 
     //
-    function issuePumToken(address issuer) external returns (address) {
+    function issuePumToken(
+        address issuer,
+        string memory name,
+        string memory symbol,
+        bytes32 pictureHash,
+        string memory metadata
+    ) public returns (address) {
         // Issue PUM token
         address creatorToken = _createCreatorToken(
-            CreateTokenParameters(issuer, address(this), 1e8 * 1e18, "PUM", "PUM", bytes32(0), ""),
+            CreateTokenParameters(issuer, address(this), 1e8 * 1e18, name, symbol, pictureHash, metadata),
             address(0),
             tokenRegistry
         );
@@ -54,9 +63,7 @@ contract PumController is PumConverter {
         // provide liquidity to PUM/CARRY pool
         // TODO: approve
         IERC20(creatorToken).approve(address(permit2), type(uint256).max);
-        carryToken.approve(address(permit2), type(uint256).max);
         permit2.approve(address(creatorToken), address(positionManager), type(uint160).max, type(uint48).max);
-        permit2.approve(address(carryToken), address(positionManager), type(uint160).max, type(uint48).max);
         _addLiquidity(creatorToken, address(carryToken));
 
         return creatorToken;
@@ -64,9 +71,9 @@ contract PumController is PumConverter {
 
     function _getStartSqrtPriceX96(address tokenA, address tokenB) internal pure returns (uint256) {
         if (tokenA < tokenB) {
-            return (224091083899144568832);
+            return (500000000000);
         } else {
-            return (28011385000000000000000000000000000000);
+            return (1e8 * 1e38);
         }
     }
 
@@ -99,12 +106,13 @@ contract PumController is PumConverter {
 
         actions[0] = bytes1(uint8(Actions.MINT_POSITION));
         actions[1] = bytes1(uint8(Actions.SETTLE_PAIR));
+
         bytes[] memory params = new bytes[](2);
         params[0] = _encodeMintParams(
             _getPoolKey(tokenA, tokenB),
-            int24(tokenA < tokenB ? -196800 : -887220),
-            int24(tokenA < tokenB ? 887220 : 196800),
-            5330352825300000000000,
+            int24(tokenA < tokenB ? -340680 : -887220),
+            int24(tokenA < tokenB ? 887220 : 340680),
+            4004955170909380034,
             type(uint128).max,
             type(uint128).max,
             address(this)

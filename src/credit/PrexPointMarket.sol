@@ -20,7 +20,7 @@ contract PrexPointMarket is Owned {
 
     IERC20 public stableToken;
 
-    uint256 public constant POINT_PRICE = 1e12 / 200;
+    uint256 public pointPrice = 1e12 / 200;
 
     IPermit2 public immutable permit2;
 
@@ -32,6 +32,7 @@ contract PrexPointMarket is Owned {
 
     error IdempotencyKeyAlreadyUsed();
     error InvalidMinter();
+    error InvalidPointPrice();
 
     event PointBought(address indexed buyer, uint256 amount, uint256 method, bytes orderId);
     event FeeRecipientUpdated(address indexed newFeeRecipient);
@@ -43,10 +44,12 @@ contract PrexPointMarket is Owned {
         _;
     }
 
-    constructor(address owner, address _permit2, address _feeRecipient, address _point) Owned(owner) {
+    constructor(string memory name, string memory symbol, address owner, address _permit2, address _feeRecipient)
+        Owned(owner)
+    {
         permit2 = IPermit2(_permit2);
         feeRecipient = _feeRecipient;
-        point = PrexPoint(_point);
+        point = new PrexPoint(name, symbol, address(this), _permit2);
     }
 
     function setStableToken(address _stableToken) public onlyOwner {
@@ -69,6 +72,13 @@ contract PrexPointMarket is Owned {
 
     function moveOwnership(address newOwner) public onlyOwner {
         Owned(address(point)).transferOwnership(newOwner);
+    }
+
+    function setPointPrice(uint256 _pointPrice) public onlyOwner {
+        if (_pointPrice == 0) {
+            revert InvalidPointPrice();
+        }
+        pointPrice = _pointPrice;
     }
 
     /**
@@ -94,7 +104,7 @@ contract PrexPointMarket is Owned {
     function buy(BuyPointOrder memory order, bytes memory sig) internal {
         _verifyBuyOrder(order, sig);
 
-        uint256 pointAmount = order.amount / POINT_PRICE;
+        uint256 pointAmount = order.amount / pointPrice;
 
         bytes memory orderId = abi.encodePacked(order.hash());
 
