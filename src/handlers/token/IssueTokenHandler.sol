@@ -13,18 +13,16 @@ import {CreateTokenParameters} from "../../token-factory/TokenParams.sol";
 /**
  * @notice ユーザのトークンを発行注文を処理するハンドラー
  */
-contract IssueTokenHandler is IOrderHandler {
+contract IssueTokenHandler is IOrderHandler, PrexTokenFactory {
     using IssueMintableTokenRequestLib for IssueMintableTokenRequest;
 
     IPermit2 public immutable permit2;
-    PrexTokenFactory public immutable tokenFactory;
     ITokenRegistry public immutable tokenRegistry;
 
     uint256 constant POINTS = 10;
 
-    constructor(address _permit2, address _tokenFactory, address _tokenRegistry) {
+    constructor(address _permit2, address _tokenRegistry) {
         permit2 = IPermit2(_permit2);
-        tokenFactory = PrexTokenFactory(_tokenFactory);
         tokenRegistry = ITokenRegistry(_tokenRegistry);
     }
 
@@ -50,7 +48,7 @@ contract IssueTokenHandler is IOrderHandler {
         });
 
         // トークンを発行する
-        tokenFactory.createMintableCreatorToken(params, address(permit2), address(tokenRegistry));
+        createMintableCreatorToken(params, address(permit2), address(tokenRegistry));
 
         return request.getOrderReceipt(POINTS);
     }

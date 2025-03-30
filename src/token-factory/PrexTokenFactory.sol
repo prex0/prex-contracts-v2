@@ -23,7 +23,7 @@ contract PrexTokenFactory {
      * @return The address of the created token
      */
     function createMintableCreatorToken(CreateTokenParameters memory params, address _permit2, address _tokenRegistry)
-        public
+        internal
         returns (address)
     {
         MintableCreatorCoin token = new MintableCreatorCoin(params, _permit2, _tokenRegistry);

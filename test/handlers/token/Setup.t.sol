@@ -12,7 +12,6 @@ import {ERC20} from "../../../lib/solmate/src/tokens/ERC20.sol";
 import {OrderReceipt, SignedOrder} from "../../../src/interfaces/IOrderHandler.sol";
 import "../../../lib/permit2/src/interfaces/ISignatureTransfer.sol";
 import {MockToken} from "../../mock/MockToken.sol";
-import {PrexTokenFactory} from "../../../src/token-factory/PrexTokenFactory.sol";
 import {TokenRegistry} from "../../../src/data/TokenRegistry.sol";
 
 contract IssueMintableTokenRequestSetup is Test, TestUtils {
@@ -23,10 +22,9 @@ contract IssueMintableTokenRequestSetup is Test, TestUtils {
     function setUp() public virtual override {
         super.setUp();
 
-        PrexTokenFactory tokenFactory = new PrexTokenFactory();
         TokenRegistry tokenRegistry = new TokenRegistry();
 
-        issueTokenHandler = new IssueTokenHandler(address(permit2), address(tokenFactory), address(tokenRegistry));
+        issueTokenHandler = new IssueTokenHandler(address(permit2), address(tokenRegistry));
     }
 
     function _sign(IssueMintableTokenRequest memory request, uint256 fromPrivateKey)
