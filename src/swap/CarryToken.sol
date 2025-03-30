@@ -8,7 +8,7 @@ import {Owned} from "solmate/src/auth/Owned.sol";
  * PumPumのCreatorCoinとPointを媒介するためのToken
  */
 contract CarryToken is ERC20, Owned {
-    constructor(address _owner) ERC20("CarryToken", "CAT", 18) Owned(_owner) {}
+    constructor(address _owner) ERC20("CarryToken", "CARRY", 18) Owned(_owner) {}
 
     function mint(address to, uint256 amount) external onlyOwner {
         _mint(to, amount);

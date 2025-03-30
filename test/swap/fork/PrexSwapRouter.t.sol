@@ -42,15 +42,19 @@ contract SwapRouterTest is Test {
         vm.selectFork(optimismFork);
         vm.rollFork(1_337_000);
 
-        pumConverter = new PumConverter(address(0), address(0), address(0), address(0));
+        pumConverter = new PumConverter(address(0), address(0), address(0));
         loyaltyConverter = new LoyaltyConverter(address(0), address(0));
 
         prexSwapRouter = new PrexSwapRouter(
-            address(0x851116D9223fabED8E56C0E6b8Ad0c31d98B3507), address(pumConverter), address(loyaltyConverter)
+            address(0x851116D9223fabED8E56C0E6b8Ad0c31d98B3507),
+            address(loyaltyConverter),
+            address(pumConverter),
+            address(0x000000000022D473030F116dDEE9F6B43aC78BA3)
         );
 
         plan = Planner.init();
 
+        // WETH
         currency0 = Currency.wrap(address(0x4200000000000000000000000000000000000006));
         currency1 = Currency.wrap(address(0x4200000000000000000000000000000000000007));
     }
@@ -65,11 +69,13 @@ contract SwapRouterTest is Test {
         plan = plan.add(Actions.SWAP_EXACT_IN, abi.encode(params));
         bytes memory data = plan.encode();
 
+        /*
         prexSwapRouter.executeSwap(
             abi.encode(
                 new address[](0), PrexSwapRouter.ConvertParams(PrexSwapRouter.ConvertType.NOOP, address(0), 0), data
             )
         );
+        */
     }
 
     function _getExactInputParams(Currency[] memory _tokenPath, uint256 amountIn)

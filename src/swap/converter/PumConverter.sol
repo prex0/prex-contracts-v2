@@ -14,8 +14,8 @@ contract PumConverter is Owned {
     // point price by DAI
     uint256 public pricePointByDai;
 
-    constructor(address _owner, address _carryToken, address _prexPoint, address _dai) Owned(_owner) {
-        carryToken = CarryToken(_carryToken);
+    constructor(address _owner, address _prexPoint, address _dai) Owned(_owner) {
+        carryToken = new CarryToken(address(this));
         prexPoint = IPrexPoints(_prexPoint);
         dai = IERC20(_dai);
         pricePointByDai = 1e12 / 200;

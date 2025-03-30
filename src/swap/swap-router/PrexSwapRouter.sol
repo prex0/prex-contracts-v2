@@ -5,6 +5,7 @@ import {LoyaltyConverter} from "../converter/LoyaltyConverter.sol";
 import {PumConverter} from "../converter/PumConverter.sol";
 import {ERC20} from "solmate/src/tokens/ERC20.sol";
 import {SafeTransferLib} from "solmate/src/utils/SafeTransferLib.sol";
+import {IPermit2} from "../../../lib/permit2/src/interfaces/IPermit2.sol";
 
 /**
  * swap router for UniswapV4, V3 and Converter
@@ -15,6 +16,7 @@ contract PrexSwapRouter {
     address public universalRouter;
     LoyaltyConverter public loyaltyConverter;
     PumConverter public pumConverter;
+    IPermit2 public permit2;
 
     enum ConvertType {
         NOOP,
@@ -30,20 +32,25 @@ contract PrexSwapRouter {
         uint256 amount;
     }
 
-    constructor(address _universalRouter, address _loyaltyConverter, address _pumConverter) {
+    constructor(address _universalRouter, address _loyaltyConverter, address _pumConverter, address _permit2) {
         universalRouter = _universalRouter;
         loyaltyConverter = LoyaltyConverter(_loyaltyConverter);
         pumConverter = PumConverter(_pumConverter);
+        permit2 = IPermit2(_permit2);
     }
 
-    function executeSwap(bytes memory callbackData) external {
+    function _executeSwap(bytes memory callbackData) internal {
         (address[] memory tokensToApproveForUniversalRouter, ConvertParams memory convertParams, bytes memory data) =
             abi.decode(callbackData, (address[], ConvertParams, bytes));
 
         // TODO: approve
         unchecked {
             for (uint256 i = 0; i < tokensToApproveForUniversalRouter.length; i++) {
-                ERC20(tokensToApproveForUniversalRouter[i]).safeApprove(address(universalRouter), type(uint256).max);
+                ERC20(tokensToApproveForUniversalRouter[i]).safeApprove(address(permit2), type(uint256).max);
+
+                permit2.approve(
+                    tokensToApproveForUniversalRouter[i], address(universalRouter), type(uint160).max, type(uint48).max
+                );
             }
         }
 

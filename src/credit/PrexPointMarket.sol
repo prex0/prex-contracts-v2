@@ -8,11 +8,11 @@ import {IPermit2} from "../../lib/permit2/src/interfaces/IPermit2.sol";
 import "./PrexPoint.sol";
 import "./BuyPointOrder.sol";
 import {IOrderHandler} from "../interfaces/IOrderHandler.sol";
+
 /**
  * @title PrexPointMarket
  * @notice Market for PrexPoint
  */
-
 contract PrexPointMarket is Owned {
     using BuyPointOrderLib for BuyPointOrder;
 
