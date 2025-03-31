@@ -30,6 +30,7 @@ contract PumHook is BaseHook, Owned {
     error InvalidPool();
 
     event MarketStatusUpdated(address indexed communityToken, bool sellable);
+    event CreatorTokenPriceChanged(address indexed sender, address indexed communityToken, uint160 sqrtPriceX96);
 
     constructor(address _poolManager, address _carryToken, address _owner)
         BaseHook(IPoolManager(_poolManager))
@@ -104,11 +105,13 @@ contract PumHook is BaseHook, Owned {
         return (BaseHook.beforeSwap.selector, BeforeSwapDelta.wrap(0), 0);
     }
 
-    function _afterSwap(address, PoolKey calldata key, IPoolManager.SwapParams calldata, BalanceDelta, bytes calldata)
-        internal
-        override
-        returns (bytes4, int128)
-    {
+    function _afterSwap(
+        address sender,
+        PoolKey calldata key,
+        IPoolManager.SwapParams calldata,
+        BalanceDelta,
+        bytes calldata
+    ) internal override returns (bytes4, int128) {
         (bool isCarryToken0, address creatorToken) = _getCreatorToken(key);
 
         uint160 minSqrtPriceX96 = _getMinSqrtPriceX96(isCarryToken0);
@@ -120,6 +123,8 @@ contract PumHook is BaseHook, Owned {
         if (currentSqrtPriceX96 > minSqrtPriceX96) {
             _updateMarketStatus(creatorToken, true);
         }
+
+        emit CreatorTokenPriceChanged(sender, creatorToken, currentSqrtPriceX96);
 
         return (BaseHook.afterSwap.selector, 0);
     }
