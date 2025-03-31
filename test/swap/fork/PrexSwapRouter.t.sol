@@ -3,7 +3,6 @@ pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 import {PrexSwapRouter} from "../../../src/swap/swap-router/PrexSwapRouter.sol";
-import {IPrexSwap} from "../../../src/interfaces/IPrexSwap.sol";
 import {Plan, Planner} from "v4-periphery/test/shared/Planner.sol";
 import {Actions} from "v4-periphery/src/libraries/Actions.sol";
 import {PathKey} from "v4-periphery/src/libraries/PathKey.sol";
@@ -71,7 +70,7 @@ contract SwapRouterTest is Test {
 
         prexSwapRouter.executeSwap(
             abi.encode(
-                new address[](0), PrexSwapRouter.ConvertParams(PrexSwapRouter.ConvertType.NOOP, address(0), 0), data
+                new address[](0), PrexSwapRouter.ConvertParams(PrexSwapRouter.ConvertType.NOOP, address(0)), data
             )
         );
     }

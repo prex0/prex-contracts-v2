@@ -77,7 +77,7 @@ contract PumController is PumConverter {
         string memory name,
         string memory symbol,
         bytes32 pictureHash,
-        string memory metadata
+        bytes memory metadata
     ) public returns (address) {
         // Issue PUM token
         address creatorToken = creatorTokenFactory.createCreatorToken(

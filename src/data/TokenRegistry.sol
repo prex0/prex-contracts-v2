@@ -6,13 +6,13 @@ import {ICreatorCoin} from "../interfaces/ICreatorCoin.sol";
 contract TokenRegistry {
     struct Token {
         bytes32 pictureHash;
-        string metadata;
+        bytes metadata;
     }
 
     mapping(address => Token) public tokens;
 
     event PictureHashUpdated(address indexed token, bytes32 pictureHash);
-    event MetadataUpdated(address indexed token, string metadata);
+    event MetadataUpdated(address indexed token, bytes metadata);
 
     error NotIssuer();
 
@@ -28,7 +28,7 @@ contract TokenRegistry {
      * @param pictureHash The hash of the picture of the profile
      * @param metadata The metadata of the profile
      */
-    function updateToken(address token, bytes32 pictureHash, string memory metadata) public {
+    function updateToken(address token, bytes32 pictureHash, bytes memory metadata) public {
         _updatePictureHash(token, pictureHash);
         _updateMetadata(token, metadata);
     }
@@ -37,7 +37,7 @@ contract TokenRegistry {
         _updatePictureHash(token, pictureHash);
     }
 
-    function updateMetadata(address token, string memory metadata) public onlyIssuer(token) {
+    function updateMetadata(address token, bytes memory metadata) public onlyIssuer(token) {
         _updateMetadata(token, metadata);
     }
 
@@ -47,7 +47,7 @@ contract TokenRegistry {
         emit PictureHashUpdated(token, pictureHash);
     }
 
-    function _updateMetadata(address token, string memory metadata) internal {
+    function _updateMetadata(address token, bytes memory metadata) internal {
         tokens[token].metadata = metadata;
 
         emit MetadataUpdated(token, metadata);

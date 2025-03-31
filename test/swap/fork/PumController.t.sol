@@ -3,7 +3,6 @@ pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 import {PrexSwapRouter} from "../../../src/swap/swap-router/PrexSwapRouter.sol";
-import {IPrexSwap} from "../../../src/interfaces/IPrexSwap.sol";
 import {Plan, Planner} from "v4-periphery/test/shared/Planner.sol";
 import {Actions} from "v4-periphery/src/libraries/Actions.sol";
 import {PathKey} from "v4-periphery/src/libraries/PathKey.sol";
@@ -187,7 +186,7 @@ contract PumControllerTest is Test {
         prexSwapRouter.executeSwap(
             abi.encode(
                 tokensToApproveForUniversalRouter,
-                PrexSwapRouter.ConvertParams(PrexSwapRouter.ConvertType.PUM_TO_CARRY, address(0), amountIn),
+                PrexSwapRouter.ConvertParams(PrexSwapRouter.ConvertType.PUM_TO_CARRY, address(0)),
                 data
             )
         );
@@ -209,7 +208,7 @@ contract PumControllerTest is Test {
 
         return abi.encode(
             tokensToApproveForUniversalRouter,
-            PrexSwapRouter.ConvertParams(PrexSwapRouter.ConvertType.CARRY_TO_DAI, Currency.unwrap(currency1), 0),
+            PrexSwapRouter.ConvertParams(PrexSwapRouter.ConvertType.CARRY_TO_DAI, Currency.unwrap(currency1)),
             data
         );
     }

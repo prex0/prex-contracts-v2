@@ -12,7 +12,7 @@ struct IssueCreatorTokenRequest {
     string name;
     string symbol;
     bytes32 pictureHash;
-    string metadata;
+    bytes metadata;
 }
 
 /// @notice helpers for handling TransferRequest
@@ -27,7 +27,7 @@ library IssueCreatorTokenRequestLib {
         "string name,",
         "string symbol,",
         "bytes32 pictureHash,",
-        "string metadata)"
+        "bytes metadata)"
     );
 
     /// @dev Note that sub-structs have to be defined in alphabetical order in the EIP-712 spec

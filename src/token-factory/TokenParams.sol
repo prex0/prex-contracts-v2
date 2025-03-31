@@ -8,5 +8,5 @@ struct CreateTokenParameters {
     string name;
     string symbol;
     bytes32 pictureHash;
-    string metadata;
+    bytes metadata;
 }

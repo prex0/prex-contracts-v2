@@ -35,7 +35,7 @@ abstract contract BaseCreatorCoin is BasePrexToken {
      * @param pictureHash トークンの画像のハッシュ
      * @param metadata トークンのメタデータ
      */
-    function updateTokenDetails(bytes32 pictureHash, string memory metadata) external onlyIssuer {
+    function updateTokenDetails(bytes32 pictureHash, bytes memory metadata) external onlyIssuer {
         tokenRegistry.updateToken(address(this), pictureHash, metadata);
     }
 }

@@ -31,21 +31,29 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
         uint256 credit;
     }
 
-    // ポリシーIDからポリシー情報へのマッピング
-    mapping(uint256 => Policy) public policies;
+    /// @dev ポリシーIDからポリシー情報へのマッピング
+    mapping(uint256 policyId => Policy) public policies;
 
-    mapping(uint256 => App) public apps;
+    /// @dev アプリIDからアプリ情報へのマッピング
+    mapping(uint256 appId => App) public apps;
 
+    /// @dev クレジットを管理するトークンのアドレス
     address public prexPoint;
 
-    uint256 public policyCounts = 1;
-    uint256 public appCounts = 1;
+    /// @dev ポリシーの数
+    uint256 public nextPolicyId = 1;
+
+    /// @dev アプリの数
+    uint256 public nextAppId = 1;
 
     event AppRegistered(uint256 appId, address owner, string appName);
     event PolicyRegistered(
         uint256 appId, uint256 policyId, address validator, address publicKey, bytes policyParams, string policyName
     );
     event PolicyStatusUpdated(uint256 appId, uint256 policyId, bool isActive);
+    event CreditDeposited(uint256 appId, uint256 amount);
+    event CreditWithdrawn(uint256 appId, uint256 amount);
+    event CreditConsumed(uint256 appId, uint256 amount);
 
     modifier onlyPolicyOwner(uint256 policyId) {
         if (apps[policies[policyId].appId].owner != msg.sender) {
@@ -72,7 +80,7 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
      * @return appId アプリID
      */
     function registerApp(address owner, string calldata appName) external returns (uint256 appId) {
-        appId = appCounts++;
+        appId = nextAppId++;
 
         apps[appId] = App({owner: owner, credit: 0});
 
@@ -81,6 +89,7 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
 
     /**
      * @notice ポリシーを登録する
+     * @dev アプリのオーナーのみが登録できる
      * @param validator ポリシーバリデータのアドレス
      * @param publicKey アプリ開発者の公開鍵
      * @param appId アプリID
@@ -93,7 +102,7 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
         bytes calldata policyParams,
         string calldata policyName
     ) external onlyAppOwner(appId) returns (uint256 policyId) {
-        policyId = policyCounts++;
+        policyId = nextPolicyId++;
 
         policies[policyId] = Policy(validator, policyId, publicKey, appId, policyParams, true);
 
@@ -102,6 +111,7 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
 
     /**
      * @notice ポリシーを削除する
+     * @dev ポリシーのオーナーのみが削除できる
      * @param policyId ポリシーID
      */
     function updatePolicyStatus(uint256 policyId, bool isActive) external onlyPolicyOwner(policyId) {
@@ -119,10 +129,13 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
         IERC20(prexPoint).transferFrom(msg.sender, address(this), amount);
 
         apps[appId].credit += amount;
+
+        emit CreditDeposited(appId, amount);
     }
 
     /**
      * @notice クレジットを引き出す
+     * @dev アプリのオーナーのみが引き出せる
      * @param appId アプリID
      * @param amount 引き出すクレジット量
      * @param to 引き出す先のアドレス
@@ -135,6 +148,8 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
         apps[appId].credit -= amount;
 
         IERC20(prexPoint).transfer(to, amount);
+
+        emit CreditWithdrawn(appId, amount);
     }
 
     /**
@@ -149,8 +164,10 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
         }
 
         if (receipt.policyId == 0) {
+            // ポリシーIDが0の場合、ユーザのクレジットを消費する
             IPrexPoints(prexPoint).consumePoints(receipt.user, receipt.points * creditPrice);
         } else {
+            // ポリシーが設定されている場合、アプリ署名を検証し、クレジットを消費する
             Policy memory policy = policies[receipt.policyId];
 
             if (!policy.isActive) {
@@ -161,8 +178,8 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
 
             _consumeAppCredit(policy.appId, receipt.points * creditPrice);
 
+            // 追加のポリシーバリデーションを実行する
             if (policy.validator != address(0)) {
-                // ポリシーバリデータを呼び出してポリシーを検証し、消費者アドレスを取得
                 if (!IPolicyValidator(policy.validator).validatePolicy(header, receipt, policy.policyParams)) {
                     revert InvalidPolicy();
                 }
@@ -195,5 +212,7 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
         apps[appId].credit -= amount;
 
         IPrexPoints(prexPoint).burn(amount);
+
+        emit CreditConsumed(appId, amount);
     }
 }

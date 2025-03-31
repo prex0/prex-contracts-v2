@@ -8,7 +8,7 @@ import {SafeTransferLib} from "solmate/src/utils/SafeTransferLib.sol";
 import {IPermit2} from "../../../lib/permit2/src/interfaces/IPermit2.sol";
 
 /**
- * swap router for UniswapV4, V3 and Converter
+ * @notice swap router for UniswapV4, V3 and Converter
  */
 contract PrexSwapRouter {
     using SafeTransferLib for ERC20;
@@ -29,7 +29,6 @@ contract PrexSwapRouter {
     struct ConvertParams {
         ConvertType convertType;
         address loyaltyCoin;
-        uint256 amount;
     }
 
     constructor(address _universalRouter, address _loyaltyConverter, address _pumConverter, address _permit2) {
@@ -43,6 +42,10 @@ contract PrexSwapRouter {
         _executeSwap(callbackData);
     }
 
+    /**
+     * @notice スワップを実行する
+     * @param callbackData スワップのコールバックデータ
+     */
     function _executeSwap(bytes memory callbackData) internal {
         (address[] memory tokensToApproveForUniversalRouter, ConvertParams memory convertParams, bytes memory data) =
             abi.decode(callbackData, (address[], ConvertParams, bytes));
@@ -60,9 +63,13 @@ contract PrexSwapRouter {
 
         // TODO: pre convert
         if (convertParams.convertType == ConvertType.PUM_TO_CARRY) {
-            pumConverter.convertPumPointToCarryPoint(convertParams.amount, address(this));
+            uint256 pumPointAmount = ERC20(address(pumConverter.pumPoint())).balanceOf(address(this));
+
+            pumConverter.convertPumPointToCarryPoint(pumPointAmount, address(this));
         } else if (convertParams.convertType == ConvertType.LOYALTY_TO_DAI) {
-            loyaltyConverter.convertLoyaltyCoinToDai(convertParams.loyaltyCoin, convertParams.amount, address(this));
+            uint256 loyaltyCoinAmount = ERC20(convertParams.loyaltyCoin).balanceOf(address(this));
+
+            loyaltyConverter.convertLoyaltyCoinToDai(convertParams.loyaltyCoin, loyaltyCoinAmount, address(this));
         }
 
         (bool success, bytes memory returnData) = universalRouter.call(data);
