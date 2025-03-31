@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import "../../interfaces/IOrderHandler.sol";
-import "./orders/IssueMintableTokenRequest.sol";
+import "./orders/IssueCreatorTokenRequest.sol";
 import {ERC20} from "../../../lib/solmate/src/tokens/ERC20.sol";
 import "../../../lib/permit2/src/interfaces/ISignatureTransfer.sol";
 import "../../../lib/permit2/src/interfaces/IPermit2.sol";
@@ -15,7 +15,7 @@ import {PumController} from "../../swap/PumController.sol";
  * @notice ユーザのトークンを発行注文を処理するハンドラー
  */
 contract IssueCreatorTokenHandler is IOrderHandler, PumController {
-    using IssueMintableTokenRequestLib for IssueMintableTokenRequest;
+    using IssueCreatorTokenRequestLib for IssueCreatorTokenRequest;
 
     constructor(
         address owner,
@@ -33,7 +33,7 @@ contract IssueCreatorTokenHandler is IOrderHandler, PumController {
      * @return 注文の結果
      */
     function execute(address, SignedOrder calldata order, bytes calldata) external returns (OrderReceipt memory) {
-        IssueMintableTokenRequest memory request = abi.decode(order.order, (IssueMintableTokenRequest));
+        IssueCreatorTokenRequest memory request = abi.decode(order.order, (IssueCreatorTokenRequest));
 
         // オーダーのリクエストを検証する
         _verifyRequest(request, order.signature);
@@ -48,7 +48,7 @@ contract IssueCreatorTokenHandler is IOrderHandler, PumController {
      * @param request オーダーのリクエスト
      * @param sig オーダーの署名
      */
-    function _verifyRequest(IssueMintableTokenRequest memory request, bytes memory sig) internal {
+    function _verifyRequest(IssueCreatorTokenRequest memory request, bytes memory sig) internal {
         if (address(this) != address(request.dispatcher)) {
             revert InvalidDispatcher();
         }
@@ -66,7 +66,7 @@ contract IssueCreatorTokenHandler is IOrderHandler, PumController {
             ISignatureTransfer.SignatureTransferDetails({to: address(this), requestedAmount: 0}),
             request.issuer,
             request.hash(),
-            IssueMintableTokenRequestLib.PERMIT2_ORDER_TYPE,
+            IssueCreatorTokenRequestLib.PERMIT2_ORDER_TYPE,
             sig
         );
     }

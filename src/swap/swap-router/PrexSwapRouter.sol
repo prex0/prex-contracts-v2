@@ -73,9 +73,13 @@ contract PrexSwapRouter {
         }
 
         if (convertParams.convertType == ConvertType.CARRY_TO_DAI) {
-            pumConverter.convertCarryPointToDai(convertParams.amount, address(this));
+            uint256 carryPointAmount = ERC20(pumConverter.carryToken()).balanceOf(address(this));
+
+            pumConverter.convertCarryPointToDai(carryPointAmount, address(this));
         } else if (convertParams.convertType == ConvertType.DAI_TO_LOYALTY) {
-            loyaltyConverter.convertDaiToLoyaltyCoin(convertParams.loyaltyCoin, convertParams.amount, address(this));
+            uint256 daiAmount = loyaltyConverter.dai().balanceOf(address(this));
+
+            loyaltyConverter.convertDaiToLoyaltyCoin(convertParams.loyaltyCoin, daiAmount, address(this));
         }
     }
 }

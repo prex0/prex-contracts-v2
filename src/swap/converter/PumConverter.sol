@@ -29,6 +29,14 @@ contract PumConverter is Owned {
         emit PriceUpdated(_price);
     }
 
+    function depositDai(uint256 daiAmount) external onlyOwner {
+        dai.transferFrom(msg.sender, address(this), daiAmount);
+    }
+
+    function withdrawDai(uint256 daiAmount, address recipient) external onlyOwner {
+        dai.transfer(recipient, daiAmount);
+    }
+
     // PumPoint to CarryPoint
     function convertPumPointToCarryPoint(uint256 pumPointAmount, address recipient)
         external

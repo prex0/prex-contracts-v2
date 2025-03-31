@@ -18,7 +18,6 @@ import {LiquidityAmounts} from "v4-periphery/src/libraries/LiquidityAmounts.sol"
 import {TickMath} from "v4-core/src/libraries/TickMath.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {CreatorTokenFactory} from "../../../src/token-factory/CreatorTokenFactory.sol";
-// TODO: pumPoint
 import {PrexPoint} from "../../../src/credit/PrexPoint.sol";
 import {PumHook} from "../../../src/swap/hooks/PumHook.sol";
 import {HookMiner} from "v4-periphery/src/utils/HookMiner.sol";
@@ -48,8 +47,7 @@ contract PumControllerTest is Test {
     LoyaltyConverter public loyaltyConverter;
 
     PrexSwapRouter public prexSwapRouter;
-    Plan plan;
-    Currency[] tokenPath;
+
     Currency currency0;
     Currency currency1;
 
@@ -59,12 +57,15 @@ contract PumControllerTest is Test {
     PrexPoint public pumPoint;
     CreatorTokenFactory public creatorTokenFactory;
     PumHook public pumHook;
+    IERC20 public dai;
 
     // create two _different_ forks during setup
     function setUp() public {
         optimismFork = vm.createFork(OPTIMISM_RPC_URL);
         vm.selectFork(optimismFork);
         vm.rollFork(133_850_000);
+
+        dai = IERC20(0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1);
 
         pumPoint =
             new PrexPoint("PrexPoint", "PREX", address(this), address(0x000000000022D473030F116dDEE9F6B43aC78BA3));
@@ -73,15 +74,15 @@ contract PumControllerTest is Test {
         pumController = new PumController(
             address(this),
             address(pumPoint),
-            address(0),
+            address(dai),
             address(0x3C3Ea4B57a46241e54610e5f022E5c45859A1017),
             address(tokenRegistry),
             address(creatorTokenFactory),
             address(0x000000000022D473030F116dDEE9F6B43aC78BA3)
         );
-        (address pumHookAddress, bytes32 pumHookSalt) = mineAddress();
+        (, bytes32 pumHookSalt) = mineAddress();
         pumHook = new PumHook{salt: pumHookSalt}(
-            address(0x9a13F98Cb987694C9F086b1F5eB990EeA8264Ec3), address(pumController.carryToken())
+            address(0x9a13F98Cb987694C9F086b1F5eB990EeA8264Ec3), address(pumController.carryToken()), address(this)
         );
         pumController.setPumHook(address(pumHook));
 
@@ -96,53 +97,124 @@ contract PumControllerTest is Test {
             address(0x000000000022D473030F116dDEE9F6B43aC78BA3)
         );
 
-        plan = Planner.init();
+        // Deposit DAI to PumController
+        deal(address(dai), address(this), 10000 * 1e18);
+        dai.approve(address(pumController), 10000 * 1e18);
+        pumController.depositDai(10000 * 1e18);
 
         // CarryToken
         currency0 = Currency.wrap(address(pumController.carryToken()));
     }
 
-    function mineAddress() public returns (address, bytes32) {
+    function mineAddress() internal view returns (address, bytes32) {
         uint160 flags = uint160(Hooks.BEFORE_SWAP_FLAG | Hooks.AFTER_SWAP_FLAG);
-        bytes memory constructorArgs =
-            abi.encode(address(0x9a13F98Cb987694C9F086b1F5eB990EeA8264Ec3), address(pumController.carryToken()));
+        bytes memory constructorArgs = abi.encode(
+            address(0x9a13F98Cb987694C9F086b1F5eB990EeA8264Ec3), address(pumController.carryToken()), address(this)
+        );
         (address hookAddress, bytes32 salt) =
             HookMiner.find(address(this), flags, type(PumHook).creationCode, constructorArgs);
 
         return (hookAddress, salt);
     }
 
-    // manage multiple forks in the same test
-    function testIssuePumToken() public {
+    function testIssuePumToken_AndCheckFirstBuy() public {
         address creatorToken = pumController.issuePumToken(issuer, "PUM", "PUM", bytes32(0), "");
 
         currency1 = Currency.wrap(address(creatorToken));
 
         // assertEq(creatorToken, address(0x4200000000000000000000000000000000000006));
-        pumPoint.mint(address(prexSwapRouter), 2000 * 1e6);
+        pumPoint.mint(address(prexSwapRouter), 200000 * 1e6);
 
-        {
-            uint256 amountIn = 2000 * 1e6;
-
-            tokenPath.push(currency0);
-            tokenPath.push(currency1);
-            IV4Router.ExactInputParams memory params = _getExactInputParams(tokenPath, amountIn);
-            plan = plan.add(Actions.SWAP_EXACT_IN, abi.encode(params));
-            bytes memory data = _makeV4Swap(plan.finalizeSwap(currency0, currency1, address(this)));
-
-            address[] memory tokensToApproveForUniversalRouter = new address[](1);
-            tokensToApproveForUniversalRouter[0] = address(pumController.carryToken());
-
-            prexSwapRouter.executeSwap(
-                abi.encode(
-                    tokensToApproveForUniversalRouter,
-                    PrexSwapRouter.ConvertParams(PrexSwapRouter.ConvertType.PUM_TO_CARRY, address(0), 2000 * 1e6),
-                    data
-                )
-            );
-        }
+        _buy(2000 * 1e6);
 
         assertEq(IERC20(creatorToken).balanceOf(address(this)), 1158515346047294579105489);
+    }
+
+    function testCannotSellBeforeMarketOpen() public {
+        address creatorToken = pumController.issuePumToken(issuer, "PUM", "PUM", bytes32(0), "");
+
+        currency1 = Currency.wrap(address(creatorToken));
+
+        // assertEq(creatorToken, address(0x4200000000000000000000000000000000000006));
+        pumPoint.mint(address(prexSwapRouter), 200000 * 1e6);
+
+        _buy(20000 * 1e6);
+
+        bytes memory data = _getSellFacilitationData(10000 * 1e18);
+
+        currency1.transfer(address(prexSwapRouter), 10000 * 1e18);
+
+        vm.expectRevert();
+        prexSwapRouter.executeSwap(data);
+    }
+
+    function testSellAfterMarketOpen() public {
+        address creatorToken = pumController.issuePumToken(issuer, "PUM", "PUM", bytes32(0), "");
+
+        currency1 = Currency.wrap(address(creatorToken));
+
+        // assertEq(creatorToken, address(0x4200000000000000000000000000000000000006));
+        pumPoint.mint(address(prexSwapRouter), 200000 * 1e6);
+
+        _buy(200000 * 1e6);
+
+        bytes memory data = _getSellFacilitationData(10000 * 1e18);
+
+        currency1.transfer(address(prexSwapRouter), 10000 * 1e18);
+
+        prexSwapRouter.executeSwap(data);
+    }
+
+    function _buy(uint256 amountIn) internal {
+        Currency[] memory tokenPath = new Currency[](2);
+        tokenPath[0] = currency0;
+        tokenPath[1] = currency1;
+
+        Plan memory plan = Planner.init();
+
+        IV4Router.ExactInputParams memory params = _getExactInputParams(tokenPath, amountIn);
+        plan = plan.add(Actions.SWAP_EXACT_IN, abi.encode(params));
+        bytes memory data = _makeV4Swap(plan.finalizeSwap(currency0, currency1, address(this)));
+
+        address[] memory tokensToApproveForUniversalRouter = new address[](1);
+        tokensToApproveForUniversalRouter[0] = address(pumController.carryToken());
+
+        prexSwapRouter.executeSwap(
+            abi.encode(
+                tokensToApproveForUniversalRouter,
+                PrexSwapRouter.ConvertParams(PrexSwapRouter.ConvertType.PUM_TO_CARRY, address(0), amountIn),
+                data
+            )
+        );
+    }
+
+    function _getSellFacilitationData(uint256 amountIn) internal view returns (bytes memory) {
+        Currency[] memory tokenPath = new Currency[](2);
+        tokenPath[0] = currency1;
+        tokenPath[1] = currency0;
+
+        Plan memory plan = Planner.init();
+
+        IV4Router.ExactInputParams memory params = _getExactInputParams(tokenPath, amountIn);
+        plan = plan.add(Actions.SWAP_EXACT_IN, abi.encode(params));
+        bytes memory data = _makeV4Swap(plan.finalizeSwap(currency1, currency0, address(this)));
+
+        address[] memory tokensToApproveForUniversalRouter = new address[](1);
+        tokensToApproveForUniversalRouter[0] = Currency.unwrap(currency1);
+
+        return abi.encode(
+            tokensToApproveForUniversalRouter,
+            PrexSwapRouter.ConvertParams(PrexSwapRouter.ConvertType.CARRY_TO_DAI, Currency.unwrap(currency1), 0),
+            data
+        );
+    }
+
+    function _sell(uint256 amountIn) internal {
+        bytes memory data = _getSellFacilitationData(amountIn);
+
+        currency1.transfer(address(prexSwapRouter), amountIn);
+
+        prexSwapRouter.executeSwap(data);
     }
 
     /*
