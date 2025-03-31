@@ -11,7 +11,13 @@ contract LoyaltyConverter is Owned {
     // jpy price by dai
     uint256 public priceJpyByDai;
 
+    // fee rate scaled by 1e6
+    uint256 public feeRate;
+
     error InvalidLoyaltyCoin();
+
+    event PriceUpdated(uint256 newPrice);
+    event FeeRateUpdated(uint256 newFeeRate);
 
     constructor(address _owner, address _dai) Owned(_owner) {
         dai = IERC20(_dai);
@@ -20,6 +26,14 @@ contract LoyaltyConverter is Owned {
 
     function updatePrice(uint256 _price) external onlyOwner {
         priceJpyByDai = _price;
+
+        emit PriceUpdated(_price);
+    }
+
+    function updateFeeRate(uint256 _feeRate) external onlyOwner {
+        feeRate = _feeRate;
+
+        emit FeeRateUpdated(_feeRate);
     }
 
     // LoyaltyCoin to DAI
@@ -35,6 +49,8 @@ contract LoyaltyConverter is Owned {
         }
 
         daiAmount = loyaltyCoinAmount * priceJpyByDai / 1e6;
+        uint256 fee = daiAmount * feeRate / 1e6;
+        daiAmount -= fee;
 
         ILoyaltyCoin(loyaltyCoin).burn(msg.sender, loyaltyCoinAmount);
         dai.transfer(recipient, daiAmount);

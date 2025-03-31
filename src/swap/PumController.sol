@@ -12,6 +12,8 @@ import {IHooks} from "v4-core/src/interfaces/IHooks.sol";
 import {Actions} from "v4-periphery/src/libraries/Actions.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IPermit2} from "../../lib/permit2/src/interfaces/IPermit2.sol";
+import {CreatorTokenFactory} from "../token-factory/CreatorTokenFactory.sol";
+import {PumHook} from "./hooks/PumHook.sol";
 
 interface IPositionManager {
     function modifyLiquidities(bytes calldata unlockData, uint256 deadline) external payable;
@@ -19,15 +21,16 @@ interface IPositionManager {
 }
 
 contract PumController is PumConverter {
-    event CreatorCoinCreated(address indexed token);
-
     mapping(address => address) public creatorTokens;
 
     address public positionManager;
     address public tokenRegistry;
     IPermit2 public permit2;
+    CreatorTokenFactory public creatorTokenFactory;
 
     uint256 public constant MAX_SUPPLY_CT = 1e8 * 1e18;
+
+    PumHook public pumHook;
 
     event TokenIssued(
         address indexed communityToken, address indexed issuer, string name, string symbol, uint256 amountCT
@@ -39,14 +42,21 @@ contract PumController is PumConverter {
         address _dai,
         address _positionManager,
         address _tokenRegistry,
+        address _creatorTokenFactory,
         address _permit2
     ) PumConverter(_owner, _prexPoint, _dai) {
         positionManager = _positionManager;
         tokenRegistry = _tokenRegistry;
         permit2 = IPermit2(_permit2);
+        creatorTokenFactory = CreatorTokenFactory(_creatorTokenFactory);
 
+        // approve CARRY token
         carryToken.approve(address(permit2), type(uint256).max);
         permit2.approve(address(carryToken), address(positionManager), type(uint160).max, type(uint48).max);
+    }
+
+    function setPumHook(address _pumHook) external onlyOwner {
+        pumHook = PumHook(_pumHook);
     }
 
     /**
@@ -65,16 +75,16 @@ contract PumController is PumConverter {
         string memory metadata
     ) public returns (address) {
         // Issue PUM token
-        address creatorToken = _createCreatorToken(
+        address creatorToken = creatorTokenFactory.createCreatorToken(
             CreateTokenParameters(issuer, address(this), MAX_SUPPLY_CT, name, symbol, pictureHash, metadata),
             address(permit2),
             tokenRegistry
         );
 
-        _initializePool(creatorToken, address(carryToken), _getStartSqrtPriceX96(creatorToken, address(carryToken)));
+        _initializePool(creatorToken, address(carryToken));
 
         // provide liquidity to PUM/CARRY pool
-        // TODO: approve
+        // approve creator token
         IERC20(creatorToken).approve(address(permit2), type(uint256).max);
         permit2.approve(address(creatorToken), address(positionManager), type(uint160).max, type(uint48).max);
 
@@ -85,15 +95,18 @@ contract PumController is PumConverter {
         return creatorToken;
     }
 
-    function _getStartSqrtPriceX96(address tokenA, address tokenB) internal pure returns (uint256) {
+    function _getStartSqrtPriceX96(address tokenA, address tokenB) internal pure returns (uint160) {
         if (tokenA < tokenB) {
-            return (500000000000);
+            return uint160(500000000000);
         } else {
-            return (1e8 * 1e38);
+            return uint160(1e8 * 1e38);
         }
     }
 
-    function _initializePool(address tokenA, address tokenB, uint256 sqrtPriceX96) internal {
+    function _initializePool(address tokenA, address tokenB) internal {
+        // TODO: ここでsqrtPriceX96を計算する
+        uint256 sqrtPriceX96 = _getStartSqrtPriceX96(tokenA, tokenB);
+
         PoolKey memory poolKey = _getPoolKey(tokenA, tokenB);
 
         IPoolManager poolManager = IPositionManager(positionManager).poolManager();
@@ -101,7 +114,7 @@ contract PumController is PumConverter {
         poolManager.initialize(poolKey, uint160(sqrtPriceX96));
     }
 
-    function _getPoolKey(address tokenA, address tokenB) internal pure returns (PoolKey memory) {
+    function _getPoolKey(address tokenA, address tokenB) internal view returns (PoolKey memory) {
         Currency currency0 = Currency.wrap(tokenA);
         Currency currency1 = Currency.wrap(tokenB);
         if (tokenA > tokenB) {
@@ -113,7 +126,7 @@ contract PumController is PumConverter {
             // 6.0%
             fee: 60_000,
             tickSpacing: 60,
-            hooks: IHooks(address(0))
+            hooks: IHooks(address(pumHook))
         });
     }
 
@@ -147,26 +160,5 @@ contract PumController is PumConverter {
         address owner
     ) internal pure returns (bytes memory) {
         return abi.encode(poolKey, tickLower, tickUpper, liquidity, amount0Max, amount1Max, owner, bytes(""));
-    }
-
-    /**
-     * @notice Create a creator token
-     * pumpumの推しの証を作成する
-     * @param params トークンのパラメータ
-     * @param _permit2 The permit2 address
-     * @param _tokenRegistry The token registry address
-     * @return The address of the created token
-     */
-    function _createCreatorToken(CreateTokenParameters memory params, address _permit2, address _tokenRegistry)
-        internal
-        returns (address)
-    {
-        CreatorCoin coin = new CreatorCoin(params, _permit2, _tokenRegistry);
-
-        creatorTokens[address(coin)] = address(coin);
-
-        emit CreatorCoinCreated(address(coin));
-
-        return address(coin);
     }
 }

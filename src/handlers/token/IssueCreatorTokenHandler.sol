@@ -17,16 +17,15 @@ import {PumController} from "../../swap/PumController.sol";
 contract IssueCreatorTokenHandler is IOrderHandler, PumController {
     using IssueMintableTokenRequestLib for IssueMintableTokenRequest;
 
-    uint256 constant POINTS = 10;
-
     constructor(
         address owner,
         address _prexPoint,
         address _dai,
         address _positionManager,
         address _tokenRegistry,
+        address _creatorTokenFactory,
         address _permit2
-    ) PumController(owner, _prexPoint, _dai, _positionManager, _tokenRegistry, _permit2) {}
+    ) PumController(owner, _prexPoint, _dai, _positionManager, _tokenRegistry, _creatorTokenFactory, _permit2) {}
 
     /**
      * @notice ユーザのトークンを発行注文を処理する
@@ -41,7 +40,7 @@ contract IssueCreatorTokenHandler is IOrderHandler, PumController {
 
         issuePumToken(request.issuer, request.name, request.symbol, request.pictureHash, request.metadata);
 
-        return request.getOrderReceipt(POINTS);
+        return request.getOrderReceipt(0);
     }
 
     /**

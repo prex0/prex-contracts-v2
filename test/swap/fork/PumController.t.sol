@@ -17,8 +17,12 @@ import {TokenRegistry} from "../../../src/data/TokenRegistry.sol";
 import {LiquidityAmounts} from "v4-periphery/src/libraries/LiquidityAmounts.sol";
 import {TickMath} from "v4-core/src/libraries/TickMath.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {CreatorTokenFactory} from "../../../src/token-factory/CreatorTokenFactory.sol";
 // TODO: pumPoint
 import {PrexPoint} from "../../../src/credit/PrexPoint.sol";
+import {PumHook} from "../../../src/swap/hooks/PumHook.sol";
+import {HookMiner} from "v4-periphery/src/utils/HookMiner.sol";
+import {Hooks} from "v4-core/src/libraries/Hooks.sol";
 
 interface IPositionManager {
     function poolManager() external view returns (address);
@@ -53,6 +57,8 @@ contract PumControllerTest is Test {
     address recipient = address(0x0987654321098765432109876543210987654321);
 
     PrexPoint public pumPoint;
+    CreatorTokenFactory public creatorTokenFactory;
+    PumHook public pumHook;
 
     // create two _different_ forks during setup
     function setUp() public {
@@ -63,15 +69,21 @@ contract PumControllerTest is Test {
         pumPoint =
             new PrexPoint("PrexPoint", "PREX", address(this), address(0x000000000022D473030F116dDEE9F6B43aC78BA3));
         TokenRegistry tokenRegistry = new TokenRegistry();
-
+        creatorTokenFactory = new CreatorTokenFactory();
         pumController = new PumController(
             address(this),
             address(pumPoint),
             address(0),
             address(0x3C3Ea4B57a46241e54610e5f022E5c45859A1017),
             address(tokenRegistry),
+            address(creatorTokenFactory),
             address(0x000000000022D473030F116dDEE9F6B43aC78BA3)
         );
+        (address pumHookAddress, bytes32 pumHookSalt) = mineAddress();
+        pumHook = new PumHook{salt: pumHookSalt}(
+            address(0x9a13F98Cb987694C9F086b1F5eB990EeA8264Ec3), address(pumController.carryToken())
+        );
+        pumController.setPumHook(address(pumHook));
 
         // Set pumController as consumer
         pumPoint.setConsumer(address(pumController));
@@ -88,6 +100,16 @@ contract PumControllerTest is Test {
 
         // CarryToken
         currency0 = Currency.wrap(address(pumController.carryToken()));
+    }
+
+    function mineAddress() public returns (address, bytes32) {
+        uint160 flags = uint160(Hooks.BEFORE_SWAP_FLAG | Hooks.AFTER_SWAP_FLAG);
+        bytes memory constructorArgs =
+            abi.encode(address(0x9a13F98Cb987694C9F086b1F5eB990EeA8264Ec3), address(pumController.carryToken()));
+        (address hookAddress, bytes32 salt) =
+            HookMiner.find(address(this), flags, type(PumHook).creationCode, constructorArgs);
+
+        return (hookAddress, salt);
     }
 
     // manage multiple forks in the same test
@@ -120,7 +142,7 @@ contract PumControllerTest is Test {
             );
         }
 
-        assertEq(IERC20(creatorToken).balanceOf(address(this)), 1158515346047294579131741);
+        assertEq(IERC20(creatorToken).balanceOf(address(this)), 1158515346047294579105489);
     }
 
     /*
@@ -154,12 +176,12 @@ contract PumControllerTest is Test {
 
     function _getExactInputParams(Currency[] memory _tokenPath, uint256 amountIn)
         internal
-        pure
+        view
         returns (IV4Router.ExactInputParams memory params)
     {
         PathKey[] memory path = new PathKey[](_tokenPath.length - 1);
         for (uint256 i = 0; i < _tokenPath.length - 1; i++) {
-            path[i] = PathKey(_tokenPath[i + 1], 60_000, 60, IHooks(address(0)), bytes(""));
+            path[i] = PathKey(_tokenPath[i + 1], 60_000, 60, IHooks(address(pumHook)), bytes(""));
         }
 
         params.currencyIn = _tokenPath[0];

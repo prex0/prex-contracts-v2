@@ -8,21 +8,25 @@ import {Owned} from "solmate/src/auth/Owned.sol";
 
 contract PumConverter is Owned {
     CarryToken public immutable carryToken;
-    IPrexPoints public immutable prexPoint;
+    IPrexPoints public immutable pumPoint;
     IERC20 public immutable dai;
 
     // point price by DAI
     uint256 public pricePointByDai;
 
+    event PriceUpdated(uint256 newPrice);
+
     constructor(address _owner, address _prexPoint, address _dai) Owned(_owner) {
         carryToken = new CarryToken(address(this));
-        prexPoint = IPrexPoints(_prexPoint);
+        pumPoint = IPrexPoints(_prexPoint);
         dai = IERC20(_dai);
         pricePointByDai = 1e12 / 200;
     }
 
     function updatePrice(uint256 _price) external onlyOwner {
         pricePointByDai = _price;
+
+        emit PriceUpdated(_price);
     }
 
     // PumPoint to CarryPoint
@@ -35,7 +39,7 @@ contract PumConverter is Owned {
 
         carryPointAmount = pumPointAmount;
 
-        prexPoint.consumePoints(msg.sender, pumPointAmount);
+        pumPoint.consumePoints(msg.sender, pumPointAmount);
         carryToken.mint(recipient, carryPointAmount);
     }
 

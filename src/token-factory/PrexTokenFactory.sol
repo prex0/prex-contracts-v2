@@ -10,7 +10,7 @@ import "./TokenParams.sol";
  * @notice Prex token factory
  */
 contract PrexTokenFactory {
-    event MintableCreatorCoinCreated(address indexed token);
+    event MintableCreatorCoinCreated(address indexed token, CreateTokenParameters params);
 
     mapping(address => address) public mintableCreatorTokens;
 
@@ -30,7 +30,7 @@ contract PrexTokenFactory {
 
         mintableCreatorTokens[address(token)] = address(token);
 
-        emit MintableCreatorCoinCreated(address(token));
+        emit MintableCreatorCoinCreated(address(token), params);
 
         return address(token);
     }

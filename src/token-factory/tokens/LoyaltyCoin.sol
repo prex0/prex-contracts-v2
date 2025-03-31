@@ -22,6 +22,13 @@ contract LoyaltyCoin is BaseCreatorCoin {
         _;
     }
 
+    /**
+     * @notice Constructor
+     * @param params The parameters for the token
+     * @param _minter The address of the minter
+     * @param _permit2 The address of the permit2
+     * @param _tokenRegistry The address of the token registry
+     */
     constructor(CreateTokenParameters memory params, address _minter, address _permit2, address _tokenRegistry)
         BaseCreatorCoin(params.name, params.symbol, params.issuer, _permit2, _tokenRegistry)
     {
@@ -41,5 +48,14 @@ contract LoyaltyCoin is BaseCreatorCoin {
         }
 
         _mint(to, amount);
+    }
+
+    /**
+     * @notice Burn the tokens
+     * @param from The address to burn the tokens from
+     * @param amount The amount of tokens to burn
+     */
+    function burn(address from, uint256 amount) external onlyMinter {
+        _burn(from, amount);
     }
 }

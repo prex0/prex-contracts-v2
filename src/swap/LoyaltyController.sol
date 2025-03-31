@@ -12,7 +12,7 @@ contract LoyaltyController is LoyaltyConverter {
 
     address public immutable loyaltyPoint;
 
-    event LoyaltyCoinCreated(address indexed loyaltyToken);
+    event LoyaltyCoinCreated(address indexed loyaltyToken, address indexed issuer, string name, string symbol);
 
     constructor(address _owner, address _dai, address _loyaltyPoint) LoyaltyConverter(_owner, _dai) {
         loyaltyPoint = _loyaltyPoint;
@@ -41,7 +41,7 @@ contract LoyaltyController is LoyaltyConverter {
 
         loyaltyTokens[address(token)] = address(token);
 
-        emit LoyaltyCoinCreated(address(token));
+        emit LoyaltyCoinCreated(address(token), params.issuer, params.name, params.symbol);
 
         return address(token);
     }
