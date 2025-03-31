@@ -9,9 +9,67 @@ Foundry consists of:
 -   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
 -   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
 
-## Documentation
+## Diagram
 
-https://book.getfoundry.sh/
+```mermaid
+classDiagram
+    class OrderExecutor {
+        +address userPoints
+        +mapping(uint256 => Policy) policies
+        +constructor(address _userPoints)
+        +execute(address orderHandler, bytes order, bytes signature, bytes appSig)
+        -validatePolicy(OrderHeader header, OrderReceipt receipt, bytes appSig)
+    }
+    
+    class IOrderExecutor {
+        <<interface>>
+        +execute(address orderHandler, bytes order, bytes signature, bytes appSig)
+    }
+    
+    class IOrderHandler {
+        <<interface>>
+        +execute(address user, bytes order, bytes signature) returns (OrderHeader, OrderReceipt)
+    }
+    
+    class IPolicyValidator {
+        <<interface>>
+        +validatePolicy(OrderHeader header, bytes appSig) returns (address)
+    }
+    
+    class IUserPoints {
+        <<interface>>
+        +consumePoints(address user, uint256 points)
+    }
+    
+    class OrderHeader {
+        <<struct>>
+        +address user
+        +uint256 policyId
+        +uint256 nonce
+        +uint256 deadline
+    }
+    
+    class OrderReceipt {
+        <<struct>>
+        +uint256 points
+    }
+    
+    class Policy {
+        <<struct>>
+        +address validator
+        +uint256 policyId
+    }
+    
+    OrderExecutor ..|> IOrderExecutor : implements
+    OrderExecutor --> IOrderHandler : calls
+    OrderExecutor --> IPolicyValidator : calls
+    OrderExecutor --> IUserPoints : calls
+    IOrderHandler --> OrderHeader : returns
+    IOrderHandler --> OrderReceipt : returns
+    IPolicyValidator --> OrderHeader : uses
+    OrderExecutor o-- Policy : contains
+```
+
 
 ## Usage
 
