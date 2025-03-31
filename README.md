@@ -14,6 +14,66 @@ Prex V2 is a comprehensive smart contract system designed to facilitate secure a
 - Governance: Implement governance functionalities for managing proposals and voting.
 - Access Control: Manage permissions and roles to ensure only authorized actions are performed.
 
+### Diagram
+
+```mermaid
+classDiagram
+    class OrderExecutor {
+        +address userPoints
+        +mapping(uint256 => Policy) policies
+        +constructor(address _userPoints)
+        +execute(address orderHandler, bytes order, bytes signature, bytes appSig)
+        -validatePolicy(OrderHeader header, OrderReceipt receipt, bytes appSig)
+    }
+    
+    class IOrderExecutor {
+        <<interface>>
+        +execute(address orderHandler, bytes order, bytes signature, bytes appSig)
+    }
+    
+    class IOrderHandler {
+        <<interface>>
+        +execute(address user, bytes order, bytes signature) returns (OrderHeader, OrderReceipt)
+    }
+    
+    class IPolicyValidator {
+        <<interface>>
+        +validatePolicy(OrderHeader header, bytes appSig) returns (address)
+    }
+    
+    class IUserPoints {
+        <<interface>>
+        +consumePoints(address user, uint256 points)
+    }
+    
+    class OrderHeader {
+        <<struct>>
+        +address user
+        +uint256 policyId
+        +uint256 nonce
+        +uint256 deadline
+    }
+    
+    class OrderReceipt {
+        <<struct>>
+        +uint256 points
+    }
+    
+    class Policy {
+        <<struct>>
+        +address validator
+        +uint256 policyId
+    }
+    
+    OrderExecutor ..|> IOrderExecutor : implements
+    OrderExecutor --> IOrderHandler : calls
+    OrderExecutor --> IPolicyValidator : calls
+    OrderExecutor --> IUserPoints : calls
+    IOrderHandler --> OrderHeader : returns
+    IOrderHandler --> OrderReceipt : returns
+    IPolicyValidator --> OrderHeader : uses
+    OrderExecutor o-- Policy : contains
+```
 
 ## Usage
 
