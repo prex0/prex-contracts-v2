@@ -1,21 +1,30 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-struct OrderHeader {
-    address user;
-    uint256 policyId;
-    uint256 nonce;
-    uint256 deadline;
+struct SignedOrder {
+    address dispatcher;
+    uint256 methodId;
+    bytes order;
+    bytes signature;
+    bytes appSig;
+    // unique identifier in policy
+    bytes32 identifier;
 }
 
 struct OrderReceipt {
+    address user;
+    uint256 policyId;
+    address[] tokens;
     uint256 points;
 }
 
 interface IOrderHandler {
-    function execute(
-        address user,
-        bytes calldata order,
-        bytes calldata signature
-    ) external view returns (OrderHeader memory, OrderReceipt memory);
+    // ハンドラーのアドレスが不正な場合
+    error InvalidDispatcher();
+    // オーダーの期限が切れた場合
+    error DeadlinePassed();
+
+    function execute(address user, SignedOrder calldata order, bytes calldata facilitatorData)
+        external
+        returns (OrderReceipt memory);
 }

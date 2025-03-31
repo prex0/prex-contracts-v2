@@ -1,17 +1,19 @@
-## Foundry
+## Prex V2
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+**Prex V2 is a new version of Prex that is more flexible and powerful.**
 
-Foundry consists of:
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+### Overview
+Prex V2 is a comprehensive smart contract system designed to facilitate secure and efficient order execution, policy validation, and token management on the Ethereum blockchain. It leverages modular architecture and integrates with OpenZeppelin's libraries to ensure robust governance and access control.
 
-## Documentation
+### Features
+- Order Execution: Execute orders with integrated policy validation to ensure compliance with predefined rules.
+- Policy Management: Utilize various policy primitives, including counter and whitelist policies, to enforce execution limits and access control.
+- Token Management: Create and manage tokens with the ability to mint up to a maximum supply.
+- Lottery System: Manage lotteries with multiple prizes, allowing for creation and drawing of lotteries.
+- Governance: Implement governance functionalities for managing proposals and voting.
+- Access Control: Manage permissions and roles to ensure only authorized actions are performed.
 
-https://book.getfoundry.sh/
 
 ## Usage
 

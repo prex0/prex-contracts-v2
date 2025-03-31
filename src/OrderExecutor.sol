@@ -1,52 +1,83 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
-import {IOrderExecutor} from "./interfaces/IOrderExecutor.sol";
-import {IOrderHandler, OrderHeader, OrderReceipt} from "./interfaces/IOrderHandler.sol";
-import {IPolicyValidator} from "./interfaces/IPolicyValidator.sol";
-import {IUserPoints} from "./interfaces/IUserPoints.sol";
+import {IOrderExecutor, OrderHeader} from "./interfaces/IOrderExecutor.sol";
+import {IOrderHandler, OrderReceipt, SignedOrder} from "./interfaces/IOrderHandler.sol";
+import {PolicyManager} from "./policy-manager/PolicyManager.sol";
 
-contract OrderExecutor is IOrderExecutor {
-    struct Policy {
-        address validator;
-        uint256 policyId;
+/**
+ * @title OrderExecutor
+ * @notice オーダーの実行とポリシーの検証を行うコントラクト
+ */
+contract OrderExecutor is IOrderExecutor, PolicyManager {
+    event OrderExecuted(address indexed facilitator, OrderHeader header, OrderReceipt receipt);
+
+    /**
+     * @notice コンストラクタ
+     * @param _prexPoint ポイント管理コントラクトのアドレス
+     */
+    constructor(address _prexPoint, address _owner) PolicyManager(_prexPoint, _owner) {}
+
+    /**
+     * @notice オーダーを実行する関数
+     * @param order オーダーデータ
+     * @param facilitatorData ファシリテーターのデータ
+     */
+    function execute(SignedOrder calldata order, bytes calldata facilitatorData)
+        external
+        returns (OrderReceipt memory)
+    {
+        return _execute(order, facilitatorData);
     }
 
-    mapping(uint256 => Policy) public policies;
-
-    address public userPoints;
-
-    constructor(address _userPoints) {
-        userPoints = _userPoints;
+    /**
+     * @notice オーダーをバッチで実行する関数
+     * @param orders オーダーデータ
+     * @param facilitatorData ファシリテーターのデータ
+     */
+    function executeBatch(SignedOrder[] calldata orders, bytes[] calldata facilitatorData)
+        external
+        returns (OrderReceipt[] memory)
+    {
+        OrderReceipt[] memory receipts = new OrderReceipt[](orders.length);
+        for (uint256 i = 0; i < orders.length; i += 1) {
+            receipts[i] = _execute(orders[i], facilitatorData[i]);
+        }
+        return receipts;
     }
 
-    function execute(
-        address orderHandler,
-        bytes calldata order,
-        bytes calldata signature,
-        bytes calldata appSig
-    ) external {
-        // オーダーを実行して、ヘッダーを取得する
-        (OrderHeader memory header, OrderReceipt memory receipt) = IOrderHandler(orderHandler).execute(msg.sender, order, signature);
+    /**
+     * @notice オーダーを実行する関数
+     * @param order オーダーデータ
+     * @param facilitatorData ファシリテーターのデータ
+     */
+    function _execute(SignedOrder calldata order, bytes calldata facilitatorData)
+        internal
+        returns (OrderReceipt memory)
+    {
+        // オーダーを実行して、注文結果を取得する
+        OrderReceipt memory receipt = IOrderHandler(order.dispatcher).execute(msg.sender, order, facilitatorData);
+
+        OrderHeader memory header = OrderHeader({
+            dispatcher: order.dispatcher,
+            methodId: order.methodId,
+            orderHash: _getOrderHashForPolicy(order.order, order.identifier),
+            identifier: order.identifier
+        });
 
         // ヘッダーを解釈して、ポリシーとの整合性をチェックする
-        validatePolicy(
-            header,
-            receipt,
-            appSig
-        );
+        _validatePolicy(header, receipt, order.appSig);
+
+        emit OrderExecuted(msg.sender, header, receipt);
+
+        return receipt;
     }
 
-    function validatePolicy(
-        OrderHeader memory header,
-        OrderReceipt memory receipt,
-        bytes calldata appSig
-    ) internal {
-        Policy memory policy = policies[header.policyId];
+    function getOrderHashForPolicy(bytes memory order, bytes32 identifier) external pure returns (bytes32) {
+        return _getOrderHashForPolicy(order, identifier);
+    }
 
-        address consumer = IPolicyValidator(policy.validator).validatePolicy(header, appSig);
-
-        // ポイントの消費を行う
-        IUserPoints(userPoints).consumePoints(consumer, receipt.points);
+    function _getOrderHashForPolicy(bytes memory order, bytes32 identifier) internal pure returns (bytes32) {
+        return keccak256(abi.encode("AppOrder", keccak256(order), identifier));
     }
 }

@@ -1,0 +1,52 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.20;
+
+import {CreateTokenParameters} from "../token-factory/TokenParams.sol";
+import {LoyaltyCoin} from "../token-factory/tokens/LoyaltyCoin.sol";
+import {LoyaltyConverter} from "./converter/LoyaltyConverter.sol";
+import {IPrexPoints} from "../interfaces/IPrexPoints.sol";
+
+contract LoyaltyController is LoyaltyConverter {
+    // loyalty token address -> loyalty coin address
+    mapping(address => address) public loyaltyTokens;
+
+    address public immutable loyaltyPoint;
+
+    event LoyaltyCoinCreated(address indexed loyaltyToken, address indexed issuer, string name, string symbol);
+
+    constructor(address _owner, address _dai, address _loyaltyPoint) LoyaltyConverter(_owner, _dai) {
+        loyaltyPoint = _loyaltyPoint;
+    }
+
+    // mint loyalty coin
+    function mintLoyaltyCoin(address loyaltyCoinAddress, address recipient, uint256 amount) external {
+        uint256 loyaltyPointAmount = amount / 1e12;
+        require(loyaltyPointAmount * 1e12 == amount, "LoyaltyController: amount is not a multiple of 1e12");
+        IPrexPoints(loyaltyPoint).consumePoints(address(this), loyaltyPointAmount);
+        LoyaltyCoin(loyaltyCoinAddress).mint(recipient, amount);
+    }
+
+    /**
+     * @notice Create a loyalty token
+     * @param params トークンのパラメータ
+     * @param _permit2 The permit2 address
+     * @param _tokenRegistry The token registry address
+     * @return The address of the created token
+     */
+    function createLoyaltyToken(CreateTokenParameters memory params, address _permit2, address _tokenRegistry)
+        internal
+        returns (address)
+    {
+        LoyaltyCoin token = new LoyaltyCoin(params, address(this), _permit2, _tokenRegistry);
+
+        loyaltyTokens[address(token)] = address(token);
+
+        emit LoyaltyCoinCreated(address(token), params.issuer, params.name, params.symbol);
+
+        return address(token);
+    }
+
+    function _getLoyaltyCoin(address loyaltyToken) internal view override returns (address) {
+        return loyaltyTokens[loyaltyToken];
+    }
+}
