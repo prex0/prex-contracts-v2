@@ -38,8 +38,8 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
 
     address public prexPoint;
 
-    uint256 policyCounts;
-    uint256 appCounts;
+    uint256 public policyCounts = 1;
+    uint256 public appCounts = 1;
 
     event AppRegistered(uint256 appId, address owner, string appName);
     event PolicyRegistered(
@@ -62,8 +62,6 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
     }
 
     constructor(address _prexPoint, address _owner) CreditPrice(_owner) {
-        policyCounts = 1;
-        appCounts = 1;
         prexPoint = _prexPoint;
     }
 

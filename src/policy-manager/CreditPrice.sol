@@ -10,6 +10,8 @@ contract CreditPrice is WhitelistHandler {
     // default credit price is 5_000_000;
     uint256 public creditPrice = 5 * 1e6;
 
+    event CreditPriceUpdated(uint256 creditPrice);
+
     constructor(address _owner) WhitelistHandler(_owner) {}
 
     /**
@@ -19,5 +21,7 @@ contract CreditPrice is WhitelistHandler {
      */
     function setCreditPrice(uint256 _creditPrice) external onlyOwner {
         creditPrice = _creditPrice;
+
+        emit CreditPriceUpdated(_creditPrice);
     }
 }

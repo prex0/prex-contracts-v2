@@ -10,6 +10,9 @@ import {Owned} from "../../lib/solmate/src/auth/Owned.sol";
 contract WhitelistHandler is Owned {
     mapping(address => bool) public whitelist;
 
+    event HandlerAdded(address handler);
+    event HandlerRemoved(address handler);
+
     constructor(address _owner) Owned(_owner) {}
 
     /**
@@ -18,6 +21,8 @@ contract WhitelistHandler is Owned {
      */
     function addHandler(address handler) external onlyOwner {
         whitelist[handler] = true;
+
+        emit HandlerAdded(handler);
     }
 
     /**
@@ -27,6 +32,8 @@ contract WhitelistHandler is Owned {
     function addHandlers(address[] memory handlers) external onlyOwner {
         for (uint256 i = 0; i < handlers.length; i += 1) {
             whitelist[handlers[i]] = true;
+
+            emit HandlerAdded(handlers[i]);
         }
     }
 
@@ -36,6 +43,8 @@ contract WhitelistHandler is Owned {
      */
     function removeHandler(address handler) external onlyOwner {
         whitelist[handler] = false;
+
+        emit HandlerRemoved(handler);
     }
 
     /**

@@ -10,6 +10,8 @@ import {PolicyManager} from "./policy-manager/PolicyManager.sol";
  * @notice オーダーの実行とポリシーの検証を行うコントラクト
  */
 contract OrderExecutor is IOrderExecutor, PolicyManager {
+    event OrderExecuted(address indexed facilitator, OrderHeader header, OrderReceipt receipt);
+
     /**
      * @notice コンストラクタ
      * @param _prexPoint ポイント管理コントラクトのアドレス
@@ -56,17 +58,17 @@ contract OrderExecutor is IOrderExecutor, PolicyManager {
         // オーダーを実行して、注文結果を取得する
         OrderReceipt memory receipt = IOrderHandler(order.dispatcher).execute(msg.sender, order, facilitatorData);
 
+        OrderHeader memory header = OrderHeader({
+            dispatcher: order.dispatcher,
+            methodId: order.methodId,
+            orderHash: _getOrderHashForPolicy(order.order, order.identifier),
+            identifier: order.identifier
+        });
+
         // ヘッダーを解釈して、ポリシーとの整合性をチェックする
-        _validatePolicy(
-            OrderHeader({
-                dispatcher: order.dispatcher,
-                methodId: order.methodId,
-                orderHash: _getOrderHashForPolicy(order.order, order.identifier),
-                identifier: order.identifier
-            }),
-            receipt,
-            order.appSig
-        );
+        _validatePolicy(header, receipt, order.appSig);
+
+        emit OrderExecuted(msg.sender, header, receipt);
 
         return receipt;
     }

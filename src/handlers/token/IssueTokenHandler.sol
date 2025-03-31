@@ -21,6 +21,15 @@ contract IssueTokenHandler is IOrderHandler, PrexTokenFactory {
 
     uint256 constant POINTS = 10;
 
+    event TokenIssued(
+        address indexed token,
+        address indexed issuer,
+        address recipient,
+        string name,
+        string symbol,
+        uint256 initialSupply
+    );
+
     constructor(address _permit2, address _tokenRegistry) {
         permit2 = IPermit2(_permit2);
         tokenRegistry = ITokenRegistry(_tokenRegistry);
@@ -48,7 +57,9 @@ contract IssueTokenHandler is IOrderHandler, PrexTokenFactory {
         });
 
         // トークンを発行する
-        createMintableCreatorToken(params, address(permit2), address(tokenRegistry));
+        address token = createMintableCreatorToken(params, address(permit2), address(tokenRegistry));
+
+        emit TokenIssued(token, request.issuer, request.recipient, request.name, request.symbol, request.initialSupply);
 
         return request.getOrderReceipt(POINTS);
     }

@@ -16,6 +16,7 @@ import {CreatorTokenFactory} from "../token-factory/CreatorTokenFactory.sol";
 import {PumHook} from "./hooks/PumHook.sol";
 
 interface IPositionManager {
+    function nextTokenId() external view returns (uint256);
     function modifyLiquidities(bytes calldata unlockData, uint256 deadline) external payable;
     function poolManager() external view returns (IPoolManager);
 }
@@ -31,6 +32,10 @@ contract PumController is PumConverter {
     uint256 public constant MAX_SUPPLY_CT = 1e8 * 1e18;
 
     PumHook public pumHook;
+
+    mapping(address => address) public userMainTokenMap;
+
+    mapping(address => uint256) public tokenIdMap;
 
     event TokenIssued(
         address indexed communityToken, address indexed issuer, string name, string symbol, uint256 amountCT
@@ -90,9 +95,23 @@ contract PumController is PumConverter {
 
         _addLiquidity(creatorToken, address(carryToken));
 
+        if (userMainTokenMap[issuer] == address(0)) {
+            userMainTokenMap[issuer] = creatorToken;
+        }
+
         emit TokenIssued(creatorToken, issuer, name, symbol, MAX_SUPPLY_CT);
 
         return creatorToken;
+    }
+
+    /**
+     * @notice 手数料を収集する
+     * @dev オーナーのみが収集できる
+     * @param creatorToken トークンのアドレス
+     * @param recipient 手数料を受け取るアドレス
+     */
+    function collectFee(address creatorToken, address recipient) external onlyOwner {
+        _collectFee(creatorToken, address(carryToken), tokenIdMap[creatorToken], recipient);
     }
 
     function _getStartSqrtPriceX96(address tokenA, address tokenB) internal pure returns (uint160) {
@@ -147,6 +166,21 @@ contract PumController is PumConverter {
             address(this)
         );
         params[1] = abi.encode(tokenA, tokenB);
+
+        tokenIdMap[tokenA] = IPositionManager(positionManager).nextTokenId();
+
+        IPositionManager(positionManager).modifyLiquidities(abi.encode(actions, params), block.timestamp);
+    }
+
+    function _collectFee(address tokenA, address tokenB, uint256 tokenId, address recipient) internal {
+        bytes memory actions = new bytes(2);
+
+        actions[0] = bytes1(uint8(Actions.DECREASE_LIQUIDITY));
+        actions[1] = bytes1(uint8(Actions.TAKE_PAIR));
+
+        bytes[] memory params = new bytes[](2);
+        params[0] = _encodeDecreaseLiquidityParams(tokenId, 0, 0, 0);
+        params[1] = abi.encode(tokenA, tokenB, recipient);
         IPositionManager(positionManager).modifyLiquidities(abi.encode(actions, params), block.timestamp);
     }
 
@@ -160,5 +194,13 @@ contract PumController is PumConverter {
         address owner
     ) internal pure returns (bytes memory) {
         return abi.encode(poolKey, tickLower, tickUpper, liquidity, amount0Max, amount1Max, owner, bytes(""));
+    }
+
+    function _encodeDecreaseLiquidityParams(uint256 tokenId, uint256 liquidity, uint128 amount0Min, uint128 amount1Min)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        return abi.encode(tokenId, liquidity, amount0Min, amount1Min, bytes(""));
     }
 }

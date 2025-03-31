@@ -52,7 +52,7 @@ contract PumControllerTest is Test {
     Currency currency1;
 
     address issuer = address(0x1234567890123456789012345678901234567890);
-    address recipient = address(0x0987654321098765432109876543210987654321);
+    address feeRecipient = vm.addr(500);
 
     PrexPoint public pumPoint;
     CreatorTokenFactory public creatorTokenFactory;
@@ -163,6 +163,11 @@ contract PumControllerTest is Test {
         currency1.transfer(address(prexSwapRouter), 10000 * 1e18);
 
         prexSwapRouter.executeSwap(data);
+
+        pumController.collectFee(creatorToken, feeRecipient);
+
+        assertEq(IERC20(creatorToken).balanceOf(feeRecipient), 599999999999999999999);
+        assertEq(pumController.carryToken().balanceOf(address(this)), 71120014);
     }
 
     function _buy(uint256 amountIn) internal {
