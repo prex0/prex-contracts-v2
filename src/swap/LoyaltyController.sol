@@ -21,8 +21,14 @@ contract LoyaltyController is LoyaltyConverter {
     // mint loyalty coin
     function mintLoyaltyCoin(address loyaltyCoinAddress, address recipient, uint256 amount) external {
         uint256 loyaltyPointAmount = amount / 1e12;
+
         require(loyaltyPointAmount * 1e12 == amount, "LoyaltyController: amount is not a multiple of 1e12");
-        IPrexPoints(loyaltyPoint).consumePoints(address(this), loyaltyPointAmount);
+
+        if (loyaltyTokens[loyaltyCoinAddress] == address(0)) {
+            revert InvalidLoyaltyCoin();
+        }
+
+        IPrexPoints(loyaltyPoint).consumePoints(msg.sender, loyaltyPointAmount);
         LoyaltyCoin(loyaltyCoinAddress).mint(recipient, amount);
     }
 
@@ -33,7 +39,7 @@ contract LoyaltyController is LoyaltyConverter {
      * @param _tokenRegistry The token registry address
      * @return The address of the created token
      */
-    function createLoyaltyToken(CreateTokenParameters memory params, address _permit2, address _tokenRegistry)
+    function _createLoyaltyToken(CreateTokenParameters memory params, address _permit2, address _tokenRegistry)
         internal
         returns (address)
     {

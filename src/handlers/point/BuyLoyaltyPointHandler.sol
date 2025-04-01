@@ -6,7 +6,7 @@ import "../../credit/PrexPointMarket.sol";
 
 /**
  * @title BuyLoyaltyPointHandler
- * @notice Pointを買うためのハンドラー
+ * @notice LoyaltyPointを買うためのハンドラー
  */
 contract BuyLoyaltyPointHandler is IOrderHandler, PrexPointMarket {
     using BuyPointOrderLib for BuyPointOrder;

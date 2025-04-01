@@ -14,7 +14,7 @@ contract PumConverter is BaseConverter {
     IPrexPoints public immutable pumPoint;
 
     // point price by DAI
-    uint256 public pricePointByDai = 200 * 1e6;
+    uint256 public pricePointByDai = 1e30 / 200;
 
     event PriceUpdated(uint256 newPrice);
 

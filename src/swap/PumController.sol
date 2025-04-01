@@ -72,13 +72,13 @@ contract PumController is PumConverter {
      * @param pictureHash トークンの画像のハッシュ
      * @param metadata トークンのメタデータ
      */
-    function issuePumToken(
+    function _issuePumToken(
         address issuer,
         string memory name,
         string memory symbol,
         bytes32 pictureHash,
         bytes memory metadata
-    ) public returns (address) {
+    ) internal returns (address) {
         // Issue PUM token
         address creatorToken = creatorTokenFactory.createCreatorToken(
             CreateTokenParameters(issuer, address(this), MAX_SUPPLY_CT, name, symbol, pictureHash, metadata),

@@ -17,12 +17,13 @@ import {PumHook} from "../../../src/swap/hooks/PumHook.sol";
 import {ISwapRouter} from "../../../src/interfaces/ISwapRouter.sol";
 import {SwapRouterSetup} from "./Setup.t.sol";
 import {SignedOrder} from "../../../src/interfaces/IOrderExecutor.sol";
+import {CreateTokenParameters} from "../../../src/token-factory/CreatorTokenFactory.sol";
 
 interface IPositionManager {
     function poolManager() external view returns (address);
 }
 
-contract PumControllerTest is SwapRouterSetup {
+contract LoyaltyControllerTest is SwapRouterSetup {
     using Planner for Plan;
     using CurrencyLibrary for Currency;
 
@@ -39,73 +40,51 @@ contract PumControllerTest is SwapRouterSetup {
         super.setUp();
 
         // PumPointをユーザに渡す
-        pumPoint.mint(userAddress, 1000000 * 1e6);
+        loyaltyPoint.mint(userAddress, 10000 * 1e6);
     }
 
-    function testIssuePumToken_AndCheckFirstBuy() public {
-        address creatorToken = pumController.issuePumToken(issuer, "PUM", "PUM", bytes32(0), "");
+    function testIssueAndMintLoyaltyToken() public {
+        address loyaltyToken = loyaltyController.createLoyaltyToken(
+            CreateTokenParameters(issuer, userAddress, 10000 * 1e18, "LOYALTY", "LOYALTY", bytes32(0), ""),
+            address(0x000000000022D473030F116dDEE9F6B43aC78BA3)
+        );
 
-        currency1 = Currency.wrap(address(creatorToken));
+        vm.prank(userAddress);
+        loyaltyController.mintLoyaltyCoin(loyaltyToken, userAddress, 10000 * 1e18);
 
-        _buy(2000 * 1e6, creatorToken, 1158515 * 1e18);
+        assertEq(IERC20(loyaltyToken).balanceOf(userAddress), 10000 * 1e18);
 
-        assertEq(IERC20(creatorToken).balanceOf(userAddress), 1158515 * 1e18);
+        currency0 = Currency.wrap(address(dai));
+        // ETH
+        currency1 = Currency.wrap(address(0));
+
+        _buy(1000 * 1e18, loyaltyToken, 1000000);
+
+        assertEq(userAddress.balance, 1000000);
     }
 
-    function testCannotSellBeforeMarketOpen() public {
-        address creatorToken = pumController.issuePumToken(issuer, "PUM", "PUM", bytes32(0), "");
-
-        currency1 = Currency.wrap(address(creatorToken));
-
-        _buy(20000 * 1e6, creatorToken, 2000000 * 1e18);
-
-        bytes memory data = _getSellFacilitationData(10000 * 1e18);
-
-        SignedOrder memory order =
-            createSignedOrder(userPrivateKey, userAddress, creatorToken, address(dai), 10000 * 1e18, 0, 2);
-
-        vm.expectRevert();
-        swapHandler.execute(address(this), order, data);
-    }
-
-    function testSellAfterMarketOpen() public {
-        address creatorToken = pumController.issuePumToken(issuer, "PUM", "PUM", bytes32(0), "");
-
-        currency1 = Currency.wrap(address(creatorToken));
-
-        // assertEq(creatorToken, address(0x4200000000000000000000000000000000000006));
-        // pumPoint.mint(address(swapHandler), 200000 * 1e6);
-
-        _buy(200000 * 1e6, creatorToken, 5000000 * 1e18);
-
-        _sell(2000000 * 1e18, creatorToken, 10 * 1e18);
-
-        pumController.collectFee(creatorToken, feeRecipient);
-
-        assertEq(IERC20(creatorToken).balanceOf(feeRecipient), 119999999999999999999999);
-        assertEq(dai.balanceOf(userAddress), 10000000000000000000);
-    }
-
-    function _buy(uint256 amountIn, address creatorToken, uint256 amountOut) internal {
+    function _buy(uint256 amountIn, address loyaltyToken, uint256 amountOut) internal {
         Currency[] memory tokenPath = new Currency[](2);
         tokenPath[0] = currency0;
         tokenPath[1] = currency1;
 
         Plan memory plan = Planner.init();
 
-        IV4Router.ExactInputParams memory params = _getExactInputParams(tokenPath, amountIn);
+        IV4Router.ExactInputParams memory params = _getExactInputParams(tokenPath, amountIn / 160);
         plan = plan.add(Actions.SWAP_EXACT_IN, abi.encode(params));
         bytes memory data = _makeV4Swap(plan.finalizeSwap(currency0, currency1, address(swapHandler)));
 
         address[] memory tokensToApproveForUniversalRouter = new address[](1);
-        tokensToApproveForUniversalRouter[0] = address(pumController.carryToken());
+        tokensToApproveForUniversalRouter[0] = address(dai);
 
         swapHandler.execute(
             address(this),
-            createSignedOrder(userPrivateKey, userAddress, address(pumPoint), creatorToken, amountIn, amountOut, 1),
+            createSignedOrder(
+                userPrivateKey, userAddress, address(loyaltyToken), Currency.unwrap(currency1), amountIn, amountOut, 1
+            ),
             abi.encode(
                 tokensToApproveForUniversalRouter,
-                ISwapRouter.ConvertParams(ISwapRouter.ConvertType.PUM_TO_CARRY, address(0)),
+                ISwapRouter.ConvertParams(ISwapRouter.ConvertType.LOYALTY_TO_DAI, address(loyaltyToken)),
                 data
             )
         );
@@ -160,7 +139,7 @@ contract PumControllerTest is SwapRouterSetup {
     {
         PathKey[] memory path = new PathKey[](_tokenPath.length - 1);
         for (uint256 i = 0; i < _tokenPath.length - 1; i++) {
-            path[i] = PathKey(_tokenPath[i + 1], 60_000, 60, IHooks(address(pumHook)), bytes(""));
+            path[i] = PathKey(_tokenPath[i + 1], 3000, 60, IHooks(address(0)), bytes(""));
         }
 
         params.currencyIn = _tokenPath[0];

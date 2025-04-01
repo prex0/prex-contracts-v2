@@ -23,6 +23,8 @@ contract SwapHandler is IOrderHandler, PrexSwapRouter, Owned {
         uint256 amountOut
     );
 
+    error NativeTransferFailed();
+
     constructor(
         address _universalRouter,
         address _loyaltyConverter,
@@ -44,7 +46,7 @@ contract SwapHandler is IOrderHandler, PrexSwapRouter, Owned {
         _executeSwap(facilitatorData);
 
         // 交換後のトークンをユーザに送付する
-        IERC20(request.tokenOut).transfer(request.recipient, request.amountOut);
+        transferFill(request.tokenOut, request.recipient, request.amountOut);
 
         emit SwapOrderFilled(
             request.swapper, request.recipient, request.tokenIn, request.tokenOut, request.amountIn, request.amountOut
@@ -90,11 +92,37 @@ contract SwapHandler is IOrderHandler, PrexSwapRouter, Owned {
                 nonce: request.nonce,
                 deadline: request.deadline
             }),
-            ISignatureTransfer.SignatureTransferDetails({to: request.recipient, requestedAmount: request.amountIn}),
+            ISignatureTransfer.SignatureTransferDetails({to: address(this), requestedAmount: request.amountIn}),
             request.swapper,
             request.hash(),
             SwapRequestLib.PERMIT2_ORDER_TYPE,
             sig
         );
+    }
+
+    /**
+     * @notice トークンを送付する
+     * @param currency トークンのアドレス
+     * @param recipient 受取人のアドレス
+     * @param amount トークンの量
+     */
+    function transferFill(address currency, address recipient, uint256 amount) internal {
+        if (currency == address(0)) {
+            // we will have received native assets directly so can directly transfer
+            transferNative(recipient, amount);
+        } else {
+            // else the caller must have approved the token for the fill
+            IERC20(currency).transfer(recipient, amount);
+        }
+    }
+
+    /**
+     * @notice ネイティブトークンを送付する
+     * @param recipient 受取人のアドレス
+     * @param amount トークンの量
+     */
+    function transferNative(address recipient, uint256 amount) internal {
+        (bool success,) = recipient.call{value: amount}("");
+        if (!success) revert NativeTransferFailed();
     }
 }

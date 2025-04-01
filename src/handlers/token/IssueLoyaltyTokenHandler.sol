@@ -50,7 +50,7 @@ contract IssueLoyaltyTokenHandler is IOrderHandler, LoyaltyController {
             metadata: request.metadata
         });
 
-        createLoyaltyToken(params, address(permit2), address(tokenRegistry));
+        _createLoyaltyToken(params, address(permit2), address(tokenRegistry));
 
         return request.getOrderReceipt(POINTS);
     }

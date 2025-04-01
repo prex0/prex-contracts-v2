@@ -26,10 +26,6 @@ contract PrexSwapRouter is ISwapRouter {
         permit2 = IPermit2(_permit2);
     }
 
-    function executeSwap(bytes memory callbackData) external {
-        _executeSwap(callbackData);
-    }
-
     /**
      * @notice スワップを実行する
      * @param callbackData スワップのコールバックデータ
@@ -77,4 +73,7 @@ contract PrexSwapRouter is ISwapRouter {
             loyaltyConverter.convertDaiToLoyaltyCoin(convertParams.loyaltyCoin, daiAmount, address(this));
         }
     }
+
+    /// @notice Necessary for this contract to receive ETH
+    receive() external payable {}
 }

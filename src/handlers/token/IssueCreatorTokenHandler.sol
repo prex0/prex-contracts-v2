@@ -38,7 +38,7 @@ contract IssueCreatorTokenHandler is IOrderHandler, PumController {
         // オーダーのリクエストを検証する
         _verifyRequest(request, order.signature);
 
-        issuePumToken(request.issuer, request.name, request.symbol, request.pictureHash, request.metadata);
+        _issuePumToken(request.issuer, request.name, request.symbol, request.pictureHash, request.metadata);
 
         return request.getOrderReceipt(0);
     }
