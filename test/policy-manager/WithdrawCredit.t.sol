@@ -27,7 +27,7 @@ contract WithdrawCreditTest is PolicyManagerSetup {
 
         assertEq(prexPoint.balanceOf(address(policyManager)), 0);
 
-        (, uint256 credit) = policyManager.apps(appId);
+        (, uint256 credit,) = policyManager.apps(appId);
 
         assertEq(credit, 0);
     }

@@ -66,7 +66,7 @@ library SwapRequestLib {
     }
 
     function getOrderReceipt(SwapRequest memory request) internal pure returns (OrderReceipt memory) {
-        address[] memory tokens = new address[](1);
+        address[] memory tokens = new address[](2);
 
         tokens[0] = request.tokenIn;
         tokens[1] = request.tokenOut;

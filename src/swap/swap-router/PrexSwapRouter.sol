@@ -6,30 +6,18 @@ import {PumConverter} from "../converter/PumConverter.sol";
 import {ERC20} from "solmate/src/tokens/ERC20.sol";
 import {SafeTransferLib} from "solmate/src/utils/SafeTransferLib.sol";
 import {IPermit2} from "../../../lib/permit2/src/interfaces/IPermit2.sol";
+import {ISwapRouter} from "../../interfaces/ISwapRouter.sol";
 
 /**
  * @notice swap router for UniswapV4, V3 and Converter
  */
-contract PrexSwapRouter {
+contract PrexSwapRouter is ISwapRouter {
     using SafeTransferLib for ERC20;
 
     address public universalRouter;
     LoyaltyConverter public loyaltyConverter;
     PumConverter public pumConverter;
     IPermit2 public permit2;
-
-    enum ConvertType {
-        NOOP,
-        PUM_TO_CARRY,
-        CARRY_TO_DAI,
-        LOYALTY_TO_DAI,
-        DAI_TO_LOYALTY
-    }
-
-    struct ConvertParams {
-        ConvertType convertType;
-        address loyaltyCoin;
-    }
 
     constructor(address _universalRouter, address _loyaltyConverter, address _pumConverter, address _permit2) {
         universalRouter = _universalRouter;

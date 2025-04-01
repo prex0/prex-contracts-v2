@@ -2,6 +2,9 @@
 pragma solidity ^0.8.20;
 
 interface IPolicyErrors {
+    // 無効化されているアプリ
+    error InactiveApp();
+
     // 不正なポリシー
     error InvalidPolicy();
 

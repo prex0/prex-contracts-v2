@@ -114,7 +114,7 @@ contract ValidatePolicyTest is PolicyManagerSetup {
         );
 
         assertEq(prexPoint.balanceOf(address(policyManager)), 995 * 1e6);
-        (address owner, uint256 credit) = policyManager.apps(appId);
+        (address owner, uint256 credit,) = policyManager.apps(appId);
         assertEq(owner, appOwner1);
         assertEq(credit, 995 * 1e6);
     }

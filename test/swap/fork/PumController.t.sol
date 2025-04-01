@@ -21,6 +21,7 @@ import {PrexPoint} from "../../../src/credit/PrexPoint.sol";
 import {PumHook} from "../../../src/swap/hooks/PumHook.sol";
 import {HookMiner} from "v4-periphery/src/utils/HookMiner.sol";
 import {Hooks} from "v4-core/src/libraries/Hooks.sol";
+import {ISwapRouter} from "../../../src/interfaces/ISwapRouter.sol";
 
 interface IPositionManager {
     function poolManager() external view returns (address);
@@ -186,7 +187,7 @@ contract PumControllerTest is Test {
         prexSwapRouter.executeSwap(
             abi.encode(
                 tokensToApproveForUniversalRouter,
-                PrexSwapRouter.ConvertParams(PrexSwapRouter.ConvertType.PUM_TO_CARRY, address(0)),
+                ISwapRouter.ConvertParams(ISwapRouter.ConvertType.PUM_TO_CARRY, address(0)),
                 data
             )
         );
@@ -208,7 +209,7 @@ contract PumControllerTest is Test {
 
         return abi.encode(
             tokensToApproveForUniversalRouter,
-            PrexSwapRouter.ConvertParams(PrexSwapRouter.ConvertType.CARRY_TO_DAI, Currency.unwrap(currency1)),
+            ISwapRouter.ConvertParams(ISwapRouter.ConvertType.CARRY_TO_DAI, Currency.unwrap(currency1)),
             data
         );
     }

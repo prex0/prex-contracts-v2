@@ -73,6 +73,14 @@ contract PrexPointMarket is Owned {
     }
 
     /**
+     * @notice Set the consumer
+     * @param _consumer The address of the consumer
+     */
+    function setConsumer(address _consumer) public onlyOwner {
+        point.setConsumer(_consumer);
+    }
+
+    /**
      * @notice Add a minter
      * @param newMinter The address of the new minter
      */

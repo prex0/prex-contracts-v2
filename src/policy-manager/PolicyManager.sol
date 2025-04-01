@@ -29,6 +29,7 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
     struct App {
         address owner;
         uint256 credit;
+        bool isActive;
     }
 
     /// @dev ポリシーIDからポリシー情報へのマッピング
@@ -47,6 +48,7 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
     uint256 public nextAppId = 1;
 
     event AppRegistered(uint256 appId, address owner, string appName);
+    event AppStatusUpdated(uint256 appId, bool isActive);
     event PolicyRegistered(
         uint256 appId, uint256 policyId, address validator, address publicKey, bytes policyParams, string policyName
     );
@@ -82,7 +84,7 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
     function registerApp(address owner, string calldata appName) external returns (uint256 appId) {
         appId = nextAppId++;
 
-        apps[appId] = App({owner: owner, credit: 0});
+        apps[appId] = App({owner: owner, credit: 0, isActive: true});
 
         emit AppRegistered(appId, owner, appName);
     }
@@ -107,6 +109,18 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
         policies[policyId] = Policy(validator, policyId, publicKey, appId, policyParams, true);
 
         emit PolicyRegistered(appId, policyId, validator, publicKey, policyParams, policyName);
+    }
+
+    /**
+     * @notice アプリのステータスを更新する
+     * @dev アプリのオーナーのみが更新できる
+     * @param appId アプリID
+     * @param isActive アプリのステータス
+     */
+    function updateAppStatus(uint256 appId, bool isActive) external onlyAppOwner(appId) {
+        apps[appId].isActive = isActive;
+
+        emit AppStatusUpdated(appId, isActive);
     }
 
     /**
@@ -165,7 +179,9 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
 
         if (receipt.policyId == 0) {
             // ポリシーIDが0の場合、ユーザのクレジットを消費する
-            IPrexPoints(prexPoint).consumePoints(receipt.user, receipt.points * creditPrice);
+            if (receipt.points > 0) {
+                IPrexPoints(prexPoint).consumePoints(receipt.user, receipt.points * creditPrice);
+            }
         } else {
             // ポリシーが設定されている場合、アプリ署名を検証し、クレジットを消費する
             Policy memory policy = policies[receipt.policyId];
@@ -174,9 +190,15 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
                 revert InactivePolicy();
             }
 
+            if (!apps[policy.appId].isActive) {
+                revert InactiveApp();
+            }
+
             _verifyAppSignature(header, policy, appSig);
 
-            _consumeAppCredit(policy.appId, receipt.points * creditPrice);
+            if (receipt.points > 0) {
+                _consumeAppCredit(policy.appId, receipt.points * creditPrice);
+            }
 
             // 追加のポリシーバリデーションを実行する
             if (policy.validator != address(0)) {

@@ -9,7 +9,7 @@ import {PathKey} from "v4-periphery/src/libraries/PathKey.sol";
 import {IV4Router} from "v4-periphery/src/interfaces/IV4Router.sol";
 import {IHooks} from "v4-core/src/interfaces/IHooks.sol";
 import {Currency} from "v4-core/src/types/Currency.sol";
-
+import {ISwapRouter} from "../../../src/interfaces/ISwapRouter.sol";
 import {PumConverter} from "../../../src/swap/converter/PumConverter.sol";
 import {LoyaltyConverter} from "../../../src/swap/converter/LoyaltyConverter.sol";
 
@@ -69,9 +69,7 @@ contract SwapRouterTest is Test {
         bytes memory data = plan.encode();
 
         prexSwapRouter.executeSwap(
-            abi.encode(
-                new address[](0), PrexSwapRouter.ConvertParams(PrexSwapRouter.ConvertType.NOOP, address(0)), data
-            )
+            abi.encode(new address[](0), ISwapRouter.ConvertParams(ISwapRouter.ConvertType.NOOP, address(0)), data)
         );
     }
 
