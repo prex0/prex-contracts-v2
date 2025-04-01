@@ -36,6 +36,8 @@ contract PrexPointMarket is Owned {
 
     event PointBought(address indexed buyer, uint256 amount, uint256 method, bytes orderId);
     event FeeRecipientUpdated(address indexed newFeeRecipient);
+    event MinterAdded(address indexed newMinter);
+    event MinterRemoved(address indexed minter);
 
     modifier onlyMinter() {
         if (!minterMap[msg.sender]) {
@@ -52,28 +54,52 @@ contract PrexPointMarket is Owned {
         point = new PrexPoint(name, symbol, address(this), _permit2);
     }
 
+    /**
+     * @notice Set the stable token
+     * @param _stableToken The address of the stable token
+     */
     function setStableToken(address _stableToken) public onlyOwner {
         require(address(stableToken) == address(0), "StableToken already set");
         stableToken = IERC20(_stableToken);
     }
 
+    /**
+     * @notice Set the fee recipient
+     * @param _feeRecipient The address of the fee recipient
+     */
     function setFeeRecipient(address _feeRecipient) public onlyOwner {
         feeRecipient = _feeRecipient;
         emit FeeRecipientUpdated(_feeRecipient);
     }
 
+    /**
+     * @notice Add a minter
+     * @param newMinter The address of the new minter
+     */
     function addMinter(address newMinter) public onlyOwner {
         minterMap[newMinter] = true;
+
+        emit MinterAdded(newMinter);
     }
 
+    /**
+     * @notice Remove a minter
+     * @param minter The address of the minter to remove
+     */
     function removeMinter(address minter) public onlyOwner {
         minterMap[minter] = false;
+
+        emit MinterRemoved(minter);
     }
 
     function moveOwnership(address newOwner) public onlyOwner {
         Owned(address(point)).transferOwnership(newOwner);
     }
 
+    /**
+     * @notice Set the price of 1e12 PrexPoint in 1e18
+     * @param _pointPrice The price of 1e12 PrexPoint in 1e18
+     */
     function setPointPrice(uint256 _pointPrice) public onlyOwner {
         if (_pointPrice == 0) {
             revert InvalidPointPrice();

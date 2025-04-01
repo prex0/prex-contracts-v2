@@ -4,37 +4,33 @@ pragma solidity ^0.8.20;
 import {IERC20} from "../../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IPrexPoints} from "../../interfaces/IPrexPoints.sol";
 import {CarryToken} from "../CarryToken.sol";
-import {Owned} from "solmate/src/auth/Owned.sol";
+import {PriceLibrary} from "../../libraries/PriceLibrary.sol";
+import {BaseConverter} from "../../base/BaseConverter.sol";
 
-contract PumConverter is Owned {
+contract PumConverter is BaseConverter {
+    using PriceLibrary for uint256;
+
     CarryToken public immutable carryToken;
     IPrexPoints public immutable pumPoint;
-    IERC20 public immutable dai;
 
     // point price by DAI
-    uint256 public pricePointByDai;
+    uint256 public pricePointByDai = 200 * 1e6;
 
     event PriceUpdated(uint256 newPrice);
 
-    constructor(address _owner, address _prexPoint, address _dai) Owned(_owner) {
+    constructor(address _owner, address _prexPoint, address _dai) BaseConverter(_owner, _dai) {
         carryToken = new CarryToken(address(this));
         pumPoint = IPrexPoints(_prexPoint);
-        dai = IERC20(_dai);
-        pricePointByDai = 1e12 / 200;
     }
 
+    /**
+     * @notice Update the price of 1e12 PumPoint in 1e18
+     * @param _price The new price of 1e12 PumPoint in 1e18
+     */
     function updatePrice(uint256 _price) external onlyOwner {
         pricePointByDai = _price;
 
         emit PriceUpdated(_price);
-    }
-
-    function depositDai(uint256 daiAmount) external onlyOwner {
-        dai.transferFrom(msg.sender, address(this), daiAmount);
-    }
-
-    function withdrawDai(uint256 daiAmount, address recipient) external onlyOwner {
-        dai.transfer(recipient, daiAmount);
     }
 
     // PumPoint to CarryPoint
@@ -42,7 +38,6 @@ contract PumConverter is Owned {
         external
         returns (uint256 carryPointAmount)
     {
-        // TODO: Implement convert logic
         // 200 * 1e6 PumPoint = 200 * 1e6 CarryPoint
 
         carryPointAmount = pumPointAmount;
@@ -53,10 +48,9 @@ contract PumConverter is Owned {
 
     // CarryPoint to DAI
     function convertCarryPointToDai(uint256 carryPointAmount, address recipient) external returns (uint256 daiAmount) {
-        // TODO: Implement convert logic
         // 200 * 1e6 CarryPoint = 1 * 1e18 DAI
 
-        daiAmount = carryPointAmount * pricePointByDai;
+        daiAmount = carryPointAmount.applyPrice(pricePointByDai);
 
         carryToken.burn(msg.sender, carryPointAmount);
         dai.transfer(recipient, daiAmount);
