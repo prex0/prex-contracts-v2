@@ -189,7 +189,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
      * @notice Cancel the request during distribution
      * @param id The ID of the request to cancel.
      */
-    function cancelRequest(bytes32 id) public nonReentrant {
+    function cancelRequest(bytes32 id) external nonReentrant {
         PendingRequest storage request = pendingRequests[id];
 
         if (request.sender != msg.sender) {

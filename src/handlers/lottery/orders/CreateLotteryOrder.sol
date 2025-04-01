@@ -8,6 +8,7 @@ struct CreateLotteryOrder {
     bool isPrepaid;
     address dispatcher;
     address sender;
+    address recipient;
     uint256 deadline;
     uint256 nonce;
     address token;
@@ -25,6 +26,7 @@ library CreateLotteryOrderLib {
         "bool isPrepaid,",
         "address dispatcher,",
         "address sender,",
+        "address recipient,",
         "uint256 deadline,",
         "uint256 nonce,",
         "address token,",
@@ -60,6 +62,7 @@ library CreateLotteryOrderLib {
                 order.isPrepaid,
                 order.dispatcher,
                 order.sender,
+                order.recipient,
                 order.deadline,
                 order.nonce,
                 order.token,

@@ -33,6 +33,7 @@ contract MultiPrizeLottery {
         string[] prizeNames
     );
     event LotteryDrawn(uint256 indexed lotteryId, address indexed player, uint256 ticketNumber, uint256 prizeType);
+    event LotteryCancelled(uint256 indexed lotteryId);
 
     // errors
     error CallerIsNotLotteryOwner();
@@ -85,6 +86,8 @@ contract MultiPrizeLottery {
      */
     function cancelLottery(uint256 _lotteryId) external onlyLotteryOwner(_lotteryId) {
         lotteries[_lotteryId].active = false;
+
+        emit LotteryCancelled(_lotteryId);
     }
 
     /// @notice くじを引く
@@ -98,7 +101,7 @@ contract MultiPrizeLottery {
         require(lottery.remainingTickets > 0, "No tickets left");
 
         // トークン支払い
-        _verifyDrawOrder(order, sig, lottery.token, lottery.entryFee);
+        _verifyDrawOrder(order, sig, lottery.token, lottery.entryFee, lottery.recipient);
 
         // 抽選のロジック
         bytes32 blockHash = blockhash(block.number - 1);
@@ -111,6 +114,10 @@ contract MultiPrizeLottery {
         }
 
         emit LotteryDrawn(order.lotteryId, order.sender, ticketNumber, prizeType);
+
+        if (!lottery.active) {
+            emit LotteryCancelled(order.lotteryId);
+        }
 
         return _getOrderReceipt(lottery);
     }
@@ -156,9 +163,13 @@ contract MultiPrizeLottery {
         );
     }
 
-    function _verifyDrawOrder(DrawLotteryOrder memory order, bytes memory sig, address token, uint256 amount)
-        internal
-    {
+    function _verifyDrawOrder(
+        DrawLotteryOrder memory order,
+        bytes memory sig,
+        address token,
+        uint256 amount,
+        address recipient
+    ) internal {
         if (address(this) != address(order.dispatcher)) {
             revert IOrderHandler.InvalidDispatcher();
         }
@@ -173,7 +184,7 @@ contract MultiPrizeLottery {
                 nonce: order.nonce,
                 deadline: order.deadline
             }),
-            ISignatureTransfer.SignatureTransferDetails({to: address(this), requestedAmount: amount}),
+            ISignatureTransfer.SignatureTransferDetails({to: recipient, requestedAmount: amount}),
             order.sender,
             order.hash(),
             DrawLotteryOrderLib.PERMIT2_ORDER_TYPE,

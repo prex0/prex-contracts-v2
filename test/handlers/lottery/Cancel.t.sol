@@ -44,6 +44,7 @@ contract TestLotteryCancel is LotterySetup {
             dispatcher: _dispatcher,
             isPrepaid: false,
             sender: sender,
+            recipient: sender,
             deadline: _deadline,
             nonce: 0,
             token: address(token),

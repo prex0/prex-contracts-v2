@@ -27,7 +27,9 @@ contract DropRequestSetup is Test, TestUtils {
     function setUp() public virtual override {
         super.setUp();
 
-        dropHandler = new DropHandler(address(permit2));
+        dropHandler = new DropHandler(address(permit2), address(this));
+
+        dropHandler.setOrderExecutor(address(this));
 
         token = new MockToken();
 

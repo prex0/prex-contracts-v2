@@ -23,6 +23,7 @@ contract LotteryLibTest is Test {
             dispatcher: address(this),
             isPrepaid: false,
             sender: address(this),
+            recipient: address(this),
             deadline: block.timestamp + 100,
             nonce: 0,
             token: address(0),

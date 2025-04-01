@@ -54,6 +54,7 @@ contract TestLotteryDraw is LotterySetup {
             dispatcher: address(lotteryHandler),
             isPrepaid: _isPrepaid,
             sender: sender,
+            recipient: sender,
             deadline: _deadline,
             nonce: _nonce,
             token: address(token),

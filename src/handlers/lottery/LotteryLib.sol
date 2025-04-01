@@ -16,6 +16,7 @@ library LotteryLib {
         uint256 policyId;
         bool isPrepaid;
         address owner;
+        address recipient;
         address token;
         uint256 entryFee;
         string name;
@@ -31,6 +32,7 @@ library LotteryLib {
         newLottery.policyId = order.policyId;
         newLottery.isPrepaid = order.isPrepaid;
         newLottery.owner = order.sender;
+        newLottery.recipient = order.recipient;
         newLottery.token = order.token;
         newLottery.entryFee = order.entryFee;
         newLottery.active = true;
