@@ -12,7 +12,9 @@ contract LoyaltyController is LoyaltyConverter {
 
     address public immutable loyaltyPoint;
 
-    event LoyaltyCoinCreated(address indexed loyaltyToken, address indexed issuer, string name, string symbol);
+    event LoyaltyCoinMinted(
+        address indexed loyaltyToken, address indexed recipient, uint256 amount, uint256 loyaltyPointAmount
+    );
 
     constructor(address _owner, address _dai, address _loyaltyPoint) LoyaltyConverter(_owner, _dai) {
         loyaltyPoint = _loyaltyPoint;
@@ -30,6 +32,8 @@ contract LoyaltyController is LoyaltyConverter {
 
         IPrexPoints(loyaltyPoint).consumePoints(msg.sender, loyaltyPointAmount);
         LoyaltyCoin(loyaltyCoinAddress).mint(recipient, amount);
+
+        emit LoyaltyCoinMinted(loyaltyCoinAddress, recipient, amount, loyaltyPointAmount);
     }
 
     /**
@@ -46,8 +50,6 @@ contract LoyaltyController is LoyaltyConverter {
         LoyaltyCoin token = new LoyaltyCoin(params, address(this), _permit2, _tokenRegistry);
 
         loyaltyTokens[address(token)] = address(token);
-
-        emit LoyaltyCoinCreated(address(token), params.issuer, params.name, params.symbol);
 
         return address(token);
     }

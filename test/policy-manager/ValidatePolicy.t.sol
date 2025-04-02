@@ -39,6 +39,9 @@ contract ValidatePolicyTest is PolicyManagerSetup {
 
     bytes32 public orderHash = keccak256(abi.encode("test"));
 
+    bytes32 public orderHashForPolicyTrue;
+    bytes32 public orderHashForPolicyFalse;
+
     function setUp() public virtual override {
         super.setUp();
 
@@ -54,6 +57,9 @@ contract ValidatePolicyTest is PolicyManagerSetup {
         policyIdFalse =
             policyManager.registerPolicy(appId, address(validator), policyPublicKey, abi.encode(false), "false");
         vm.stopPrank();
+
+        orderHashForPolicyTrue = policyManager.getOrderHashForPolicy(abi.encode("test"), policyIdTrue, bytes32(0));
+        orderHashForPolicyFalse = policyManager.getOrderHashForPolicy(abi.encode("test"), policyIdFalse, bytes32(0));
     }
 
     // ハンドラーが不正な場合はリバートする
@@ -62,7 +68,7 @@ contract ValidatePolicyTest is PolicyManagerSetup {
         policyManager.validatePolicy(
             OrderHeader({dispatcher: handlerNotFound, methodId: 0, orderHash: orderHash, identifier: bytes32(0)}),
             OrderReceipt({user: address(0), policyId: policyIdTrue, tokens: new address[](0), points: 0}),
-            _signMessage(policyPrivateKey, orderHash)
+            _signMessage(policyPrivateKey, orderHashForPolicyTrue)
         );
     }
 
@@ -72,7 +78,7 @@ contract ValidatePolicyTest is PolicyManagerSetup {
         policyManager.validatePolicy(
             OrderHeader({dispatcher: handler, methodId: 0, orderHash: orderHash, identifier: bytes32(0)}),
             OrderReceipt({user: address(0), policyId: policyIdFalse, tokens: new address[](0), points: 0}),
-            _signMessage(policyPrivateKey, orderHash)
+            _signMessage(policyPrivateKey, orderHashForPolicyFalse)
         );
     }
 
@@ -86,7 +92,7 @@ contract ValidatePolicyTest is PolicyManagerSetup {
         policyManager.validatePolicy(
             OrderHeader({dispatcher: handler, methodId: 0, orderHash: orderHash, identifier: bytes32(0)}),
             OrderReceipt({user: address(0), policyId: policyIdTrue, tokens: new address[](0), points: 0}),
-            _signMessage(policyPrivateKey, orderHash)
+            _signMessage(policyPrivateKey, orderHashForPolicyTrue)
         );
     }
 
@@ -96,7 +102,7 @@ contract ValidatePolicyTest is PolicyManagerSetup {
         policyManager.validatePolicy(
             OrderHeader({dispatcher: handler, methodId: 0, orderHash: orderHash, identifier: bytes32(0)}),
             OrderReceipt({user: address(0), policyId: policyIdTrue, tokens: new address[](0), points: 0}),
-            _signMessage(policyPrivateKeyInvalid, orderHash)
+            _signMessage(policyPrivateKeyInvalid, orderHashForPolicyTrue)
         );
     }
 
@@ -110,7 +116,7 @@ contract ValidatePolicyTest is PolicyManagerSetup {
         policyManager.validatePolicy(
             OrderHeader({dispatcher: handler, methodId: 0, orderHash: orderHash, identifier: bytes32(0)}),
             OrderReceipt({user: address(0), policyId: policyIdTrue, tokens: new address[](0), points: 1}),
-            _signMessage(policyPrivateKey, orderHash)
+            _signMessage(policyPrivateKey, orderHashForPolicyTrue)
         );
 
         assertEq(prexPoint.balanceOf(address(policyManager)), 995 * 1e6);
@@ -125,7 +131,7 @@ contract ValidatePolicyTest is PolicyManagerSetup {
         policyManager.validatePolicy(
             OrderHeader({dispatcher: handler, methodId: 0, orderHash: orderHash, identifier: bytes32(0)}),
             OrderReceipt({user: address(0), policyId: policyIdTrue, tokens: new address[](0), points: 1}),
-            _signMessage(policyPrivateKey, orderHash)
+            _signMessage(policyPrivateKey, orderHashForPolicyTrue)
         );
     }
 

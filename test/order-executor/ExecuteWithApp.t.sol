@@ -15,7 +15,7 @@ contract ExecuteWithAppTest is OrderExecutorSetup {
     using TransferRequestLib for TransferRequest;
 
     uint256 appId;
-    uint256 textPolicyId;
+    uint256 testPolicyId;
 
     function setUp() public virtual override {
         super.setUp();
@@ -30,7 +30,7 @@ contract ExecuteWithAppTest is OrderExecutorSetup {
 
             bytes memory policyParams = abi.encode(whitelist, 1, 1 days);
 
-            textPolicyId =
+            testPolicyId =
                 orderExecutor.registerPolicy(appId, address(policyValidator), policyPublicKey, policyParams, "test");
         }
 
@@ -59,9 +59,9 @@ contract ExecuteWithAppTest is OrderExecutorSetup {
 
     // アプリにクレジットがある場合はクレジットを消費して実行する
     function test_ExecuteWithAppCredit() public {
-        TransferRequest memory request = createSampleRequest(user, user2, textPolicyId);
+        TransferRequest memory request = createSampleRequest(user, user2, testPolicyId);
 
-        bytes32 orderHash = orderExecutor.getOrderHashForPolicy(abi.encode(request), bytes32(0));
+        bytes32 orderHash = orderExecutor.getOrderHashForPolicy(abi.encode(request), testPolicyId, bytes32(0));
 
         orderExecutor.execute(
             SignedOrder({
@@ -85,9 +85,9 @@ contract ExecuteWithAppTest is OrderExecutorSetup {
 
     // アプリにクレジットがない場合はリバートする
     function test_ExecuteWithoutAppCredit() public {
-        TransferRequest memory request = createSampleRequest(user, user2, textPolicyId);
+        TransferRequest memory request = createSampleRequest(user, user2, testPolicyId);
 
-        bytes32 orderHash = orderExecutor.getOrderHashForPolicy(abi.encode(request), bytes32(0));
+        bytes32 orderHash = orderExecutor.getOrderHashForPolicy(abi.encode(request), testPolicyId, bytes32(0));
 
         orderExecutor.withdrawCredit(appId, 1000 * 1e6, owner);
 

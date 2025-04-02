@@ -76,11 +76,11 @@ contract DropRequestDispatcher is ReentrancyGuard {
         uint256 amount,
         uint256 amountPerWithdrawal,
         uint256 expiry,
-        string name
+        string name,
+        bytes32 orderHash
     );
 
-    event Deposited(bytes32 id, address depositor, uint256 amount);
-    event Received(bytes32 id, address recipient, uint256 amount);
+    event Received(bytes32 id, address recipient, uint256 amount, bytes32 orderHash);
     event RequestCancelled(bytes32 id, uint256 amount);
     event RequestExpired(bytes32 id, uint256 amount);
 
@@ -103,7 +103,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
      * @param request The request to submit.
      * @param sig The signature of the request.
      */
-    function submitRequest(CreateDropRequest memory request, bytes memory sig)
+    function submitRequest(CreateDropRequest memory request, bytes memory sig, bytes32 orderHash)
         internal
         nonReentrant
         returns (OrderReceipt memory)
@@ -140,7 +140,8 @@ contract DropRequestDispatcher is ReentrancyGuard {
             request.amount,
             request.amountPerWithdrawal,
             request.expiry,
-            request.name
+            request.name,
+            orderHash
         );
 
         return request.getOrderReceipt(POINTS);
@@ -151,7 +152,11 @@ contract DropRequestDispatcher is ReentrancyGuard {
      * @dev Only facilitators can submit distribute requests.
      * @param recipientData The data of the recipient.
      */
-    function distribute(ClaimDropRequest memory recipientData) internal nonReentrant returns (OrderReceipt memory) {
+    function distribute(ClaimDropRequest memory recipientData, bytes32 orderHash)
+        internal
+        nonReentrant
+        returns (OrderReceipt memory)
+    {
         PendingRequest storage request = pendingRequests[recipientData.requestId];
 
         if (request.status != RequestStatus.Pending) {
@@ -172,7 +177,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
 
         ERC20(request.token).transfer(recipientData.recipient, request.amountPerWithdrawal);
 
-        emit Received(recipientData.requestId, recipientData.recipient, request.amountPerWithdrawal);
+        emit Received(recipientData.requestId, recipientData.recipient, request.amountPerWithdrawal, orderHash);
 
         return getOrderReceipt(request);
     }

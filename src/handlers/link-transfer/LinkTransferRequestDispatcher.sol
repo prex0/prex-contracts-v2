@@ -73,8 +73,10 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
         bytes metadata;
     }
 
-    event RequestSubmitted(bytes32 id, address token, address sender, uint256 amount, uint256 expiry, bytes metadata);
-    event RequestCompleted(bytes32 id, address recipient, bytes metadata);
+    event RequestSubmitted(
+        bytes32 id, address token, address sender, uint256 amount, uint256 expiry, bytes metadata, bytes32 orderHash
+    );
+    event RequestCompleted(bytes32 id, address recipient, bytes metadata, bytes32 orderHash);
     event RequestCancelled(bytes32 id);
 
     constructor(address _permit2) {
@@ -87,7 +89,7 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
      * @param request The transfer request
      * @param sig The submitter's signature
      */
-    function createRequest(LinkTransferRequest memory request, bytes memory sig)
+    function createRequest(LinkTransferRequest memory request, bytes memory sig, bytes32 orderHash)
         internal
         nonReentrant
         returns (OrderReceipt memory)
@@ -126,7 +128,9 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
             policyId: request.policyId
         });
 
-        emit RequestSubmitted(id, request.token, request.sender, request.amount, request.deadline, request.metadata);
+        emit RequestSubmitted(
+            id, request.token, request.sender, request.amount, request.deadline, request.metadata, orderHash
+        );
 
         return request.getOrderReceipt(POINTS);
     }
@@ -136,7 +140,11 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
      * This function is executed by the recipient after they receive the secret from the sender.
      * @param recipientData The recipient data
      */
-    function completeRequest(RecipientData memory recipientData) internal nonReentrant returns (OrderReceipt memory) {
+    function completeRequest(RecipientData memory recipientData, bytes32 orderHash)
+        internal
+        nonReentrant
+        returns (OrderReceipt memory)
+    {
         PendingRequest storage request = pendingRequests[recipientData.requestId];
 
         if (recipientData.recipient == address(0)) {
@@ -164,7 +172,7 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
             revert TransferFailed();
         }
 
-        emit RequestCompleted(recipientData.requestId, recipientData.recipient, recipientData.metadata);
+        emit RequestCompleted(recipientData.requestId, recipientData.recipient, recipientData.metadata, orderHash);
 
         return getOrderReceipt(request);
     }

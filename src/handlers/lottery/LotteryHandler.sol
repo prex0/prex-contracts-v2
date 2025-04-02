@@ -15,11 +15,11 @@ contract LotteryHandler is IOrderHandler, MultiPrizeLottery {
         if (order.methodId == 1) {
             CreateLotteryOrder memory request = abi.decode(order.order, (CreateLotteryOrder));
 
-            return createLottery(request, order.signature);
+            return createLottery(request, order.signature, keccak256(order.order));
         } else if (order.methodId == 2) {
             DrawLotteryOrder memory request = abi.decode(order.order, (DrawLotteryOrder));
 
-            return drawLottery(request, order.signature);
+            return drawLottery(request, order.signature, keccak256(order.order));
         } else {
             revert InvalidMethodId();
         }

@@ -13,7 +13,9 @@ contract TransferRequestHandler is IOrderHandler {
 
     IPermit2 permit2;
 
-    event Transferred(address token, address from, address to, uint256 amount, uint256 category, bytes metadata);
+    event Transferred(
+        address token, address from, address to, uint256 amount, uint256 category, bytes metadata, bytes32 orderHash
+    );
 
     uint256 public constant POINTS = 1;
 
@@ -33,7 +35,13 @@ contract TransferRequestHandler is IOrderHandler {
         _verifyRequest(request, order.signature);
 
         emit Transferred(
-            request.token, request.sender, request.recipient, request.amount, request.category, request.metadata
+            request.token,
+            request.sender,
+            request.recipient,
+            request.amount,
+            request.category,
+            request.metadata,
+            keccak256(order.order)
         );
 
         return request.getOrderReceipt(POINTS);

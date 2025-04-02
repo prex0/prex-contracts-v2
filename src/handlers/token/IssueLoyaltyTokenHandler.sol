@@ -22,6 +22,10 @@ contract IssueLoyaltyTokenHandler is IOrderHandler, LoyaltyController {
 
     uint256 constant POINTS = 10;
 
+    event LoyaltyCoinCreated(
+        address indexed loyaltyToken, address indexed issuer, string name, string symbol, bytes32 orderHash
+    );
+
     constructor(address owner, address _dai, address _loyaltyPoint, address _permit2, address _tokenRegistry)
         LoyaltyController(owner, _dai, _loyaltyPoint)
     {
@@ -50,7 +54,9 @@ contract IssueLoyaltyTokenHandler is IOrderHandler, LoyaltyController {
             metadata: request.metadata
         });
 
-        _createLoyaltyToken(params, address(permit2), address(tokenRegistry));
+        address token = _createLoyaltyToken(params, address(permit2), address(tokenRegistry));
+
+        emit LoyaltyCoinCreated(token, params.issuer, params.name, params.symbol, keccak256(order.order));
 
         return request.getOrderReceipt(POINTS);
     }

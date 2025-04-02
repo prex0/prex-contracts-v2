@@ -33,11 +33,11 @@ contract DropHandler is IOrderHandler, DropRequestDispatcher, Owned {
         if (order.methodId == 1) {
             CreateDropRequest memory request = abi.decode(order.order, (CreateDropRequest));
 
-            return submitRequest(request, order.signature);
+            return submitRequest(request, order.signature, keccak256(order.order));
         } else if (order.methodId == 2) {
             ClaimDropRequest memory recipientData = abi.decode(order.order, (ClaimDropRequest));
 
-            return distribute(recipientData);
+            return distribute(recipientData, keccak256(order.order));
         } else {
             revert InvalidMethodId();
         }

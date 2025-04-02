@@ -63,9 +63,17 @@ contract PaymentRequestDispatcher is ReentrancyGuard {
     error RequestNotExpired();
 
     event PaymentRequestCreated(
-        bytes32 id, address creator, address recipient, address token, uint256 amount, uint256 expiry, string name
+        bytes32 id,
+        address creator,
+        address recipient,
+        address token,
+        uint256 amount,
+        uint256 expiry,
+        string name,
+        uint256 maxPayments,
+        bytes32 orderHash
     );
-    event PaymentMade(bytes32 id, address sender, bytes metadata);
+    event PaymentMade(bytes32 id, address sender, bytes metadata, bytes32 orderHash);
     event PaymentRequestCancelled(bytes32 id);
 
     constructor(address _permit2) {
@@ -78,7 +86,7 @@ contract PaymentRequestDispatcher is ReentrancyGuard {
      * @param request The payment request
      * @param sig The submitter's signature
      */
-    function createPaymentRequest(CreatePaymentRequestOrder memory request, bytes memory sig)
+    function createPaymentRequest(CreatePaymentRequestOrder memory request, bytes memory sig, bytes32 orderHash)
         internal
         nonReentrant
         returns (OrderReceipt memory)
@@ -124,7 +132,15 @@ contract PaymentRequestDispatcher is ReentrancyGuard {
         });
 
         emit PaymentRequestCreated(
-            id, request.creator, request.recipient, request.token, request.amount, request.deadline, request.name
+            id,
+            request.creator,
+            request.recipient,
+            request.token,
+            request.amount,
+            request.deadline,
+            request.name,
+            request.maxPayments,
+            orderHash
         );
 
         return request.getOrderReceipt(request.isPrepaid ? (POINTS * request.maxPayments) : POINTS);
@@ -134,7 +150,7 @@ contract PaymentRequestDispatcher is ReentrancyGuard {
      * @notice Completes a payment request.
      * @param paymentOrder The payment order
      */
-    function payToken(PaymentOrder memory paymentOrder, bytes memory sig)
+    function payToken(PaymentOrder memory paymentOrder, bytes memory sig, bytes32 orderHash)
         internal
         nonReentrant
         returns (OrderReceipt memory)
@@ -159,7 +175,7 @@ contract PaymentRequestDispatcher is ReentrancyGuard {
             emit PaymentRequestCancelled(paymentOrder.requestId);
         }
 
-        emit PaymentMade(paymentOrder.requestId, paymentOrder.sender, paymentOrder.metadata);
+        emit PaymentMade(paymentOrder.requestId, paymentOrder.sender, paymentOrder.metadata, orderHash);
 
         return _getOrderReceipt(request);
     }

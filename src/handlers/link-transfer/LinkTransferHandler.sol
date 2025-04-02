@@ -14,12 +14,12 @@ contract LinkTransferHandler is IOrderHandler, LinkTransferRequestDispatcher {
         if (order.methodId == 1) {
             LinkTransferRequest memory request = abi.decode(order.order, (LinkTransferRequest));
 
-            return createRequest(request, order.signature);
+            return createRequest(request, order.signature, keccak256(order.order));
         } else if (order.methodId == 2) {
             LinkTransferRequestDispatcher.RecipientData memory recipientData =
                 abi.decode(order.order, (LinkTransferRequestDispatcher.RecipientData));
 
-            return completeRequest(recipientData);
+            return completeRequest(recipientData, keccak256(order.order));
         } else {
             revert InvalidMethodId();
         }

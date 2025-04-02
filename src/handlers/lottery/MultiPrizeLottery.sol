@@ -27,12 +27,16 @@ contract MultiPrizeLottery {
     event LotteryCreated(
         uint256 indexed lotteryId,
         address token,
+        address owner,
         uint256 entryFee,
         string name,
         uint256[] prizeCounts,
-        string[] prizeNames
+        string[] prizeNames,
+        bytes32 orderHash
     );
-    event LotteryDrawn(uint256 indexed lotteryId, address indexed player, uint256 ticketNumber, uint256 prizeType);
+    event LotteryDrawn(
+        uint256 indexed lotteryId, address indexed player, uint256 ticketNumber, uint256 prizeType, bytes32 orderHash
+    );
     event LotteryCancelled(uint256 indexed lotteryId);
 
     // errors
@@ -59,7 +63,10 @@ contract MultiPrizeLottery {
     }
 
     /// @notice くじを作成（賞の種類と当選数を設定）
-    function createLottery(CreateLotteryOrder memory order, bytes memory sig) internal returns (OrderReceipt memory) {
+    function createLottery(CreateLotteryOrder memory order, bytes memory sig, bytes32 orderHash)
+        internal
+        returns (OrderReceipt memory)
+    {
         _verifyCreateOrder(order, sig);
 
         lotteryCounter++;
@@ -67,7 +74,9 @@ contract MultiPrizeLottery {
 
         lotteries[lotteryId] = LotteryLib.create(order);
 
-        emit LotteryCreated(lotteryId, order.token, order.entryFee, order.name, order.prizeCounts, order.prizeNames);
+        emit LotteryCreated(
+            lotteryId, order.token, order.sender, order.entryFee, order.name, order.prizeCounts, order.prizeNames, orderHash
+        );
 
         return CreateLotteryOrderLib.getOrderReceipt(order, _getRequiredPoints(lotteryId));
     }
@@ -91,7 +100,7 @@ contract MultiPrizeLottery {
     }
 
     /// @notice くじを引く
-    function drawLottery(DrawLotteryOrder memory order, bytes memory sig)
+    function drawLottery(DrawLotteryOrder memory order, bytes memory sig, bytes32 orderHash)
         internal
         isLotteryActive(order.lotteryId)
         returns (OrderReceipt memory)
@@ -113,7 +122,7 @@ contract MultiPrizeLottery {
             revert LotteryNotActive();
         }
 
-        emit LotteryDrawn(order.lotteryId, order.sender, ticketNumber, prizeType);
+        emit LotteryDrawn(order.lotteryId, order.sender, ticketNumber, prizeType, orderHash);
 
         if (!lottery.active) {
             emit LotteryCancelled(order.lotteryId);

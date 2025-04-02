@@ -61,7 +61,7 @@ contract OrderExecutor is IOrderExecutor, PolicyManager {
         OrderHeader memory header = OrderHeader({
             dispatcher: order.dispatcher,
             methodId: order.methodId,
-            orderHash: _getOrderHashForPolicy(order.order, order.identifier),
+            orderHash: keccak256(order.order),
             identifier: order.identifier
         });
 
@@ -71,13 +71,5 @@ contract OrderExecutor is IOrderExecutor, PolicyManager {
         emit OrderExecuted(msg.sender, header, receipt);
 
         return receipt;
-    }
-
-    function getOrderHashForPolicy(bytes memory order, bytes32 identifier) external pure returns (bytes32) {
-        return _getOrderHashForPolicy(order, identifier);
-    }
-
-    function _getOrderHashForPolicy(bytes memory order, bytes32 identifier) internal pure returns (bytes32) {
-        return keccak256(abi.encode("AppOrder", keccak256(order), identifier));
     }
 }

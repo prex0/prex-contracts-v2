@@ -27,7 +27,8 @@ contract IssueTokenHandler is IOrderHandler, PrexTokenFactory {
         address recipient,
         string name,
         string symbol,
-        uint256 initialSupply
+        uint256 initialSupply,
+        bytes32 orderHash
     );
 
     constructor(address _permit2, address _tokenRegistry) {
@@ -59,7 +60,15 @@ contract IssueTokenHandler is IOrderHandler, PrexTokenFactory {
         // トークンを発行する
         address token = createMintableCreatorToken(params, address(permit2), address(tokenRegistry));
 
-        emit TokenIssued(token, request.issuer, request.recipient, request.name, request.symbol, request.initialSupply);
+        emit TokenIssued(
+            token,
+            request.issuer,
+            request.recipient,
+            request.name,
+            request.symbol,
+            request.initialSupply,
+            keccak256(order.order)
+        );
 
         return request.getOrderReceipt(POINTS);
     }

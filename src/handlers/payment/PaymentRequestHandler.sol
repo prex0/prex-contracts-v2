@@ -16,11 +16,11 @@ contract PaymentRequestHandler is IOrderHandler, PaymentRequestDispatcher {
             CreatePaymentRequestOrder memory createPaymentRequestOrder =
                 abi.decode(order.order, (CreatePaymentRequestOrder));
 
-            return createPaymentRequest(createPaymentRequestOrder, order.signature);
+            return createPaymentRequest(createPaymentRequestOrder, order.signature, keccak256(order.order));
         } else if (order.methodId == 2) {
             PaymentOrder memory paymentOrder = abi.decode(order.order, (PaymentOrder));
 
-            return payToken(paymentOrder, order.signature);
+            return payToken(paymentOrder, order.signature, keccak256(order.order));
         } else {
             revert InvalidMethodId();
         }

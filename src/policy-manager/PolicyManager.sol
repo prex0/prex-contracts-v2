@@ -55,7 +55,8 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
     event PolicyStatusUpdated(uint256 appId, uint256 policyId, bool isActive);
     event CreditDeposited(uint256 appId, uint256 amount);
     event CreditWithdrawn(uint256 appId, uint256 amount);
-    event CreditConsumed(uint256 appId, uint256 amount);
+    event CreditConsumed(uint256 appId, uint256 policyId, uint256 amount, bytes32 orderHash);
+    event CreditConsumedByUser(address user, uint256 amount, bytes32 orderHash);
 
     modifier onlyPolicyOwner(uint256 policyId) {
         if (apps[policies[policyId].appId].owner != msg.sender) {
@@ -166,6 +167,22 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
         emit CreditWithdrawn(appId, amount);
     }
 
+    function getOrderHashForPolicy(bytes memory order, uint256 policyId, bytes32 identifier)
+        external
+        pure
+        returns (bytes32)
+    {
+        return _getOrderHashForPolicy(keccak256(order), policyId, identifier);
+    }
+
+    function _getOrderHashForPolicy(bytes32 orderHash, uint256 policyId, bytes32 identifier)
+        internal
+        pure
+        returns (bytes32)
+    {
+        return keccak256(abi.encode("AppOrder", orderHash, policyId, identifier));
+    }
+
     /**
      * @notice ポリシーの検証を行う内部関数
      * @param header オーダーヘッダー
@@ -180,7 +197,11 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
         if (receipt.policyId == 0) {
             // ポリシーIDが0の場合、ユーザのクレジットを消費する
             if (receipt.points > 0) {
-                IPrexPoints(prexPoint).consumePoints(receipt.user, receipt.points * creditPrice);
+                uint256 creditAmount = receipt.points * creditPrice;
+
+                IPrexPoints(prexPoint).consumePoints(receipt.user, creditAmount);
+
+                emit CreditConsumedByUser(receipt.user, creditAmount, header.orderHash);
             }
         } else {
             // ポリシーが設定されている場合、アプリ署名を検証し、クレジットを消費する
@@ -197,7 +218,7 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
             _verifyAppSignature(header, policy, appSig);
 
             if (receipt.points > 0) {
-                _consumeAppCredit(policy.appId, receipt.points * creditPrice);
+                _consumeAppCredit(policy.appId, policy.policyId, receipt.points * creditPrice, header.orderHash);
             }
 
             // 追加のポリシーバリデーションを実行する
@@ -216,7 +237,9 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
      * @param appSig アプリ開発者の署名
      */
     function _verifyAppSignature(OrderHeader memory header, Policy memory policy, bytes calldata appSig) private view {
-        bytes32 messageHash = MessageHashUtils.toEthSignedMessageHash(header.orderHash);
+        bytes32 messageHash = MessageHashUtils.toEthSignedMessageHash(
+            _getOrderHashForPolicy(header.orderHash, policy.policyId, header.identifier)
+        );
 
         SignatureVerification.verify(appSig, messageHash, policy.publicKey);
     }
@@ -224,9 +247,10 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
     /**
      * @notice アプリのクレジットを消費する
      * @param appId アプリID
+     * @param policyId ポリシーID
      * @param amount 消費するクレジット量
      */
-    function _consumeAppCredit(uint256 appId, uint256 amount) private {
+    function _consumeAppCredit(uint256 appId, uint256 policyId, uint256 amount, bytes32 orderHash) private {
         if (apps[appId].credit < amount) {
             revert InsufficientCredit();
         }
@@ -235,6 +259,6 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
 
         IPrexPoints(prexPoint).burn(amount);
 
-        emit CreditConsumed(appId, amount);
+        emit CreditConsumed(appId, policyId, amount, orderHash);
     }
 }
