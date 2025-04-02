@@ -13,14 +13,12 @@ contract DeployHandlersScript is Script {
 
     address public constant PERMIT2_ADDRESS = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
 
-    address public constant ORDER_EXECUTOR = 0x0000000000000000000000000000000000000000;
-
-    function setUp() public {}
+    address public constant ORDER_EXECUTOR = 0xf4f3137163C71A541D338c97608309374c8611E8;
 
     function run() public {
         vm.startBroadcast();
 
-        DropHandler dropHandler = new DropHandler{salt: keccak256("DropHandler")}(msg.sender, PERMIT2_ADDRESS);
+        DropHandler dropHandler = new DropHandler{salt: keccak256("DropHandler")}(PERMIT2_ADDRESS, msg.sender);
 
         dropHandler.setOrderExecutor(ORDER_EXECUTOR);
 

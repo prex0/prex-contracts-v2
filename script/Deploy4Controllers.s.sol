@@ -25,21 +25,23 @@ contract DeployPointScript is Script {
 
     address public constant POOL_MANAGER = 0x9a13F98Cb987694C9F086b1F5eB990EeA8264Ec3;
 
-    address public constant PREX_TOKEN_FACTORY = 0x0000000000000000000000000000000000000000;
+    address public constant PREX_TOKEN_FACTORY = 0x915C46a9f818fF2Ed56f20F52C7Eb5B7be17712a;
 
-    address public constant CREATOR_TOKEN_FACTORY = 0x0000000000000000000000000000000000000000;
+    address public constant CREATOR_TOKEN_FACTORY = 0x8Ede005980d9762C8e443722957b3d5147e3140C;
 
-    address public constant PROFILE_REGISTRY = 0x0000000000000000000000000000000000000000;
+    address public constant PROFILE_REGISTRY = 0x8A4e21d9C0258A7330A70513ce680fC3843dA4B0;
 
-    address public constant TOKEN_REGISTRY = 0x0000000000000000000000000000000000000000;
+    address public constant TOKEN_REGISTRY = 0x57F3891da461C783231A79328aa11AE6C724E9B2;
 
     address public constant POINT_MINTER = 0xAd77509161a564cF02790E12d56928940a556cbB;
+
+    address public constant DEPLOYER = 0x4e59b44847b379578588920cA78FbF26c0B4956C;
 
     function setUp() public {}
 
     function run() public {
         vm.startBroadcast();
-
+        
         BuyPumPointHandler pumPointHandler =
             new BuyPumPointHandler{salt: keccak256("BuyPumPointHandler")}(msg.sender, PERMIT2_ADDRESS, OWNER_ADDRESS);
         BuyLoyaltyPointHandler loyaltyPointHandler = new BuyLoyaltyPointHandler{
@@ -101,7 +103,7 @@ contract DeployPointScript is Script {
         uint160 flags = uint160(Hooks.BEFORE_SWAP_FLAG | Hooks.AFTER_SWAP_FLAG);
         bytes memory constructorArgs = abi.encode(POOL_MANAGER, carryToken, OWNER_ADDRESS);
         (address hookAddress, bytes32 salt) =
-            HookMiner.find(address(this), flags, type(PumHook).creationCode, constructorArgs);
+            HookMiner.find(address(DEPLOYER), flags, type(PumHook).creationCode, constructorArgs);
 
         return (hookAddress, salt);
     }
