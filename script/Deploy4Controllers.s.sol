@@ -19,6 +19,7 @@ contract DeployPointScript is Script {
     address public constant PERMIT2_ADDRESS = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
 
     address public constant DAI = 0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1;
+    address public DAI_ADDRESS = vm.envAddress("DAI_ADDRESS");
 
     address public constant POSITION_MANAGER = 0x3C3Ea4B57a46241e54610e5f022E5c45859A1017;
 
@@ -61,12 +62,13 @@ contract DeployPointScript is Script {
         }(
             msg.sender,
             address(pumPointHandler.point()),
-            DAI,
             POSITION_MANAGER,
             TOKEN_REGISTRY,
             CREATOR_TOKEN_FACTORY,
             PERMIT2_ADDRESS
         );
+
+        issueCreatorTokenHandler.setDai(DAI_ADDRESS);
 
         (, bytes32 pumHookSalt) = _mineAddress(address(issueCreatorTokenHandler.carryToken()));
         PumHook pumHook =
@@ -84,7 +86,11 @@ contract DeployPointScript is Script {
 
         IssueLoyaltyTokenHandler issueLoyaltyTokenHandler = new IssueLoyaltyTokenHandler{
             salt: keccak256("IssueLoyaltyTokenHandler")
-        }(OWNER_ADDRESS, DAI, address(loyaltyPointHandler.point()), PERMIT2_ADDRESS, TOKEN_REGISTRY);
+        }(msg.sender, address(loyaltyPointHandler.point()), PERMIT2_ADDRESS, TOKEN_REGISTRY);
+
+        issueLoyaltyTokenHandler.setDai(DAI_ADDRESS);
+
+        issueLoyaltyTokenHandler.transferOwnership(OWNER_ADDRESS);
 
         console.log("IssueLoyaltyTokenHandler deployed at", address(issueLoyaltyTokenHandler));
 

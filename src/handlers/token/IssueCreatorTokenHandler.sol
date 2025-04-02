@@ -20,12 +20,11 @@ contract IssueCreatorTokenHandler is IOrderHandler, PumController {
     constructor(
         address owner,
         address _prexPoint,
-        address _dai,
         address _positionManager,
         address _tokenRegistry,
         address _creatorTokenFactory,
         address _permit2
-    ) PumController(owner, _prexPoint, _dai, _positionManager, _tokenRegistry, _creatorTokenFactory, _permit2) {}
+    ) PumController(owner, _prexPoint, _positionManager, _tokenRegistry, _creatorTokenFactory, _permit2) {}
 
     /**
      * @notice ユーザのトークンを発行注文を処理する

@@ -44,12 +44,11 @@ contract PumController is PumConverter {
     constructor(
         address _owner,
         address _prexPoint,
-        address _dai,
         address _positionManager,
         address _tokenRegistry,
         address _creatorTokenFactory,
         address _permit2
-    ) PumConverter(_owner, _prexPoint, _dai) {
+    ) PumConverter(_owner, _prexPoint) {
         positionManager = _positionManager;
         tokenRegistry = _tokenRegistry;
         permit2 = IPermit2(_permit2);

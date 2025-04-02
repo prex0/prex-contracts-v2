@@ -26,8 +26,8 @@ import {CreateTokenParameters} from "../../../src/token-factory/CreatorTokenFact
 contract MockLoyaltyController is LoyaltyController {
     address public tokenRegistry;
 
-    constructor(address _owner, address _dai, address _loyaltyPoint, address _tokenRegistry)
-        LoyaltyController(_owner, _dai, _loyaltyPoint)
+    constructor(address _owner, address _loyaltyPoint, address _tokenRegistry)
+        LoyaltyController(_owner, _loyaltyPoint)
     {
         tokenRegistry = _tokenRegistry;
     }
@@ -41,12 +41,11 @@ contract MockPumController is PumController {
     constructor(
         address _owner,
         address _pumPoint,
-        address _dai,
         address _positionManager,
         address _tokenRegistry,
         address _creatorTokenFactory,
         address _permit2
-    ) PumController(_owner, _pumPoint, _dai, _positionManager, _tokenRegistry, _creatorTokenFactory, _permit2) {}
+    ) PumController(_owner, _pumPoint, _positionManager, _tokenRegistry, _creatorTokenFactory, _permit2) {}
 
     function issuePumToken(
         address issuer,
@@ -108,12 +107,12 @@ contract SwapRouterSetup is Test, TestUtils {
         pumController = new MockPumController(
             address(this),
             address(pumPoint),
-            address(dai),
             address(0x3C3Ea4B57a46241e54610e5f022E5c45859A1017),
             address(tokenRegistry),
             address(creatorTokenFactory),
             address(0x000000000022D473030F116dDEE9F6B43aC78BA3)
         );
+        pumController.setDai(address(dai));
         (, bytes32 pumHookSalt) = _mineAddress();
         pumHook = new PumHook{salt: pumHookSalt}(
             address(0x9a13F98Cb987694C9F086b1F5eB990EeA8264Ec3), address(pumController.carryToken()), address(this)
@@ -122,9 +121,8 @@ contract SwapRouterSetup is Test, TestUtils {
 
         // Set pumController as consumer
         pumPoint.setConsumer(address(pumController));
-        loyaltyController =
-            new MockLoyaltyController(address(this), address(dai), address(loyaltyPoint), address(tokenRegistry));
-
+        loyaltyController = new MockLoyaltyController(address(this), address(loyaltyPoint), address(tokenRegistry));
+        loyaltyController.setDai(address(dai));
         loyaltyPoint.setConsumer(address(loyaltyController));
 
         swapHandler = new SwapHandler(

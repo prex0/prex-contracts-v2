@@ -18,7 +18,7 @@ contract PumConverter is BaseConverter {
 
     event PriceUpdated(uint256 newPrice);
 
-    constructor(address _owner, address _prexPoint, address _dai) BaseConverter(_owner, _dai) {
+    constructor(address _owner, address _prexPoint) BaseConverter(_owner) {
         carryToken = new CarryToken(address(this));
         pumPoint = IPrexPoints(_prexPoint);
     }

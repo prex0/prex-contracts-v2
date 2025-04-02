@@ -8,9 +8,16 @@ import {IERC20} from "../../lib/openzeppelin-contracts/contracts/token/ERC20/IER
  * @notice BaseConverter is a base contract for Converter.
  */
 abstract contract BaseConverter is Owned {
-    IERC20 public immutable dai;
+    IERC20 public dai;
 
-    constructor(address _owner, address _dai) Owned(_owner) {
+    constructor(address _owner) Owned(_owner) {}
+
+    /**
+     * @notice Set the DAI address
+     * @dev This function can only be called by the owner
+     * @param _dai The address of the DAI token
+     */
+    function setDai(address _dai) external onlyOwner {
         dai = IERC20(_dai);
     }
 

@@ -22,7 +22,7 @@ contract LoyaltyConverter is BaseConverter {
     event PriceUpdated(uint256 newPrice);
     event FeeRateUpdated(uint256 newFeeRate);
 
-    constructor(address _owner, address _dai) BaseConverter(_owner, _dai) {}
+    constructor(address _owner) BaseConverter(_owner) {}
 
     /**
      * @notice Update the price of 1 JPY in 1e18

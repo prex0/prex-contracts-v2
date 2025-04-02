@@ -16,7 +16,7 @@ contract LoyaltyController is LoyaltyConverter {
         address indexed loyaltyToken, address indexed recipient, uint256 amount, uint256 loyaltyPointAmount
     );
 
-    constructor(address _owner, address _dai, address _loyaltyPoint) LoyaltyConverter(_owner, _dai) {
+    constructor(address _owner, address _loyaltyPoint) LoyaltyConverter(_owner) {
         loyaltyPoint = _loyaltyPoint;
     }
 
