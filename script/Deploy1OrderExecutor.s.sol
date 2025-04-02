@@ -22,8 +22,10 @@ contract OrderExecutorScript is Script {
         );
 
         orderExecutor =
-            new OrderExecutor{salt: keccak256("OrderExecutor")}(address(pointHandler.point()), OWNER_ADDRESS);
+            new OrderExecutor{salt: keccak256("OrderExecutor")}(address(pointHandler.point()), msg.sender);
         orderExecutor.addHandler(address(pointHandler));
+
+        orderExecutor.transferOwnership(OWNER_ADDRESS);
 
         console.log("OrderExecutor deployed at", address(orderExecutor));
         console.log("BuyPrexPointHandler deployed at", address(pointHandler));

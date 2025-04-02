@@ -39,9 +39,9 @@ contract DeployPointScript is Script {
     function run() public {
         vm.startBroadcast();
 
-        BuyPumPointHandler pumPointHandler = new BuyPumPointHandler(OWNER_ADDRESS, PERMIT2_ADDRESS, OWNER_ADDRESS);
+        BuyPumPointHandler pumPointHandler = new BuyPumPointHandler{salt: keccak256("BuyPumPointHandler")}(OWNER_ADDRESS, PERMIT2_ADDRESS, OWNER_ADDRESS);
         BuyLoyaltyPointHandler loyaltyPointHandler =
-            new BuyLoyaltyPointHandler(OWNER_ADDRESS, PERMIT2_ADDRESS, OWNER_ADDRESS);
+            new BuyLoyaltyPointHandler{salt: keccak256("BuyLoyaltyPointHandler")}(OWNER_ADDRESS, PERMIT2_ADDRESS, OWNER_ADDRESS);
 
         console.log("BuyPumPointHandler deployed at", address(pumPointHandler));
         console.log("BuyLoyaltyPointHandler deployed at", address(loyaltyPointHandler));
@@ -49,7 +49,7 @@ contract DeployPointScript is Script {
         console.log("LOYALTY Point deployed at", address(loyaltyPointHandler.point()));
 
         IssueCreatorTokenHandler issueCreatorTokenHandler = new IssueCreatorTokenHandler(
-            OWNER_ADDRESS,
+            msg.sender,
             address(pumPointHandler.point()),
             DAI,
             POSITION_MANAGER,
@@ -63,14 +63,15 @@ contract DeployPointScript is Script {
             new PumHook{salt: pumHookSalt}(POOL_MANAGER, address(issueCreatorTokenHandler.carryToken()), OWNER_ADDRESS);
 
         issueCreatorTokenHandler.setPumHook(address(pumHook));
+        issueCreatorTokenHandler.transferOwnership(OWNER_ADDRESS);
 
         console.log("IssueCreatorTokenHandler deployed at", address(issueCreatorTokenHandler));
 
-        IssueTokenHandler issueTokenHandler = new IssueTokenHandler(PERMIT2_ADDRESS, TOKEN_REGISTRY);
+        IssueTokenHandler issueTokenHandler = new IssueTokenHandler{salt: keccak256("IssueTokenHandler")}(PERMIT2_ADDRESS, TOKEN_REGISTRY);
 
         console.log("IssueTokenHandler deployed at", address(issueTokenHandler));
 
-        IssueLoyaltyTokenHandler issueLoyaltyTokenHandler = new IssueLoyaltyTokenHandler(
+        IssueLoyaltyTokenHandler issueLoyaltyTokenHandler = new IssueLoyaltyTokenHandler{salt: keccak256("IssueLoyaltyTokenHandler")}(
             OWNER_ADDRESS, DAI, address(loyaltyPointHandler.point()), PERMIT2_ADDRESS, TOKEN_REGISTRY
         );
 

@@ -20,25 +20,27 @@ contract DeployHandlersScript is Script {
     function run() public {
         vm.startBroadcast();
 
-        DropHandler dropHandler = new DropHandler(OWNER_ADDRESS, PERMIT2_ADDRESS);
+        DropHandler dropHandler = new DropHandler{salt: keccak256("DropHandler")}(msg.sender, PERMIT2_ADDRESS);
 
         dropHandler.setOrderExecutor(ORDER_EXECUTOR);
 
+        dropHandler.transferOwnership(OWNER_ADDRESS);
+
         console.log("DropHandler deployed at", address(dropHandler));
 
-        LinkTransferHandler linkTransferHandler = new LinkTransferHandler(PERMIT2_ADDRESS);
+        LinkTransferHandler linkTransferHandler = new LinkTransferHandler{salt: keccak256("LinkTransferHandler")}(PERMIT2_ADDRESS);
 
         console.log("LinkTransferHandler deployed at", address(linkTransferHandler));
 
-        LotteryHandler lotteryHandler = new LotteryHandler(PERMIT2_ADDRESS);
+        LotteryHandler lotteryHandler = new LotteryHandler{salt: keccak256("LotteryHandler")}(PERMIT2_ADDRESS);
 
         console.log("LotteryHandler deployed at", address(lotteryHandler));
 
-        PaymentRequestHandler paymentRequestHandler = new PaymentRequestHandler(PERMIT2_ADDRESS);
+        PaymentRequestHandler paymentRequestHandler = new PaymentRequestHandler{salt: keccak256("PaymentRequestHandler")}(PERMIT2_ADDRESS);
 
         console.log("PaymentRequestHandler deployed at", address(paymentRequestHandler));
 
-        TransferRequestHandler transferRequestHandler = new TransferRequestHandler(PERMIT2_ADDRESS);
+        TransferRequestHandler transferRequestHandler = new TransferRequestHandler{salt: keccak256("TransferRequestHandler")}(PERMIT2_ADDRESS);
 
         console.log("TransferRequestHandler deployed at", address(transferRequestHandler));
 

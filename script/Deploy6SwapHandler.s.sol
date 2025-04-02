@@ -21,7 +21,7 @@ contract Deploy6SwapHandlerScript is Script {
         vm.startBroadcast();
 
         SwapHandler swapHandler =
-            new SwapHandler(UNIVERSAL_ROUTER, LOYALTY_CONVERTER, PUM_CONVERTER, PERMIT2_ADDRESS, OWNER_ADDRESS);
+            new SwapHandler{salt: keccak256("SwapHandler")}(UNIVERSAL_ROUTER, LOYALTY_CONVERTER, PUM_CONVERTER, PERMIT2_ADDRESS, OWNER_ADDRESS);
 
         console.log("SwapHandler deployed at", address(swapHandler));
 
