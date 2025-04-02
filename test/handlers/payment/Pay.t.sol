@@ -13,6 +13,7 @@ import {
 } from "../../../src/handlers/payment/CreatePaymentRequestOrder.sol";
 import {PaymentOrder, PaymentOrderLib} from "../../../src/handlers/payment/PaymentOrder.sol";
 import {PaymentRequestDispatcher} from "../../../src/handlers/payment/PaymentRequestDispatcher.sol";
+import {OrderInfo} from "../../../src/libraries/OrderInfo.sol";
 
 contract PaymentTest is PaymentSetup {
     using CreatePaymentRequestOrderLib for CreatePaymentRequestOrder;
@@ -40,13 +41,17 @@ contract PaymentTest is PaymentSetup {
         mockToken.approve(address(permit2), 1e18);
 
         CreatePaymentRequestOrder memory request = CreatePaymentRequestOrder({
-            dispatcher: address(paymentRequestHandler),
-            policyId: 0,
+            orderInfo: OrderInfo({
+                dispatcher: address(paymentRequestHandler),
+                policyId: 0,
+                sender: user,
+                deadline: 1,
+                nonce: 1
+            }),
             creator: user,
             recipient: recipient,
-            deadline: 1,
-            nonce: 1,
             amount: 1e18,
+            expiry: block.timestamp + 100,
             token: address(mockToken),
             name: "test",
             isPrepaid: false,

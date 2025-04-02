@@ -2,19 +2,12 @@
 pragma solidity ^0.8.20;
 
 import "../../../src/interfaces/IOrderHandler.sol";
-
-struct OrderInfo {
-    address dispatcher;
-    uint256 policyId;
-    bool isPrepaid;
-    address sender;
-    uint256 deadline;
-    uint256 nonce;
-    address token;
-}
+import "../../../src/libraries/OrderInfo.sol";
 
 struct CreateDropRequest {
     OrderInfo orderInfo;
+    bool isPrepaid;
+    address token;
     uint256 dropPolicyId;
     address publicKey;
     uint256 amount;
@@ -23,43 +16,12 @@ struct CreateDropRequest {
     string name;
 }
 
-library OrderInfoLib {
-    bytes internal constant ORDER_INFO_TYPE_S = abi.encodePacked(
-        "OrderInfo(",
-        "address dispatcher,",
-        "uint256 policyId,",
-        "bool isPrepaid,",
-        "address sender,",
-        "uint256 deadline,",
-        "uint256 nonce,",
-        "address token)"
-    );
-
-    bytes32 internal constant ORDER_INFO_TYPE_HASH = keccak256(ORDER_INFO_TYPE_S);
-
-    /// @notice hash the given order info
-    /// @param orderInfo the order info to hash
-    /// @return the eip-712 order info hash
-    function hash(OrderInfo memory orderInfo) internal pure returns (bytes32) {
-        return keccak256(
-            abi.encode(
-                ORDER_INFO_TYPE_HASH,
-                orderInfo.dispatcher,
-                orderInfo.policyId,
-                orderInfo.isPrepaid,
-                orderInfo.sender,
-                orderInfo.deadline,
-                orderInfo.nonce,
-                orderInfo.token
-            )
-        );
-    }
-}
-
 library CreateDropRequestLib {
     bytes internal constant CREATE_DROP_REQUEST_TYPE_S = abi.encodePacked(
         "CreateDropRequest(",
         "OrderInfo orderInfo,",
+        "bool isPrepaid,",
+        "address token,",
         "uint256 dropPolicyId,",
         "address publicKey,",
         "uint256 amount,",
@@ -94,6 +56,8 @@ library CreateDropRequestLib {
             abi.encode(
                 CREATE_DROP_REQUEST_TYPE_HASH,
                 OrderInfoLib.hash(request.orderInfo),
+                request.isPrepaid,
+                request.token,
                 request.dropPolicyId,
                 request.publicKey,
                 request.amount,
@@ -104,7 +68,7 @@ library CreateDropRequestLib {
         );
     }
 
-    function verify(CreateDropRequest memory request) internal view returns (bool) {
+    function validateParams(CreateDropRequest memory request) internal view returns (bool) {
         if (request.expiry <= block.timestamp) {
             return false;
         }
@@ -121,6 +85,16 @@ library CreateDropRequestLib {
             return false;
         }
 
+        if (request.amountPerWithdrawal > request.amount) {
+            return false;
+        }
+
+        uint256 numberOfWithdrawals = getNumberOfWithdrawals(request);
+
+        if (request.amountPerWithdrawal * numberOfWithdrawals != request.amount) {
+            return false;
+        }
+
         return true;
     }
 
@@ -131,7 +105,7 @@ library CreateDropRequestLib {
     {
         address[] memory tokens = new address[](1);
 
-        tokens[0] = request.orderInfo.token;
+        tokens[0] = request.token;
 
         uint256 numberOfWithdrawals = getNumberOfWithdrawals(request);
 
@@ -139,7 +113,7 @@ library CreateDropRequestLib {
             tokens: tokens,
             user: request.orderInfo.sender,
             policyId: request.dropPolicyId,
-            points: request.orderInfo.isPrepaid ? points * numberOfWithdrawals : points
+            points: request.isPrepaid ? points * numberOfWithdrawals : points
         });
     }
 

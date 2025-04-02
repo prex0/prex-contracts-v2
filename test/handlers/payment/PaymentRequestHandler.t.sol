@@ -11,6 +11,7 @@ import {
     CreatePaymentRequestOrder,
     CreatePaymentRequestOrderLib
 } from "../../../src/handlers/payment/CreatePaymentRequestOrder.sol";
+import {OrderInfo} from "../../../src/libraries/OrderInfo.sol";
 
 contract PaymentRequestTest is PaymentSetup {
     MockToken mockToken;
@@ -33,20 +34,32 @@ contract PaymentRequestTest is PaymentSetup {
         mockToken.approve(address(permit2), 1e18);
     }
 
-    function test_CreatePaymentRequest() public {
-        CreatePaymentRequestOrder memory request = CreatePaymentRequestOrder({
-            dispatcher: address(paymentRequestHandler),
-            policyId: 0,
+    function createPaymentRequestOrder(uint256 _amount, uint256 _expiry, uint256 _maxPayments, bool isPrepaid)
+        public
+        view
+        returns (CreatePaymentRequestOrder memory)
+    {
+        return CreatePaymentRequestOrder({
+            orderInfo: OrderInfo({
+                dispatcher: address(paymentRequestHandler),
+                policyId: 0,
+                sender: user,
+                deadline: 1,
+                nonce: 1
+            }),
             creator: user,
             recipient: recipient,
-            deadline: 1,
-            nonce: 1,
-            amount: 1e18,
+            amount: _amount,
+            expiry: _expiry,
             token: address(mockToken),
             name: "test",
-            isPrepaid: true,
-            maxPayments: 10
+            isPrepaid: isPrepaid,
+            maxPayments: _maxPayments
         });
+    }
+
+    function test_CreatePaymentRequest() public {
+        CreatePaymentRequestOrder memory request = createPaymentRequestOrder(1e18, block.timestamp + 100, 12, true);
 
         OrderReceipt memory receipt = paymentRequestHandler.execute(
             address(this),
@@ -62,6 +75,27 @@ contract PaymentRequestTest is PaymentSetup {
         );
 
         assertEq(receipt.policyId, 0);
-        assertEq(receipt.points, 10);
+        assertEq(receipt.points, 12);
+    }
+
+    function test_CreatePaymentRequest_WithMaxExpiry() public {
+        CreatePaymentRequestOrder memory request =
+            createPaymentRequestOrder(1e18, type(uint64).max, type(uint256).max, false);
+
+        OrderReceipt memory receipt = paymentRequestHandler.execute(
+            address(this),
+            SignedOrder({
+                dispatcher: address(paymentRequestHandler),
+                methodId: 1,
+                order: abi.encode(request),
+                signature: _sign(request, userPrivateKey),
+                appSig: bytes(""),
+                identifier: bytes32(0)
+            }),
+            bytes("")
+        );
+
+        assertEq(receipt.policyId, 0);
+        assertEq(receipt.points, 1);
     }
 }

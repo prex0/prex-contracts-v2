@@ -36,13 +36,13 @@ contract TestDropRequestDispatcherDistribute is DropRequestSetup {
         return CreateDropRequest({
             orderInfo: OrderInfo({
                 policyId: 0,
-                isPrepaid: true,
                 dispatcher: address(dropHandler),
                 sender: sender,
                 deadline: block.timestamp + EXPIRY_UNTIL,
-                nonce: 0,
-                token: address(token)
+                nonce: 0
             }),
+            isPrepaid: true,
+            token: address(token),
             dropPolicyId: 0,
             publicKey: _tmpPublicKey,
             amount: AMOUNT,

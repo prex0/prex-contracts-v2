@@ -2,16 +2,15 @@
 pragma solidity ^0.8.20;
 
 import "../../../src/interfaces/IOrderHandler.sol";
+import "../../../src/libraries/OrderInfo.sol";
 
 struct CreatePaymentRequestOrder {
-    address dispatcher;
-    uint256 policyId;
+    OrderInfo orderInfo;
     bool isPrepaid;
     address creator;
     address recipient;
-    uint256 deadline;
-    uint256 nonce;
     uint256 amount;
+    uint256 expiry;
     uint256 maxPayments;
     address token;
     string name;
@@ -21,14 +20,12 @@ struct CreatePaymentRequestOrder {
 library CreatePaymentRequestOrderLib {
     bytes internal constant CREATE_PAYMENT_REQUEST_ORDER_TYPE_S = abi.encodePacked(
         "CreatePaymentRequestOrder(",
-        "address dispatcher,",
-        "uint256 policyId,",
+        "OrderInfo orderInfo,",
         "bool isPrepaid,",
         "address creator,",
         "address recipient,",
-        "uint256 deadline,",
-        "uint256 nonce,",
         "uint256 amount,",
+        "uint256 expiry,",
         "uint256 maxPayments,",
         "address token,",
         "string name)"
@@ -42,7 +39,10 @@ library CreatePaymentRequestOrderLib {
     string internal constant TOKEN_PERMISSIONS_TYPE = "TokenPermissions(address token,uint256 amount)";
     string internal constant PERMIT2_ORDER_TYPE = string(
         abi.encodePacked(
-            "CreatePaymentRequestOrder witness)", CREATE_PAYMENT_REQUEST_ORDER_TYPE_S, TOKEN_PERMISSIONS_TYPE
+            "CreatePaymentRequestOrder witness)",
+            CREATE_PAYMENT_REQUEST_ORDER_TYPE_S,
+            OrderInfoLib.ORDER_INFO_TYPE_S,
+            TOKEN_PERMISSIONS_TYPE
         )
     );
 
@@ -53,14 +53,12 @@ library CreatePaymentRequestOrderLib {
         return keccak256(
             abi.encode(
                 CREATE_PAYMENT_REQUEST_ORDER_TYPE_HASH,
-                request.dispatcher,
-                request.policyId,
+                request.orderInfo,
                 request.isPrepaid,
                 request.creator,
                 request.recipient,
-                request.deadline,
-                request.nonce,
                 request.amount,
+                request.expiry,
                 request.maxPayments,
                 request.token,
                 request.name
@@ -77,6 +75,7 @@ library CreatePaymentRequestOrderLib {
 
         tokens[0] = request.token;
 
-        return OrderReceipt({tokens: tokens, user: request.creator, policyId: request.policyId, points: points});
+        return
+            OrderReceipt({tokens: tokens, user: request.creator, policyId: request.orderInfo.policyId, points: points});
     }
 }

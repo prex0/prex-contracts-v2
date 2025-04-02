@@ -28,6 +28,7 @@ contract MultiPrizeLottery {
         uint256 indexed lotteryId,
         address token,
         address owner,
+        address recipient,
         uint256 entryFee,
         string name,
         uint256[] prizeCounts,
@@ -75,7 +76,15 @@ contract MultiPrizeLottery {
         lotteries[lotteryId] = LotteryLib.create(order);
 
         emit LotteryCreated(
-            lotteryId, order.token, order.sender, order.entryFee, order.name, order.prizeCounts, order.prizeNames, orderHash
+            lotteryId,
+            order.token,
+            order.sender,
+            order.recipient,
+            order.entryFee,
+            order.name,
+            order.prizeCounts,
+            order.prizeNames,
+            orderHash
         );
 
         return CreateLotteryOrderLib.getOrderReceipt(order, _getRequiredPoints(lotteryId));

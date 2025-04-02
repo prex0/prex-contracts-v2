@@ -37,6 +37,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
         RequestStatus status;
         string name;
         uint256 dropPolicyId;
+        bool isPrepaid;
     }
 
     mapping(bytes32 => PendingRequest) public pendingRequests;
@@ -110,7 +111,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
     {
         bytes32 id = getRequestId(request);
 
-        if (!request.verify()) {
+        if (!request.validateParams()) {
             revert InvalidRequest();
         }
 
@@ -123,18 +124,19 @@ contract DropRequestDispatcher is ReentrancyGuard {
         pendingRequests[id] = PendingRequest({
             amount: request.amount,
             amountPerWithdrawal: request.amountPerWithdrawal,
-            token: request.orderInfo.token,
+            token: request.token,
             publicKey: request.publicKey,
             sender: request.orderInfo.sender,
             expiry: request.expiry,
             status: RequestStatus.Pending,
             name: request.name,
-            dropPolicyId: request.dropPolicyId
+            dropPolicyId: request.dropPolicyId,
+            isPrepaid: request.isPrepaid
         });
 
         emit Submitted(
             id,
-            request.orderInfo.token,
+            request.token,
             request.orderInfo.sender,
             request.publicKey,
             request.amount,
@@ -187,7 +189,13 @@ contract DropRequestDispatcher is ReentrancyGuard {
 
         tokens[0] = request.token;
 
-        return OrderReceipt({tokens: tokens, user: request.sender, policyId: request.dropPolicyId, points: 0});
+        uint256 points = 0;
+
+        if (!request.isPrepaid) {
+            points = 1;
+        }
+
+        return OrderReceipt({tokens: tokens, user: request.sender, policyId: request.dropPolicyId, points: points});
     }
 
     /**
@@ -264,7 +272,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
 
         permit2.permitWitnessTransferFrom(
             ISignatureTransfer.PermitTransferFrom({
-                permitted: ISignatureTransfer.TokenPermissions({token: request.orderInfo.token, amount: request.amount}),
+                permitted: ISignatureTransfer.TokenPermissions({token: request.token, amount: request.amount}),
                 nonce: request.orderInfo.nonce,
                 deadline: request.orderInfo.deadline
             }),

@@ -32,23 +32,33 @@ contract DeployPointScript is Script {
 
     address public constant TOKEN_REGISTRY = 0x0000000000000000000000000000000000000000;
 
-    address public constant PUM_HOOK = 0x0000000000000000000000000000000000000000;
+    address public constant POINT_MINTER = 0xAd77509161a564cF02790E12d56928940a556cbB;
 
     function setUp() public {}
 
     function run() public {
         vm.startBroadcast();
 
-        BuyPumPointHandler pumPointHandler = new BuyPumPointHandler{salt: keccak256("BuyPumPointHandler")}(OWNER_ADDRESS, PERMIT2_ADDRESS, OWNER_ADDRESS);
-        BuyLoyaltyPointHandler loyaltyPointHandler =
-            new BuyLoyaltyPointHandler{salt: keccak256("BuyLoyaltyPointHandler")}(OWNER_ADDRESS, PERMIT2_ADDRESS, OWNER_ADDRESS);
+        BuyPumPointHandler pumPointHandler =
+            new BuyPumPointHandler{salt: keccak256("BuyPumPointHandler")}(msg.sender, PERMIT2_ADDRESS, OWNER_ADDRESS);
+        BuyLoyaltyPointHandler loyaltyPointHandler = new BuyLoyaltyPointHandler{
+            salt: keccak256("BuyLoyaltyPointHandler")
+        }(msg.sender, PERMIT2_ADDRESS, OWNER_ADDRESS);
+
+        pumPointHandler.addMinter(POINT_MINTER);
+        loyaltyPointHandler.addMinter(POINT_MINTER);
+
+        pumPointHandler.transferOwnership(OWNER_ADDRESS);
+        loyaltyPointHandler.transferOwnership(OWNER_ADDRESS);
 
         console.log("BuyPumPointHandler deployed at", address(pumPointHandler));
         console.log("BuyLoyaltyPointHandler deployed at", address(loyaltyPointHandler));
         console.log("PUM Point deployed at", address(pumPointHandler.point()));
         console.log("LOYALTY Point deployed at", address(loyaltyPointHandler.point()));
 
-        IssueCreatorTokenHandler issueCreatorTokenHandler = new IssueCreatorTokenHandler(
+        IssueCreatorTokenHandler issueCreatorTokenHandler = new IssueCreatorTokenHandler{
+            salt: keccak256("IssueCreatorTokenHandler")
+        }(
             msg.sender,
             address(pumPointHandler.point()),
             DAI,
@@ -67,13 +77,14 @@ contract DeployPointScript is Script {
 
         console.log("IssueCreatorTokenHandler deployed at", address(issueCreatorTokenHandler));
 
-        IssueTokenHandler issueTokenHandler = new IssueTokenHandler{salt: keccak256("IssueTokenHandler")}(PERMIT2_ADDRESS, TOKEN_REGISTRY);
+        IssueTokenHandler issueTokenHandler =
+            new IssueTokenHandler{salt: keccak256("IssueTokenHandler")}(PERMIT2_ADDRESS, TOKEN_REGISTRY);
 
         console.log("IssueTokenHandler deployed at", address(issueTokenHandler));
 
-        IssueLoyaltyTokenHandler issueLoyaltyTokenHandler = new IssueLoyaltyTokenHandler{salt: keccak256("IssueLoyaltyTokenHandler")}(
-            OWNER_ADDRESS, DAI, address(loyaltyPointHandler.point()), PERMIT2_ADDRESS, TOKEN_REGISTRY
-        );
+        IssueLoyaltyTokenHandler issueLoyaltyTokenHandler = new IssueLoyaltyTokenHandler{
+            salt: keccak256("IssueLoyaltyTokenHandler")
+        }(OWNER_ADDRESS, DAI, address(loyaltyPointHandler.point()), PERMIT2_ADDRESS, TOKEN_REGISTRY);
 
         console.log("IssueLoyaltyTokenHandler deployed at", address(issueLoyaltyTokenHandler));
 

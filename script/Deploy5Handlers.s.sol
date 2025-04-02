@@ -28,7 +28,8 @@ contract DeployHandlersScript is Script {
 
         console.log("DropHandler deployed at", address(dropHandler));
 
-        LinkTransferHandler linkTransferHandler = new LinkTransferHandler{salt: keccak256("LinkTransferHandler")}(PERMIT2_ADDRESS);
+        LinkTransferHandler linkTransferHandler =
+            new LinkTransferHandler{salt: keccak256("LinkTransferHandler")}(PERMIT2_ADDRESS);
 
         console.log("LinkTransferHandler deployed at", address(linkTransferHandler));
 
@@ -36,11 +37,13 @@ contract DeployHandlersScript is Script {
 
         console.log("LotteryHandler deployed at", address(lotteryHandler));
 
-        PaymentRequestHandler paymentRequestHandler = new PaymentRequestHandler{salt: keccak256("PaymentRequestHandler")}(PERMIT2_ADDRESS);
+        PaymentRequestHandler paymentRequestHandler =
+            new PaymentRequestHandler{salt: keccak256("PaymentRequestHandler")}(PERMIT2_ADDRESS);
 
         console.log("PaymentRequestHandler deployed at", address(paymentRequestHandler));
 
-        TransferRequestHandler transferRequestHandler = new TransferRequestHandler{salt: keccak256("TransferRequestHandler")}(PERMIT2_ADDRESS);
+        TransferRequestHandler transferRequestHandler =
+            new TransferRequestHandler{salt: keccak256("TransferRequestHandler")}(PERMIT2_ADDRESS);
 
         console.log("TransferRequestHandler deployed at", address(transferRequestHandler));
 

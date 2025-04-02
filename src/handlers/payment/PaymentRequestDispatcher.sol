@@ -98,12 +98,7 @@ contract PaymentRequestDispatcher is ReentrancyGuard {
             revert RequestAlreadyExists();
         }
 
-        if (request.deadline == 0) {
-            revert InvalidDeadline();
-        }
-
-        // Expiry period longer than 180 days is invalid
-        if (request.deadline > block.timestamp + MAX_EXPIRY) {
+        if (request.expiry == 0) {
             revert InvalidDeadline();
         }
 
@@ -119,13 +114,13 @@ contract PaymentRequestDispatcher is ReentrancyGuard {
         _verifyCreatePaymentRequest(request, sig);
 
         paymentRequests[id] = PaymentRequest({
-            policyId: request.policyId,
-            creator: request.creator,
+            policyId: request.orderInfo.policyId,
+            creator: request.orderInfo.sender,
             isPrepaid: request.isPrepaid,
             token: request.token,
             amount: request.amount,
             recipient: request.recipient,
-            expiry: request.deadline,
+            expiry: request.expiry,
             leftPayments: request.maxPayments,
             name: request.name,
             status: RequestStatus.Opened
@@ -137,7 +132,7 @@ contract PaymentRequestDispatcher is ReentrancyGuard {
             request.recipient,
             request.token,
             request.amount,
-            request.deadline,
+            request.expiry,
             request.name,
             request.maxPayments,
             orderHash
@@ -246,19 +241,19 @@ contract PaymentRequestDispatcher is ReentrancyGuard {
      * @notice Verifies the request and the signature.
      */
     function _verifyCreatePaymentRequest(CreatePaymentRequestOrder memory request, bytes memory sig) internal {
-        if (address(this) != address(request.dispatcher)) {
+        if (address(this) != address(request.orderInfo.dispatcher)) {
             revert IOrderHandler.InvalidDispatcher();
         }
 
-        if (block.timestamp > request.deadline) {
+        if (block.timestamp > request.orderInfo.deadline) {
             revert IOrderHandler.DeadlinePassed();
         }
 
         permit2.permitWitnessTransferFrom(
             ISignatureTransfer.PermitTransferFrom({
                 permitted: ISignatureTransfer.TokenPermissions({token: address(0), amount: 0}),
-                nonce: request.nonce,
-                deadline: request.deadline
+                nonce: request.orderInfo.nonce,
+                deadline: request.orderInfo.deadline
             }),
             ISignatureTransfer.SignatureTransferDetails({to: address(0), requestedAmount: 0}),
             request.creator,

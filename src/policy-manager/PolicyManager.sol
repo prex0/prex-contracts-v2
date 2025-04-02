@@ -141,8 +141,10 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
      * @param amount デポジットするクレジット量
      */
     function depositCredit(uint256 appId, uint256 amount) external {
+        // 送信者からこのコントラクトに指定された量のprexPointトークンを転送する
         IERC20(prexPoint).transferFrom(msg.sender, address(this), amount);
 
+        // 指定されたアプリのクレジット残高をデポジットされた量だけ増加させる
         apps[appId].credit += amount;
 
         emit CreditDeposited(appId, amount);
@@ -156,12 +158,15 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
      * @param to 引き出す先のアドレス
      */
     function withdrawCredit(uint256 appId, uint256 amount, address to) external onlyAppOwner(appId) {
+        // アプリが指定された量のクレジットを引き出すのに十分なクレジットを持っていることを確認する
         if (apps[appId].credit < amount) {
             revert InsufficientCredit();
         }
 
+        // 指定されたアプリのクレジット残高を引き出された量だけ減少させる
         apps[appId].credit -= amount;
 
+        // このコントラクトから指定されたアドレスに指定された量のprexPointトークンを転送する
         IERC20(prexPoint).transfer(to, amount);
 
         emit CreditWithdrawn(appId, amount);
@@ -189,7 +194,7 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
      * @param appSig アプリケーションの署名
      */
     function _validatePolicy(OrderHeader memory header, OrderReceipt memory receipt, bytes calldata appSig) internal {
-        // ポリシーIDに対応するポリシー情報を取得
+        // オーダーヘッダーのディスパッチャーが有効であることを確認する
         if (!validateHandler(header.dispatcher)) {
             revert InvalidHandler();
         }
@@ -207,21 +212,24 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
             // ポリシーが設定されている場合、アプリ署名を検証し、クレジットを消費する
             Policy memory policy = policies[receipt.policyId];
 
+            // ポリシーがアクティブであることを確認する
             if (!policy.isActive) {
                 revert InactivePolicy();
             }
 
+            // ポリシーに関連付けられたアプリがアクティブであることを確認する
             if (!apps[policy.appId].isActive) {
                 revert InactiveApp();
             }
 
             _verifyAppSignature(header, policy, appSig);
 
+            // ポイントが指定されている場合、対応するアプリのクレジットを消費する
             if (receipt.points > 0) {
                 _consumeAppCredit(policy.appId, policy.policyId, receipt.points * creditPrice, header.orderHash);
             }
 
-            // 追加のポリシーバリデーションを実行する
+            // バリデータが設定されている場合、追加のポリシーバリデーションを実行する
             if (policy.validator != address(0)) {
                 if (!IPolicyValidator(policy.validator).validatePolicy(header, receipt, policy.policyParams)) {
                     revert InvalidPolicy();
@@ -237,10 +245,12 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
      * @param appSig アプリ開発者の署名
      */
     function _verifyAppSignature(OrderHeader memory header, Policy memory policy, bytes calldata appSig) private view {
+        // オーダーハッシュ、ポリシーID、および識別子を使用して検証するメッセージハッシュを生成する
         bytes32 messageHash = MessageHashUtils.toEthSignedMessageHash(
             _getOrderHashForPolicy(header.orderHash, policy.policyId, header.identifier)
         );
 
+        // 生成されたメッセージハッシュとポリシーの公開鍵に対してアプリ署名を検証する
         SignatureVerification.verify(appSig, messageHash, policy.publicKey);
     }
 
@@ -251,12 +261,15 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
      * @param amount 消費するクレジット量
      */
     function _consumeAppCredit(uint256 appId, uint256 policyId, uint256 amount, bytes32 orderHash) private {
+        // アプリが指定された量のクレジットを消費するのに十分なクレジットを持っていることを確認する
         if (apps[appId].credit < amount) {
             revert InsufficientCredit();
         }
 
+        // 指定されたアプリのクレジット残高を消費された量だけ減少させる
         apps[appId].credit -= amount;
 
+        // 消費された量のprexPointトークンをバーンする
         IPrexPoints(prexPoint).burn(amount);
 
         emit CreditConsumed(appId, policyId, amount, orderHash);
