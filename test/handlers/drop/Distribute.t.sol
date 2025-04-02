@@ -52,10 +52,10 @@ contract TestDropRequestDispatcherDistribute is DropRequestSetup {
         });
     }
 
-    // distribute
-    function testDistribute() public {
+    // 通常の受け取り
+    function testClaimDropRequest() public {
         ClaimDropRequest memory recipientData =
-            _getRecipientData(requestId, "0", block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
+            _getClaimDropRequest(requestId, "0", block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
 
         assertEq(token.balanceOf(recipient), 0);
         _drop(recipientData);
@@ -64,8 +64,9 @@ contract TestDropRequestDispatcherDistribute is DropRequestSetup {
         assertEq(token.balanceOf(recipient), 1);
     }
 
-    function testDistributeWithSub() public {
-        ClaimDropRequest memory recipientData = _getRecipientDataWithSub(
+    // サブキーを使用した受け取り
+    function testClaimDropRequest_WithSubKey() public {
+        ClaimDropRequest memory recipientData = _getClaimDropRequestWithSub(
             requestId,
             "0",
             block.timestamp + EXPIRY_UNTIL,
@@ -85,12 +86,12 @@ contract TestDropRequestDispatcherDistribute is DropRequestSetup {
 
     // fails to distribute with insufficient locked amount
     function testCannotDistributeWithInsufficientLockedAmount() public {
-        _drop(_getRecipientData(requestId, "1", block.timestamp + EXPIRY_UNTIL, address(11), tmpPrivKey));
-        _drop(_getRecipientData(requestId, "2", block.timestamp + EXPIRY_UNTIL, address(12), tmpPrivKey));
-        _drop(_getRecipientData(requestId, "3", block.timestamp + EXPIRY_UNTIL, address(13), tmpPrivKey));
+        _drop(_getClaimDropRequest(requestId, "1", block.timestamp + EXPIRY_UNTIL, address(11), tmpPrivKey));
+        _drop(_getClaimDropRequest(requestId, "2", block.timestamp + EXPIRY_UNTIL, address(12), tmpPrivKey));
+        _drop(_getClaimDropRequest(requestId, "3", block.timestamp + EXPIRY_UNTIL, address(13), tmpPrivKey));
 
         ClaimDropRequest memory recipientData =
-            _getRecipientData(requestId, "0", block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
+            _getClaimDropRequest(requestId, "0", block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
 
         vm.expectRevert(DropRequestDispatcher.InsufficientFunds.selector);
         _drop(recipientData);
@@ -102,7 +103,7 @@ contract TestDropRequestDispatcherDistribute is DropRequestSetup {
     // fails to distribute after expiry
     function testCannotDistributeAfterExpiry() public {
         ClaimDropRequest memory recipientData =
-            _getRecipientData(requestId, "0", block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
+            _getClaimDropRequest(requestId, "0", block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
 
         vm.warp(block.timestamp + EXPIRY_UNTIL + 1);
 
@@ -113,7 +114,7 @@ contract TestDropRequestDispatcherDistribute is DropRequestSetup {
     // fails to distribute with incorrect signature
     function testCannotDistributeWithIncorrectSignature() public {
         ClaimDropRequest memory recipientData =
-            _getRecipientData(requestId, "0", block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
+            _getClaimDropRequest(requestId, "0", block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
 
         recipientData.sig = _sign(request, privateKey);
 
@@ -123,10 +124,10 @@ contract TestDropRequestDispatcherDistribute is DropRequestSetup {
 
     // fails to distribute with incorrect nonce
     function testCannotDistributeWithIncorrectNonce() public {
-        _drop(_getRecipientData(requestId, "1", block.timestamp + EXPIRY_UNTIL, address(11), tmpPrivKey));
+        _drop(_getClaimDropRequest(requestId, "1", block.timestamp + EXPIRY_UNTIL, address(11), tmpPrivKey));
 
         ClaimDropRequest memory recipientData =
-            _getRecipientData(requestId, "1", block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
+            _getClaimDropRequest(requestId, "1", block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
 
         vm.expectRevert(DropRequestDispatcher.IdempotencyKeyUsed.selector);
         _drop(recipientData);

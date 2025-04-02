@@ -99,7 +99,7 @@ contract DropRequestSetup is Test, TestUtils {
         });
     }
 
-    function _getRecipientData(
+    function _getClaimDropRequest(
         bytes32 _requestId,
         string memory _idempotencyKey,
         uint256 _deadline,
@@ -119,7 +119,7 @@ contract DropRequestSetup is Test, TestUtils {
         });
     }
 
-    function _getRecipientDataWithSub(
+    function _getClaimDropRequestWithSub(
         bytes32 _requestId,
         string memory _idempotencyKey,
         uint256 _deadline,

@@ -72,7 +72,7 @@ contract TestDropRequestDispatcherCancel is DropRequestSetup {
     // 配布後でもキャンセルできる
     function testCancel_AfterDrop() public {
         ClaimDropRequest memory recipientData =
-            _getRecipientData(requestId, "0", block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
+            _getClaimDropRequest(requestId, "0", block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
 
         _drop(recipientData);
 
