@@ -56,7 +56,8 @@ contract LinkTransferSetup is Test, TestUtils {
         address _recipient,
         uint256 _privateKey
     ) internal view returns (LinkTransferRequestDispatcher.RecipientData memory) {
-        bytes32 messageHash = keccak256(abi.encode(address(linkTransferHandler), _nonce, _deadline, _recipient));
+        bytes32 messageHash =
+            keccak256(abi.encode(block.chainid, address(linkTransferHandler), _nonce, _deadline, _recipient));
 
         return LinkTransferRequestDispatcher.RecipientData({
             requestId: _requestId,

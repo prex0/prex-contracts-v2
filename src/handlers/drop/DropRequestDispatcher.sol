@@ -159,7 +159,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
         nonReentrant
         returns (OrderReceipt memory)
     {
-        PendingRequest storage request = pendingRequests[recipientData.requestId];
+        PendingRequest storage request = pendingRequests[recipientData.claimInfo.requestId];
 
         if (request.status != RequestStatus.Pending) {
             revert RequestNotPending();
@@ -177,9 +177,11 @@ contract DropRequestDispatcher is ReentrancyGuard {
 
         request.amount -= request.amountPerWithdrawal;
 
-        ERC20(request.token).transfer(recipientData.recipient, request.amountPerWithdrawal);
+        ERC20(request.token).transfer(recipientData.claimInfo.recipient, request.amountPerWithdrawal);
 
-        emit Received(recipientData.requestId, recipientData.recipient, request.amountPerWithdrawal, orderHash);
+        emit Received(
+            recipientData.claimInfo.requestId, recipientData.claimInfo.recipient, request.amountPerWithdrawal, orderHash
+        );
 
         return getOrderReceipt(request);
     }
@@ -287,50 +289,41 @@ contract DropRequestDispatcher is ReentrancyGuard {
     /**
      * @notice Verifies the signature made by the recipient using the private key received from the sender.
      */
-    function _verifyRecipientData(address publicKey, uint256 expiry, ClaimDropRequest memory recipientData) internal {
+    function _verifyRecipientData(address publicKey, uint256 expiry, ClaimDropRequest memory claimRequest) internal {
         // 配布者が同じユーザに配布しないように、idempotencyKeyを使用する
-        if (idempotencyKeyMap[recipientData.requestId][recipientData.idempotencyKey]) {
+        if (idempotencyKeyMap[claimRequest.claimInfo.requestId][claimRequest.claimInfo.idempotencyKey]) {
             revert IdempotencyKeyUsed();
         }
 
-        idempotencyKeyMap[recipientData.requestId][recipientData.idempotencyKey] = true;
+        idempotencyKeyMap[claimRequest.claimInfo.requestId][claimRequest.claimInfo.idempotencyKey] = true;
 
-        if (block.timestamp > recipientData.deadline) {
+        if (block.timestamp > claimRequest.claimInfo.deadline) {
             revert IOrderHandler.DeadlinePassed();
         }
 
-        if (recipientData.subPublicKey != address(0)) {
-            _verifyRecipientSignature(
-                publicKey, recipientData.idempotencyKey, expiry, recipientData.subPublicKey, recipientData.sig
-            );
-            _verifyRecipientSignature(
-                recipientData.subPublicKey,
-                recipientData.idempotencyKey,
-                recipientData.deadline,
-                recipientData.recipient,
-                recipientData.subSig
-            );
-        } else {
+        if (claimRequest.subPublicKey != address(0)) {
             _verifyRecipientSignature(
                 publicKey,
-                recipientData.idempotencyKey,
-                recipientData.deadline,
-                recipientData.recipient,
-                recipientData.sig
+                ClaimInfo(
+                    claimRequest.claimInfo.requestId,
+                    claimRequest.claimInfo.idempotencyKey,
+                    expiry,
+                    claimRequest.subPublicKey
+                ),
+                claimRequest.sig
             );
+            _verifyRecipientSignature(claimRequest.subPublicKey, claimRequest.claimInfo, claimRequest.subSig);
+        } else {
+            _verifyRecipientSignature(publicKey, claimRequest.claimInfo, claimRequest.sig);
         }
     }
 
-    function _verifyRecipientSignature(
-        address publicKey,
-        string memory idempotencyKey,
-        uint256 deadline,
-        address recipient,
-        bytes memory signature
-    ) internal view {
-        bytes32 messageHash = MessageHashUtils.toEthSignedMessageHash(
-            keccak256(abi.encode(address(this), idempotencyKey, deadline, recipient))
-        );
+    function _verifyRecipientSignature(address publicKey, ClaimInfo memory claimInfo, bytes memory signature)
+        internal
+        view
+    {
+        bytes32 messageHash =
+            MessageHashUtils.toEthSignedMessageHash(keccak256(abi.encode(block.chainid, address(this), claimInfo)));
 
         if (publicKey != ECDSA.recover(messageHash, signature)) {
             revert InvalidSecret();

@@ -9,6 +9,7 @@ import {TestUtils} from "../../utils/TestUtils.sol";
 import {OrderReceipt, SignedOrder} from "../../../src/interfaces/IOrderHandler.sol";
 import "../../../lib/permit2/src/interfaces/ISignatureTransfer.sol";
 import {MockToken} from "../../mock/MockToken.sol";
+import {ClaimInfo} from "../../../src/handlers/drop/ClaimDropRequest.sol";
 
 contract DropRequestSetup is Test, TestUtils {
     using CreateDropRequestLib for CreateDropRequest;
@@ -106,13 +107,17 @@ contract DropRequestSetup is Test, TestUtils {
         address _recipient,
         uint256 _privateKey
     ) internal view returns (ClaimDropRequest memory) {
-        bytes32 messageHash = keccak256(abi.encode(address(dropHandler), _idempotencyKey, _deadline, _recipient));
-
-        return ClaimDropRequest({
+        ClaimInfo memory claimInfo = ClaimInfo({
             requestId: _requestId,
-            recipient: _recipient,
             idempotencyKey: _idempotencyKey,
             deadline: _deadline,
+            recipient: _recipient
+        });
+
+        bytes32 messageHash = keccak256(abi.encode(block.chainid, address(dropHandler), claimInfo));
+
+        return ClaimDropRequest({
+            claimInfo: claimInfo,
             sig: _signMessage(_privateKey, messageHash),
             subPublicKey: address(0),
             subSig: bytes("")
@@ -129,15 +134,30 @@ contract DropRequestSetup is Test, TestUtils {
         address _subPublicKey,
         uint256 _subPrivateKey
     ) internal view returns (ClaimDropRequest memory) {
-        bytes32 messageHash = keccak256(abi.encode(address(dropHandler), _idempotencyKey, _expiry, _subPublicKey));
-
-        bytes32 subMessageHash = keccak256(abi.encode(address(dropHandler), _idempotencyKey, _deadline, _recipient));
-
-        return ClaimDropRequest({
+        ClaimInfo memory claimInfo = ClaimInfo({
             requestId: _requestId,
-            recipient: _recipient,
             idempotencyKey: _idempotencyKey,
             deadline: _deadline,
+            recipient: _recipient
+        });
+
+        bytes32 messageHash = keccak256(
+            abi.encode(
+                block.chainid,
+                address(dropHandler),
+                ClaimInfo({
+                    requestId: _requestId,
+                    idempotencyKey: _idempotencyKey,
+                    deadline: _expiry,
+                    recipient: _subPublicKey
+                })
+            )
+        );
+
+        bytes32 subMessageHash = keccak256(abi.encode(block.chainid, address(dropHandler), claimInfo));
+
+        return ClaimDropRequest({
+            claimInfo: claimInfo,
             sig: _signMessage(_privateKey, messageHash),
             subPublicKey: _subPublicKey,
             subSig: _signMessage(_subPrivateKey, subMessageHash)

@@ -122,8 +122,8 @@ contract TestDropRequestDispatcherDistribute is DropRequestSetup {
         _drop(recipientData);
     }
 
-    // fails to distribute with incorrect nonce
-    function testCannotDistributeWithIncorrectNonce() public {
+    // fails to distribute with same idempotency key
+    function testCannotDistributeWithSameIdempotencyKey() public {
         _drop(_getClaimDropRequest(requestId, "1", block.timestamp + EXPIRY_UNTIL, address(11), tmpPrivKey));
 
         ClaimDropRequest memory recipientData =

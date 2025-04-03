@@ -3,12 +3,16 @@ pragma solidity ^0.8.20;
 
 import "../../../src/interfaces/IOrderHandler.sol";
 
-struct ClaimDropRequest {
+struct ClaimInfo {
     bytes32 requestId;
-    address recipient;
+    string idempotencyKey;
     uint256 deadline;
+    address recipient;
+}
+
+struct ClaimDropRequest {
+    ClaimInfo claimInfo;
     bytes sig;
     address subPublicKey;
     bytes subSig;
-    string idempotencyKey;
 }

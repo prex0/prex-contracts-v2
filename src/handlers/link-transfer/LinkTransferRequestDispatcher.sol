@@ -277,8 +277,9 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
         address recipient,
         bytes memory signature
     ) internal view {
-        bytes32 messageHash =
-            MessageHashUtils.toEthSignedMessageHash(keccak256(abi.encode(address(this), nonce, deadline, recipient)));
+        bytes32 messageHash = MessageHashUtils.toEthSignedMessageHash(
+            keccak256(abi.encode(block.chainid, address(this), nonce, deadline, recipient))
+        );
 
         if (publicKey != ECDSA.recover(messageHash, signature)) {
             revert InvalidSecret();

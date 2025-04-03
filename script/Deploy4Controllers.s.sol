@@ -41,7 +41,7 @@ contract DeployPointScript is Script {
 
     function run() public {
         vm.startBroadcast();
-        
+
         BuyPumPointHandler pumPointHandler =
             new BuyPumPointHandler{salt: keccak256("BuyPumPointHandler")}(msg.sender, PERMIT2_ADDRESS, OWNER_ADDRESS);
         BuyLoyaltyPointHandler loyaltyPointHandler = new BuyLoyaltyPointHandler{
