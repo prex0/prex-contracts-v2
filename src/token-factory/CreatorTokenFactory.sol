@@ -14,6 +14,10 @@ contract CreatorTokenFactory {
 
     mapping(address => address) public creatorTokens;
 
+    mapping(string => bool) public symbolUsed;
+
+    error SymbolAlreadyUsed(string symbol);
+
     /**
      * @notice Create a creator token
      * pumpumの推しの証を作成する
@@ -26,7 +30,13 @@ contract CreatorTokenFactory {
         external
         returns (address)
     {
+        if (symbolUsed[params.symbol]) {
+            revert SymbolAlreadyUsed(params.symbol);
+        }
+
         CreatorCoin coin = new CreatorCoin(params, _permit2, _tokenRegistry);
+
+        symbolUsed[params.symbol] = true;
 
         creatorTokens[address(coin)] = address(coin);
 

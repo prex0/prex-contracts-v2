@@ -5,9 +5,9 @@ import {IERC20} from "../../../lib/openzeppelin-contracts/contracts/token/ERC20/
 import {ILoyaltyCoin} from "../../interfaces/ILoyaltyCoin.sol";
 import {PriceLibrary} from "../../libraries/PriceLibrary.sol";
 import {BipsLibrary} from "../../libraries/BipsLibrary.sol";
-import {BaseConverter} from "../../base/BaseConverter.sol";
+import {FlowRateAdjustment} from "../../base/FlowRateAdjustment.sol";
 
-contract LoyaltyConverter is BaseConverter {
+contract LoyaltyConverter is FlowRateAdjustment {
     using PriceLibrary for uint256;
     using BipsLibrary for uint256;
 
@@ -22,7 +22,7 @@ contract LoyaltyConverter is BaseConverter {
     event PriceUpdated(uint256 newPrice);
     event FeeRateUpdated(uint256 newFeeRate);
 
-    constructor(address _owner) BaseConverter(_owner) {}
+    constructor(address _owner) FlowRateAdjustment(_owner) {}
 
     /**
      * @notice Update the price of 1 JPY in 1e18

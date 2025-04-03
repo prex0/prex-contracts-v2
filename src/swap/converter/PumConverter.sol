@@ -5,9 +5,9 @@ import {IERC20} from "../../../lib/openzeppelin-contracts/contracts/token/ERC20/
 import {IPrexPoints} from "../../interfaces/IPrexPoints.sol";
 import {CarryToken} from "../CarryToken.sol";
 import {PriceLibrary} from "../../libraries/PriceLibrary.sol";
-import {BaseConverter} from "../../base/BaseConverter.sol";
+import {FlowRateAdjustment} from "../../base/FlowRateAdjustment.sol";
 
-contract PumConverter is BaseConverter {
+contract PumConverter is FlowRateAdjustment {
     using PriceLibrary for uint256;
 
     CarryToken public immutable carryToken;
@@ -18,7 +18,7 @@ contract PumConverter is BaseConverter {
 
     event PriceUpdated(uint256 newPrice);
 
-    constructor(address _owner, address _prexPoint) BaseConverter(_owner) {
+    constructor(address _owner, address _prexPoint) FlowRateAdjustment(_owner) {
         carryToken = new CarryToken(address(this));
         pumPoint = IPrexPoints(_prexPoint);
     }
@@ -39,6 +39,8 @@ contract PumConverter is BaseConverter {
         returns (uint256 carryPointAmount)
     {
         // 200 * 1e6 PumPoint = 200 * 1e6 CarryPoint
+
+        checkFlowRate(pumPointAmount);
 
         carryPointAmount = pumPointAmount;
 

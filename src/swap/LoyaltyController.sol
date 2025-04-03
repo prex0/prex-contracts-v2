@@ -10,6 +10,10 @@ contract LoyaltyController is LoyaltyConverter {
     // loyalty token address -> loyalty coin address
     mapping(address => address) public loyaltyTokens;
 
+    mapping(string => bool) public symbolUsed;
+
+    error SymbolAlreadyUsed(string symbol);
+
     address public immutable loyaltyPoint;
 
     event LoyaltyCoinMinted(
@@ -23,6 +27,9 @@ contract LoyaltyController is LoyaltyConverter {
     // mint loyalty coin
     function mintLoyaltyCoin(address loyaltyCoinAddress, address recipient, uint256 amount) external {
         uint256 loyaltyPointAmount = amount / 1e12;
+
+        // check hourly flow rate
+        checkFlowRate(loyaltyPointAmount);
 
         require(loyaltyPointAmount * 1e12 == amount, "LoyaltyController: amount is not a multiple of 1e12");
 
@@ -47,7 +54,13 @@ contract LoyaltyController is LoyaltyConverter {
         internal
         returns (address)
     {
+        if (symbolUsed[params.symbol]) {
+            revert SymbolAlreadyUsed(params.symbol);
+        }
+
         LoyaltyCoin token = new LoyaltyCoin(params, address(this), _permit2, _tokenRegistry);
+
+        symbolUsed[params.symbol] = true;
 
         loyaltyTokens[address(token)] = address(token);
 
