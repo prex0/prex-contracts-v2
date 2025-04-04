@@ -11,7 +11,7 @@ import "../../../lib/solmate/src/utils/ReentrancyGuard.sol";
 import {IOrderHandler} from "../../interfaces/IOrderHandler.sol";
 
 /**
- * @notice OnetimeLockRequestDispatcher is a contract that allows the sender to create a request with a secret key.
+ * @notice LinkTransferRequestDispatcher is a contract that allows the sender to create a request with a secret key.
  * The recipient can complete the request by providing the signature of the secret key.
  * This contract integrates with the Permit2 library to handle ERC20 token transfers securely and efficiently.
  */

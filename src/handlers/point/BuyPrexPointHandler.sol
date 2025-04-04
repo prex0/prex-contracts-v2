@@ -15,7 +15,11 @@ contract BuyPrexPointHandler is IOrderHandler, PrexPointMarket {
         PrexPointMarket("PrexPoint", "PREXPOINT", _owner, _permit2, _feeRecipient)
     {}
 
-    function execute(address, SignedOrder calldata order, bytes calldata) external returns (OrderReceipt memory) {
+    function execute(address, SignedOrder calldata order, bytes calldata)
+        external
+        override(IOrderHandler)
+        returns (OrderReceipt memory)
+    {
         BuyPointOrder memory request = abi.decode(order.order, (BuyPointOrder));
 
         buy(request, order.signature);

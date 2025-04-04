@@ -29,10 +29,12 @@ contract OrderExecutorScript is Script {
 
         pointHandler.addMinter(POINT_MINTER);
 
-        pointHandler.transferOwnership(OWNER_ADDRESS);
-
         // Deploy the OrderExecutor contract with a specific salt and link it to the point handler to ensure it can manage point-related operations
         orderExecutor = new OrderExecutor{salt: keccak256("OrderExecutor")}(address(pointHandler.point()), msg.sender);
+
+        pointHandler.setConsumer(address(orderExecutor));
+
+        pointHandler.transferOwnership(OWNER_ADDRESS);
 
         // Add the point handler to the order executor to enable it to handle point transactions
         orderExecutor.addHandler(address(pointHandler));

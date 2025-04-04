@@ -5,7 +5,6 @@ import {Script, console} from "forge-std/Script.sol";
 import {ProfileRegistryV2} from "../src/data/ProfileRegistryV2.sol";
 import {TokenRegistry} from "../src/data/TokenRegistry.sol";
 import {BuyLoyaltyPointHandler} from "../src/handlers/point/BuyLoyaltyPointHandler.sol";
-import {BuyPumPointHandler} from "../src/handlers/point/BuyPumPointHandler.sol";
 import {IssueCreatorTokenHandler} from "../src/handlers/token/IssueCreatorTokenHandler.sol";
 import {IssueTokenHandler} from "../src/handlers/token/IssueTokenHandler.sol";
 import {IssueLoyaltyTokenHandler} from "../src/handlers/token/IssueLoyaltyTokenHandler.sol";
@@ -37,38 +36,27 @@ contract DeployPointScript is Script {
 
     address public constant DEPLOYER = 0x4e59b44847b379578588920cA78FbF26c0B4956C;
 
-    function setUp() public {}
+    address public constant PREX_POINT = 0x97135B409df491A01319D02E776A4DB9B3b8ce76;
 
     function run() public {
         vm.startBroadcast();
 
-        BuyPumPointHandler pumPointHandler =
-            new BuyPumPointHandler{salt: keccak256("BuyPumPointHandler")}(msg.sender, PERMIT2_ADDRESS, OWNER_ADDRESS);
+        // Deploy Loyalty Point and Market
         BuyLoyaltyPointHandler loyaltyPointHandler = new BuyLoyaltyPointHandler{
             salt: keccak256("BuyLoyaltyPointHandler")
         }(msg.sender, PERMIT2_ADDRESS, OWNER_ADDRESS);
 
-        pumPointHandler.addMinter(POINT_MINTER);
         loyaltyPointHandler.addMinter(POINT_MINTER);
 
-        pumPointHandler.transferOwnership(OWNER_ADDRESS);
         loyaltyPointHandler.transferOwnership(OWNER_ADDRESS);
 
-        console.log("BuyPumPointHandler deployed at", address(pumPointHandler));
         console.log("BuyLoyaltyPointHandler deployed at", address(loyaltyPointHandler));
-        console.log("PUM Point deployed at", address(pumPointHandler.point()));
         console.log("LOYALTY Point deployed at", address(loyaltyPointHandler.point()));
 
+        // Deploy Creator Token Issue Handler
         IssueCreatorTokenHandler issueCreatorTokenHandler = new IssueCreatorTokenHandler{
             salt: keccak256("IssueCreatorTokenHandler")
-        }(
-            msg.sender,
-            address(pumPointHandler.point()),
-            POSITION_MANAGER,
-            TOKEN_REGISTRY,
-            CREATOR_TOKEN_FACTORY,
-            PERMIT2_ADDRESS
-        );
+        }(msg.sender, PREX_POINT, POSITION_MANAGER, TOKEN_REGISTRY, CREATOR_TOKEN_FACTORY, PERMIT2_ADDRESS);
 
         issueCreatorTokenHandler.setDai(DAI_ADDRESS);
 
@@ -81,11 +69,13 @@ contract DeployPointScript is Script {
 
         console.log("IssueCreatorTokenHandler deployed at", address(issueCreatorTokenHandler));
 
+        // Deploy Token Issue Handler
         IssueTokenHandler issueTokenHandler =
             new IssueTokenHandler{salt: keccak256("IssueTokenHandler")}(PERMIT2_ADDRESS, TOKEN_REGISTRY);
 
         console.log("IssueTokenHandler deployed at", address(issueTokenHandler));
 
+        // Deploy Loyalty Token Issue Handler
         IssueLoyaltyTokenHandler issueLoyaltyTokenHandler = new IssueLoyaltyTokenHandler{
             salt: keccak256("IssueLoyaltyTokenHandler")
         }(msg.sender, address(loyaltyPointHandler.point()), PERMIT2_ADDRESS, TOKEN_REGISTRY);
