@@ -51,9 +51,7 @@ contract LoyaltyConverter is FlowRateAdjustment {
     {
         // 1 LoyaltyCoin = 1 DAI
 
-        if (loyaltyCoin != _getLoyaltyCoin(loyaltyCoin)) {
-            revert InvalidLoyaltyCoin();
-        }
+        _validateLoyaltyCoin(loyaltyCoin);
 
         daiAmount = loyaltyCoinAmount.applyPrice(priceJpyByDai);
         uint256 fee = daiAmount.calculatePortion(feeRate);
@@ -70,9 +68,7 @@ contract LoyaltyConverter is FlowRateAdjustment {
     {
         // 1 DAI = 1 LoyaltyCoin
 
-        if (loyaltyCoin != _getLoyaltyCoin(loyaltyCoin)) {
-            revert InvalidLoyaltyCoin();
-        }
+        _validateLoyaltyCoin(loyaltyCoin);
 
         loyaltyCoinAmount = daiAmount.applyPriceInverse(priceJpyByDai);
         uint256 fee = loyaltyCoinAmount.calculatePortion(feeRate);
@@ -82,7 +78,7 @@ contract LoyaltyConverter is FlowRateAdjustment {
         ILoyaltyCoin(loyaltyCoin).mint(recipient, loyaltyCoinAmount);
     }
 
-    function _getLoyaltyCoin(address) internal view virtual returns (address) {
-        return address(0);
+    function _validateLoyaltyCoin(address) internal view virtual {
+        revert InvalidLoyaltyCoin();
     }
 }

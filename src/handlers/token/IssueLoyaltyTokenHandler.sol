@@ -26,9 +26,13 @@ contract IssueLoyaltyTokenHandler is IOrderHandler, LoyaltyController {
         address indexed loyaltyToken, address indexed issuer, string name, string symbol, bytes32 orderHash
     );
 
-    constructor(address owner, address _loyaltyPoint, address _permit2, address _tokenRegistry)
-        LoyaltyController(owner, _loyaltyPoint)
-    {
+    constructor(
+        address owner,
+        address _loyaltyPoint,
+        address _tokenRegistry,
+        address _loyaltyTokenFactory,
+        address _permit2
+    ) LoyaltyController(owner, _loyaltyPoint, _loyaltyTokenFactory) {
         permit2 = IPermit2(_permit2);
         tokenRegistry = ITokenRegistry(_tokenRegistry);
     }

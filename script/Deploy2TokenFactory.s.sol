@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import {Script, console} from "forge-std/Script.sol";
 import {PrexTokenFactory} from "../src/token-factory/PrexTokenFactory.sol";
 import {CreatorTokenFactory} from "../src/token-factory/CreatorTokenFactory.sol";
+import {LoyaltyTokenFactory} from "../src/token-factory/LoyaltyTokenFactory.sol";
 
 contract DeployTokenFactoryScript is Script {
     function run() public {
@@ -11,9 +12,11 @@ contract DeployTokenFactoryScript is Script {
 
         PrexTokenFactory prexTokenFactory = new PrexTokenFactory{salt: keccak256("PrexTokenFactory")}();
         CreatorTokenFactory creatorTokenFactory = new CreatorTokenFactory{salt: keccak256("CreatorTokenFactory")}();
+        LoyaltyTokenFactory loyaltyTokenFactory = new LoyaltyTokenFactory{salt: keccak256("LoyaltyTokenFactory")}();
 
         console.log("PrexTokenFactory deployed at", address(prexTokenFactory));
         console.log("CreatorTokenFactory deployed at", address(creatorTokenFactory));
+        console.log("LoyaltyTokenFactory deployed at", address(loyaltyTokenFactory));
 
         vm.stopBroadcast();
     }

@@ -17,7 +17,6 @@ contract DeployPointScript is Script {
 
     address public constant PERMIT2_ADDRESS = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
 
-    address public constant DAI = 0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1;
     address public DAI_ADDRESS = vm.envAddress("DAI_ADDRESS");
 
     address public constant POSITION_MANAGER = 0x3C3Ea4B57a46241e54610e5f022E5c45859A1017;
@@ -26,7 +25,9 @@ contract DeployPointScript is Script {
 
     address public constant PREX_TOKEN_FACTORY = 0x915C46a9f818fF2Ed56f20F52C7Eb5B7be17712a;
 
-    address public constant CREATOR_TOKEN_FACTORY = 0x8Ede005980d9762C8e443722957b3d5147e3140C;
+    address public constant CREATOR_TOKEN_FACTORY = 0xfC71eE6Dfe60E794F56D8D77A0F03C1325c57ad7;
+
+    address public constant LOYALTY_TOKEN_FACTORY = 0xE74dcAec463c07DBAeCAac55e95d4c9Cd133BED0;
 
     address public constant PROFILE_REGISTRY = 0x8A4e21d9C0258A7330A70513ce680fC3843dA4B0;
 
@@ -36,14 +37,14 @@ contract DeployPointScript is Script {
 
     address public constant DEPLOYER = 0x4e59b44847b379578588920cA78FbF26c0B4956C;
 
-    address public constant PREX_POINT = 0x97135B409df491A01319D02E776A4DB9B3b8ce76;
+    address public constant PREX_POINT = 0x74401F3866E057Ae41bf6C22d25235a1C7013B16;
 
     function run() public {
         vm.startBroadcast();
 
         // Deploy Loyalty Point and Market
         BuyLoyaltyPointHandler loyaltyPointHandler = new BuyLoyaltyPointHandler{
-            salt: keccak256("BuyLoyaltyPointHandler")
+            salt: keccak256("BuyLoyaltyPointHandler2")
         }(msg.sender, PERMIT2_ADDRESS, OWNER_ADDRESS);
 
         loyaltyPointHandler.addMinter(POINT_MINTER);
@@ -55,7 +56,7 @@ contract DeployPointScript is Script {
 
         // Deploy Creator Token Issue Handler
         IssueCreatorTokenHandler issueCreatorTokenHandler = new IssueCreatorTokenHandler{
-            salt: keccak256("IssueCreatorTokenHandler")
+            salt: keccak256("IssueCreatorTokenHandler2")
         }(msg.sender, PREX_POINT, POSITION_MANAGER, TOKEN_REGISTRY, CREATOR_TOKEN_FACTORY, PERMIT2_ADDRESS);
 
         issueCreatorTokenHandler.setDai(DAI_ADDRESS);
@@ -71,14 +72,14 @@ contract DeployPointScript is Script {
 
         // Deploy Token Issue Handler
         IssueTokenHandler issueTokenHandler =
-            new IssueTokenHandler{salt: keccak256("IssueTokenHandler")}(PERMIT2_ADDRESS, TOKEN_REGISTRY);
+            new IssueTokenHandler{salt: keccak256("IssueTokenHandler2")}(PERMIT2_ADDRESS, TOKEN_REGISTRY);
 
         console.log("IssueTokenHandler deployed at", address(issueTokenHandler));
 
         // Deploy Loyalty Token Issue Handler
         IssueLoyaltyTokenHandler issueLoyaltyTokenHandler = new IssueLoyaltyTokenHandler{
-            salt: keccak256("IssueLoyaltyTokenHandler")
-        }(msg.sender, address(loyaltyPointHandler.point()), PERMIT2_ADDRESS, TOKEN_REGISTRY);
+            salt: keccak256("IssueLoyaltyTokenHandler2")
+        }(msg.sender, address(loyaltyPointHandler.point()), TOKEN_REGISTRY, LOYALTY_TOKEN_FACTORY, PERMIT2_ADDRESS);
 
         issueLoyaltyTokenHandler.setDai(DAI_ADDRESS);
 

@@ -45,6 +45,7 @@ contract OrderExecutorScript is Script {
         // Log the addresses of the deployed contracts for verification and record-keeping purposes
         console.log("OrderExecutor deployed at", address(orderExecutor));
         console.log("BuyPrexPointHandler deployed at", address(pointHandler));
+        console.log("PrexPoint deployed at", address(pointHandler.point()));
 
         vm.stopBroadcast();
     }

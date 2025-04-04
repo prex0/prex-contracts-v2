@@ -13,12 +13,12 @@ contract DeployHandlersScript is Script {
 
     address public constant PERMIT2_ADDRESS = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
 
-    address public constant ORDER_EXECUTOR = 0xf4f3137163C71A541D338c97608309374c8611E8;
+    address public constant ORDER_EXECUTOR = 0x4fF089348469DA4543e8935A6AF0C362Cb27c0BD;
 
     function run() public {
         vm.startBroadcast();
 
-        DropHandler dropHandler = new DropHandler{salt: keccak256("DropHandler")}(PERMIT2_ADDRESS, msg.sender);
+        DropHandler dropHandler = new DropHandler{salt: keccak256("DropHandler3")}(PERMIT2_ADDRESS, msg.sender);
 
         dropHandler.setOrderExecutor(ORDER_EXECUTOR);
 
@@ -27,21 +27,21 @@ contract DeployHandlersScript is Script {
         console.log("DropHandler deployed at", address(dropHandler));
 
         LinkTransferHandler linkTransferHandler =
-            new LinkTransferHandler{salt: keccak256("LinkTransferHandler")}(PERMIT2_ADDRESS);
+            new LinkTransferHandler{salt: keccak256("LinkTransferHandler3")}(PERMIT2_ADDRESS);
 
         console.log("LinkTransferHandler deployed at", address(linkTransferHandler));
 
-        LotteryHandler lotteryHandler = new LotteryHandler{salt: keccak256("LotteryHandler")}(PERMIT2_ADDRESS);
+        LotteryHandler lotteryHandler = new LotteryHandler{salt: keccak256("LotteryHandler3")}(PERMIT2_ADDRESS);
 
         console.log("LotteryHandler deployed at", address(lotteryHandler));
 
         PaymentRequestHandler paymentRequestHandler =
-            new PaymentRequestHandler{salt: keccak256("PaymentRequestHandler")}(PERMIT2_ADDRESS);
+            new PaymentRequestHandler{salt: keccak256("PaymentRequestHandler3")}(PERMIT2_ADDRESS);
 
         console.log("PaymentRequestHandler deployed at", address(paymentRequestHandler));
 
         TransferRequestHandler transferRequestHandler =
-            new TransferRequestHandler{salt: keccak256("TransferRequestHandler")}(PERMIT2_ADDRESS);
+            new TransferRequestHandler{salt: keccak256("TransferRequestHandler3")}(PERMIT2_ADDRESS);
 
         console.log("TransferRequestHandler deployed at", address(transferRequestHandler));
 

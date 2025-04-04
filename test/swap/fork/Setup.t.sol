@@ -22,12 +22,13 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {HookMiner} from "v4-periphery/src/utils/HookMiner.sol";
 import "../../../lib/permit2/src/interfaces/IPermit2.sol";
 import {CreateTokenParameters} from "../../../src/token-factory/CreatorTokenFactory.sol";
+import {LoyaltyTokenFactory} from "../../../src/token-factory/LoyaltyTokenFactory.sol";
 
 contract MockLoyaltyController is LoyaltyController {
     address public tokenRegistry;
 
-    constructor(address _owner, address _loyaltyPoint, address _tokenRegistry)
-        LoyaltyController(_owner, _loyaltyPoint)
+    constructor(address _owner, address _loyaltyPoint, address _loyaltyTokenFactory, address _tokenRegistry)
+        LoyaltyController(_owner, _loyaltyPoint, _loyaltyTokenFactory)
     {
         tokenRegistry = _tokenRegistry;
     }
@@ -119,9 +120,13 @@ contract SwapRouterSetup is Test, TestUtils {
         );
         pumController.setPumHook(address(pumHook));
 
+        LoyaltyTokenFactory loyaltyTokenFactory = new LoyaltyTokenFactory();
+
         // Set pumController as consumer
         pumPoint.setConsumer(address(pumController));
-        loyaltyController = new MockLoyaltyController(address(this), address(loyaltyPoint), address(tokenRegistry));
+        loyaltyController = new MockLoyaltyController(
+            address(this), address(loyaltyPoint), address(loyaltyTokenFactory), address(tokenRegistry)
+        );
         loyaltyController.setDai(address(dai));
         loyaltyPoint.setConsumer(address(loyaltyController));
 
