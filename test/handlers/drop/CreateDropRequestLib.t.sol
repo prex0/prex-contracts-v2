@@ -26,6 +26,13 @@ contract CreateDropRequestLibTest is Test {
         assertFalse(CreateDropRequestLib.validateParams(createDropRequest(100, 10, 100 + 500 days)));
     }
 
+    function testTypeHash() public pure {
+        assertEq(
+            CreateDropRequestLib.CREATE_DROP_REQUEST_TYPE_HASH,
+            0x8b98fd3109d26adfdd445537363582c9436ed446283e6ca43e33bc7e5384db5b
+        );
+    }
+
     function createDropRequest(uint256 _amount, uint256 _amountPerWithdrawal, uint256 _expiry)
         public
         pure

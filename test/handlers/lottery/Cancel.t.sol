@@ -11,6 +11,8 @@ contract TestLotteryCancel is LotterySetup {
     uint256 public drawerPrivKey = 11111000002;
     address public drawer = vm.addr(drawerPrivKey);
 
+    bytes32 public lotteryId;
+
     function setUp() public virtual override(LotterySetup) {
         super.setUp();
 
@@ -19,6 +21,8 @@ contract TestLotteryCancel is LotterySetup {
         bytes memory sig = _sign(request, privateKey);
 
         _createLottery(request, sig);
+
+        lotteryId = lotteryHandler.getLotteryId(request);
 
         token.mint(drawer, 2 * 1e18);
 
@@ -57,11 +61,11 @@ contract TestLotteryCancel is LotterySetup {
 
     function testCancelLottery() public {
         vm.prank(sender);
-        lotteryHandler.cancelLottery(1);
+        lotteryHandler.cancelLottery(lotteryId);
     }
 
     function testCannotCancelLottery_IfCallerIsNotLotteryOwner() public {
         vm.expectRevert(MultiPrizeLottery.CallerIsNotLotteryOwner.selector);
-        lotteryHandler.cancelLottery(1);
+        lotteryHandler.cancelLottery(lotteryId);
     }
 }

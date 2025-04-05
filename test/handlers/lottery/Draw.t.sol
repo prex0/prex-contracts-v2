@@ -11,6 +11,9 @@ contract TestLotteryDraw is LotterySetup {
     uint256 public drawerPrivKey = 11111000002;
     address public drawer = vm.addr(drawerPrivKey);
 
+    bytes32 public lotteryIdFalse;
+    bytes32 public lotteryIdTrue;
+
     function setUp() public virtual override(LotterySetup) {
         super.setUp();
 
@@ -20,6 +23,8 @@ contract TestLotteryDraw is LotterySetup {
             bytes memory sig = _sign(request, privateKey);
 
             _createLottery(request, sig);
+
+            lotteryIdFalse = lotteryHandler.getLotteryId(request);
         }
 
         {
@@ -28,6 +33,8 @@ contract TestLotteryDraw is LotterySetup {
             bytes memory sig = _sign(request, privateKey);
 
             _createLottery(request, sig);
+
+            lotteryIdTrue = lotteryHandler.getLotteryId(request);
         }
 
         token.mint(drawer, 2 * 1e18);
@@ -65,7 +72,7 @@ contract TestLotteryDraw is LotterySetup {
         });
     }
 
-    function _getRequest(uint256 lotteryId, address _sender, uint256 _deadline)
+    function _getRequest(bytes32 lotteryId, address _sender, uint256 _deadline)
         internal
         view
         returns (DrawLotteryOrder memory)
@@ -81,7 +88,7 @@ contract TestLotteryDraw is LotterySetup {
 
     function testDrawLottery() public {
         // non prepaid lottery
-        DrawLotteryOrder memory drawOrder = _getRequest(1, drawer, block.timestamp + 100);
+        DrawLotteryOrder memory drawOrder = _getRequest(lotteryIdFalse, drawer, block.timestamp + 100);
 
         bytes memory sig = _sign(drawOrder, address(token), 1e18, drawerPrivKey);
 
@@ -95,7 +102,7 @@ contract TestLotteryDraw is LotterySetup {
 
     function testDrawLottery_Prepaid() public {
         // prepaid lottery
-        DrawLotteryOrder memory drawOrder = _getRequest(2, drawer, block.timestamp + 100);
+        DrawLotteryOrder memory drawOrder = _getRequest(lotteryIdTrue, drawer, block.timestamp + 100);
 
         bytes memory sig = _sign(drawOrder, address(token), 1e18, drawerPrivKey);
 
@@ -108,7 +115,7 @@ contract TestLotteryDraw is LotterySetup {
     }
 
     function testDrawLotteryWithInvalidLotteryId() public {
-        DrawLotteryOrder memory drawOrder = _getRequest(10, drawer, block.timestamp + 100);
+        DrawLotteryOrder memory drawOrder = _getRequest(bytes32(0), drawer, block.timestamp + 100);
 
         bytes memory sig = _sign(drawOrder, address(token), 1e18, drawerPrivKey);
 
@@ -118,9 +125,9 @@ contract TestLotteryDraw is LotterySetup {
 
     function testCannotDrawLottery_IfLotteryIsNotActive() public {
         vm.prank(sender);
-        lotteryHandler.cancelLottery(1);
+        lotteryHandler.cancelLottery(lotteryIdFalse);
 
-        DrawLotteryOrder memory drawOrder = _getRequest(1, drawer, block.timestamp + 100);
+        DrawLotteryOrder memory drawOrder = _getRequest(lotteryIdFalse, drawer, block.timestamp + 100);
 
         bytes memory sig = _sign(drawOrder, address(token), 1e18, drawerPrivKey);
 

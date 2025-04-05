@@ -6,7 +6,7 @@ struct DrawLotteryOrder {
     address sender;
     uint256 deadline;
     uint256 nonce;
-    uint256 lotteryId;
+    bytes32 lotteryId;
 }
 
 /// @notice helpers for handling DrawLotteryOrder
@@ -17,7 +17,7 @@ library DrawLotteryOrderLib {
         "address sender,",
         "uint256 deadline,",
         "uint256 nonce,",
-        "uint256 lotteryId)"
+        "bytes32 lotteryId)"
     );
 
     /// @dev Note that sub-structs have to be defined in alphabetical order in the EIP-712 spec

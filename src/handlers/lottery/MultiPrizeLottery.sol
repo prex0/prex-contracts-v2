@@ -18,14 +18,14 @@ contract MultiPrizeLottery {
     using LotteryLib for LotteryLib.Lottery;
 
     uint256 public lotteryCounter;
-    mapping(uint256 => LotteryLib.Lottery) public lotteries;
+    mapping(bytes32 => LotteryLib.Lottery) public lotteries;
 
     IPermit2 public immutable permit2;
 
     uint256 public constant POINTS = 1;
 
     event LotteryCreated(
-        uint256 indexed lotteryId,
+        bytes32 indexed lotteryId,
         address token,
         address owner,
         address recipient,
@@ -36,23 +36,24 @@ contract MultiPrizeLottery {
         bytes32 orderHash
     );
     event LotteryDrawn(
-        uint256 indexed lotteryId, address indexed player, uint256 ticketNumber, uint256 prizeType, bytes32 orderHash
+        bytes32 indexed lotteryId, address indexed player, uint256 ticketNumber, uint256 prizeType, bytes32 orderHash
     );
-    event LotteryCancelled(uint256 indexed lotteryId);
+    event LotteryCancelled(bytes32 indexed lotteryId);
 
     // errors
     error CallerIsNotLotteryOwner();
     error LotteryNotFound();
     error LotteryNotActive();
+    error LotteryAlreadyExists();
 
-    modifier onlyLotteryOwner(uint256 _lotteryId) {
+    modifier onlyLotteryOwner(bytes32 _lotteryId) {
         if (msg.sender != lotteries[_lotteryId].owner) {
             revert CallerIsNotLotteryOwner();
         }
         _;
     }
 
-    modifier isLotteryActive(uint256 _lotteryId) {
+    modifier isLotteryActive(bytes32 _lotteryId) {
         if (!lotteries[_lotteryId].active) {
             revert LotteryNotActive();
         }
@@ -63,6 +64,10 @@ contract MultiPrizeLottery {
         permit2 = IPermit2(_permit2);
     }
 
+    function getLotteryId(CreateLotteryOrder memory order) public pure returns (bytes32) {
+        return order.hash();
+    }
+
     /// @notice くじを作成（賞の種類と当選数を設定）
     function createLottery(CreateLotteryOrder memory order, bytes memory sig, bytes32 orderHash)
         internal
@@ -70,8 +75,11 @@ contract MultiPrizeLottery {
     {
         _verifyCreateOrder(order, sig);
 
-        lotteryCounter++;
-        uint256 lotteryId = lotteryCounter;
+        bytes32 lotteryId = getLotteryId(order);
+
+        if (lotteries[lotteryId].active || lotteries[lotteryId].token != address(0)) {
+            revert LotteryAlreadyExists();
+        }
 
         lotteries[lotteryId] = LotteryLib.create(order);
 
@@ -90,7 +98,7 @@ contract MultiPrizeLottery {
         return CreateLotteryOrderLib.getOrderReceipt(order, _getRequiredPoints(lotteryId));
     }
 
-    function _getRequiredPoints(uint256 _lotteryId) internal view returns (uint256) {
+    function _getRequiredPoints(bytes32 _lotteryId) internal view returns (uint256) {
         if (lotteries[_lotteryId].isPrepaid) {
             return lotteries[_lotteryId].totalTickets * POINTS;
         }
@@ -102,7 +110,7 @@ contract MultiPrizeLottery {
      * @notice くじをキャンセル
      * @param _lotteryId くじのID
      */
-    function cancelLottery(uint256 _lotteryId) external onlyLotteryOwner(_lotteryId) {
+    function cancelLottery(bytes32 _lotteryId) external onlyLotteryOwner(_lotteryId) {
         lotteries[_lotteryId].active = false;
 
         emit LotteryCancelled(_lotteryId);
@@ -154,7 +162,7 @@ contract MultiPrizeLottery {
     }
 
     /// @notice くじの情報を取得
-    function getLotteryInfo(uint256 _lotteryId) external view returns (LotteryLib.Lottery memory) {
+    function getLotteryInfo(bytes32 _lotteryId) external view returns (LotteryLib.Lottery memory) {
         return lotteries[_lotteryId];
     }
 

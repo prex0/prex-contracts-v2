@@ -95,7 +95,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
      * @return The request ID.
      */
     function getRequestId(CreateDropRequest memory request) public pure returns (bytes32) {
-        return keccak256(abi.encode(request.publicKey));
+        return request.hash();
     }
 
     /**
