@@ -123,7 +123,7 @@ forge script script/Deploy3DataRegistry.s.sol --rpc-url $RPC_URL --private-key $
 ```
 
 ```bash
-forge script script/Deploy4Controllers.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast --etherscan-api-key $ETHERSCAN_API_KEY --verify
+forge script script/Deploy5PumHandler.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast --etherscan-api-key $ETHERSCAN_API_KEY --verify
 ```
 
 ```bash
@@ -133,6 +133,19 @@ forge script script/Deploy5Handlers.s.sol --rpc-url $RPC_URL --private-key $PRIV
 ```bash
 forge script script/Deploy6SwapHandler.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast --etherscan-api-key $ETHERSCAN_API_KEY --verify
 ```
+
+```bash
+forge script script/Deploy7DropHandler.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast --etherscan-api-key $ETHERSCAN_API_KEY --verify
+```
+
+```bash
+forge script script/Deploy8LotteryHandler.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast --etherscan-api-key $ETHERSCAN_API_KEY --verify
+```
+
+```bash
+forge script script/Deploy9PaymentHandler.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast --etherscan-api-key $ETHERSCAN_API_KEY --verify
+```
+
 
 
 ### Cast

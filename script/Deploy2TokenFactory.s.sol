@@ -10,11 +10,9 @@ contract DeployTokenFactoryScript is Script {
     function run() public {
         vm.startBroadcast();
 
-        PrexTokenFactory prexTokenFactory = new PrexTokenFactory{salt: keccak256("PrexTokenFactory")}();
         CreatorTokenFactory creatorTokenFactory = new CreatorTokenFactory{salt: keccak256("CreatorTokenFactory")}();
         LoyaltyTokenFactory loyaltyTokenFactory = new LoyaltyTokenFactory{salt: keccak256("LoyaltyTokenFactory")}();
 
-        console.log("PrexTokenFactory deployed at", address(prexTokenFactory));
         console.log("CreatorTokenFactory deployed at", address(creatorTokenFactory));
         console.log("LoyaltyTokenFactory deployed at", address(loyaltyTokenFactory));
 

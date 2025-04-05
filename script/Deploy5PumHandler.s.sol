@@ -12,28 +12,20 @@ import {PumHook} from "../src/swap/hooks/PumHook.sol";
 import {Hooks} from "v4-core/src/libraries/Hooks.sol";
 import {HookMiner} from "v4-periphery/src/utils/HookMiner.sol";
 
-contract DeployPointScript is Script {
+contract DeployPumHandlerScript is Script {
     address public constant OWNER_ADDRESS = 0x51B89C499F3038756Eff64a0EF52d753147EAd75;
 
     address public constant PERMIT2_ADDRESS = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
 
     address public DAI_ADDRESS = vm.envAddress("DAI_ADDRESS");
 
-    address public constant POSITION_MANAGER = 0x3C3Ea4B57a46241e54610e5f022E5c45859A1017;
+    address public POSITION_MANAGER = vm.envAddress("POSITION_MANAGER");
 
-    address public constant POOL_MANAGER = 0x9a13F98Cb987694C9F086b1F5eB990EeA8264Ec3;
-
-    address public constant PREX_TOKEN_FACTORY = 0x915C46a9f818fF2Ed56f20F52C7Eb5B7be17712a;
+    address public POOL_MANAGER = vm.envAddress("POOL_MANAGER");
 
     address public constant CREATOR_TOKEN_FACTORY = 0xfC71eE6Dfe60E794F56D8D77A0F03C1325c57ad7;
 
-    address public constant LOYALTY_TOKEN_FACTORY = 0xE74dcAec463c07DBAeCAac55e95d4c9Cd133BED0;
-
-    address public constant PROFILE_REGISTRY = 0x8A4e21d9C0258A7330A70513ce680fC3843dA4B0;
-
     address public constant TOKEN_REGISTRY = 0x57F3891da461C783231A79328aa11AE6C724E9B2;
-
-    address public constant POINT_MINTER = 0xAd77509161a564cF02790E12d56928940a556cbB;
 
     address public constant DEPLOYER = 0x4e59b44847b379578588920cA78FbF26c0B4956C;
 
@@ -41,18 +33,6 @@ contract DeployPointScript is Script {
 
     function run() public {
         vm.startBroadcast();
-
-        // Deploy Loyalty Point and Market
-        BuyLoyaltyPointHandler loyaltyPointHandler = new BuyLoyaltyPointHandler{
-            salt: keccak256("BuyLoyaltyPointHandler2")
-        }(msg.sender, PERMIT2_ADDRESS, OWNER_ADDRESS);
-
-        loyaltyPointHandler.addMinter(POINT_MINTER);
-
-        loyaltyPointHandler.transferOwnership(OWNER_ADDRESS);
-
-        console.log("BuyLoyaltyPointHandler deployed at", address(loyaltyPointHandler));
-        console.log("LOYALTY Point deployed at", address(loyaltyPointHandler.point()));
 
         // Deploy Creator Token Issue Handler
         IssueCreatorTokenHandler issueCreatorTokenHandler = new IssueCreatorTokenHandler{
@@ -69,23 +49,7 @@ contract DeployPointScript is Script {
         issueCreatorTokenHandler.transferOwnership(OWNER_ADDRESS);
 
         console.log("IssueCreatorTokenHandler deployed at", address(issueCreatorTokenHandler));
-
-        // Deploy Token Issue Handler
-        IssueTokenHandler issueTokenHandler =
-            new IssueTokenHandler{salt: keccak256("IssueTokenHandler2")}(PERMIT2_ADDRESS, TOKEN_REGISTRY);
-
-        console.log("IssueTokenHandler deployed at", address(issueTokenHandler));
-
-        // Deploy Loyalty Token Issue Handler
-        IssueLoyaltyTokenHandler issueLoyaltyTokenHandler = new IssueLoyaltyTokenHandler{
-            salt: keccak256("IssueLoyaltyTokenHandler2")
-        }(msg.sender, address(loyaltyPointHandler.point()), TOKEN_REGISTRY, LOYALTY_TOKEN_FACTORY, PERMIT2_ADDRESS);
-
-        issueLoyaltyTokenHandler.setDai(DAI_ADDRESS);
-
-        issueLoyaltyTokenHandler.transferOwnership(OWNER_ADDRESS);
-
-        console.log("IssueLoyaltyTokenHandler deployed at", address(issueLoyaltyTokenHandler));
+        console.log("PumHook deployed at", address(pumHook));
 
         vm.stopBroadcast();
     }

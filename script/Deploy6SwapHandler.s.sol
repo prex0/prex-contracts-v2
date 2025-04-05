@@ -13,7 +13,7 @@ contract Deploy6SwapHandlerScript is Script {
 
     address public constant LOYALTY_CONVERTER = 0xFAD597273FC93cD6366CF11C598636875FFBbF38;
 
-    address public constant PUM_CONVERTER = 0xd017932159093a996F307321eCBB03B0b258aF47;
+    address public constant PUM_CONVERTER = 0xed3133C224568f59D3A7Bd83b84B950E30B3f3Cf;
 
     function run() public {
         vm.startBroadcast();
