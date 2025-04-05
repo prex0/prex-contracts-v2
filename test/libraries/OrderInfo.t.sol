@@ -11,4 +11,8 @@ contract OrderInfoTest is Test {
 
         assertEq(OrderInfoLib.hash(orderInfo), 0xbcb1549603216fbb26d64904877eeeef03eab0d0553016cd0dee39d8e57099b5);
     }
+
+    function testTypeHash() public pure {
+        assertEq(OrderInfoLib.ORDER_INFO_TYPE_HASH, 0x9050702bb8d5ddad912e228179852accd0e0bbf3c9b8929a7c8274ef45d8c50e);
+    }
 }
