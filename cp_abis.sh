@@ -11,7 +11,6 @@ sh abi.sh SwapHandler $OUTPUT_PATH
 
 sh abi.sh BuyPrexPointHandler $OUTPUT_PATH
 sh abi.sh BuyLoyaltyPointHandler $OUTPUT_PATH
-sh abi.sh BuyPumPointHandler $OUTPUT_PATH
 
 sh abi.sh IssueCreatorTokenHandler $OUTPUT_PATH
 sh abi.sh IssueTokenHandler $OUTPUT_PATH
