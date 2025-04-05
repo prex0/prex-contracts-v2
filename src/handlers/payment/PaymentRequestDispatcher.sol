@@ -91,7 +91,7 @@ contract PaymentRequestDispatcher is ReentrancyGuard {
         nonReentrant
         returns (OrderReceipt memory)
     {
-        bytes32 id = request.hash();
+        bytes32 id = getRequestId(request);
 
         // same public key cannot be used for multiple requests
         if (paymentRequests[id].status == RequestStatus.Opened || paymentRequests[id].status == RequestStatus.Closed) {
@@ -233,8 +233,8 @@ contract PaymentRequestDispatcher is ReentrancyGuard {
      * @param request The request
      * @return id The request ID
      */
-    function getRequestId(CreatePaymentRequestOrder memory request) external pure returns (bytes32) {
-        return request.hash();
+    function getRequestId(CreatePaymentRequestOrder memory request) public pure returns (bytes32) {
+        return keccak256(abi.encode(request));
     }
 
     /**

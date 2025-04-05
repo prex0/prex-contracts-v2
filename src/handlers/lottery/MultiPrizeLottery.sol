@@ -65,7 +65,7 @@ contract MultiPrizeLottery {
     }
 
     function getLotteryId(CreateLotteryOrder memory order) public pure returns (bytes32) {
-        return order.hash();
+        return keccak256(abi.encode(order));
     }
 
     /// @notice くじを作成（賞の種類と当選数を設定）

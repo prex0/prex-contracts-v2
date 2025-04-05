@@ -71,7 +71,7 @@ contract PaymentTest is PaymentSetup {
             bytes("")
         );
 
-        requestId = request.hash();
+        requestId = paymentRequestHandler.getRequestId(request);
     }
 
     function test_Payment() public {
