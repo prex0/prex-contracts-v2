@@ -6,10 +6,13 @@ import {ILoyaltyCoin} from "../../interfaces/ILoyaltyCoin.sol";
 import {PriceLibrary} from "../../libraries/PriceLibrary.sol";
 import {BipsLibrary} from "../../libraries/BipsLibrary.sol";
 import {FlowRateAdjustment} from "../../base/FlowRateAdjustment.sol";
+import {IPrexPoints} from "../../interfaces/IPrexPoints.sol";
 
 contract LoyaltyConverter is FlowRateAdjustment {
     using PriceLibrary for uint256;
     using BipsLibrary for uint256;
+
+    address public immutable loyaltyPoint;
 
     // jpy price by dai (150 jpy = 1 dai)
     uint256 public priceJpyByDai = 6667 * 1e12;
@@ -22,7 +25,9 @@ contract LoyaltyConverter is FlowRateAdjustment {
     event PriceUpdated(uint256 newPrice);
     event FeeRateUpdated(uint256 newFeeRate);
 
-    constructor(address _owner) FlowRateAdjustment(_owner) {}
+    constructor(address _owner, address _loyaltyPoint) FlowRateAdjustment(_owner) {
+        loyaltyPoint = _loyaltyPoint;
+    }
 
     /**
      * @notice Update the price of 1 JPY in 1e18
@@ -57,7 +62,12 @@ contract LoyaltyConverter is FlowRateAdjustment {
         uint256 fee = daiAmount.calculatePortion(feeRate);
         daiAmount -= fee;
 
-        ILoyaltyCoin(loyaltyCoin).burn(msg.sender, loyaltyCoinAmount);
+        if (loyaltyCoin == address(0)) {
+            // 0 address is used for loyalty point
+            IPrexPoints(loyaltyPoint).consumePoints(msg.sender, loyaltyCoinAmount);
+        } else {
+            ILoyaltyCoin(loyaltyCoin).burn(msg.sender, loyaltyCoinAmount);
+        }
         dai.transfer(recipient, daiAmount);
     }
 
@@ -75,7 +85,13 @@ contract LoyaltyConverter is FlowRateAdjustment {
         loyaltyCoinAmount -= fee;
 
         dai.transferFrom(msg.sender, address(this), daiAmount);
-        ILoyaltyCoin(loyaltyCoin).mint(recipient, loyaltyCoinAmount);
+
+        if (loyaltyCoin == address(0)) {
+            // 0 address is used for loyalty point
+            IPrexPoints(loyaltyPoint).mint(recipient, loyaltyCoinAmount);
+        } else {
+            ILoyaltyCoin(loyaltyCoin).mint(recipient, loyaltyCoinAmount);
+        }
     }
 
     function _validateLoyaltyCoin(address) internal view virtual {

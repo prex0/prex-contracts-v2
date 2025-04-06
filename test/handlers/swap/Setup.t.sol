@@ -12,6 +12,22 @@ import {MockToken} from "../../mock/MockToken.sol";
 import {MockUniversalRouter} from "../../mock/MockUniversalRouter.sol";
 import {TokenRegistry} from "../../../src/data/TokenRegistry.sol";
 
+contract MockPumConverter {
+    MockToken public immutable pumPoint;
+
+    constructor() {
+        pumPoint = new MockToken();
+    }
+}
+
+contract MockLoyaltyConverter {
+    MockToken public immutable dai;
+
+    constructor() {
+        dai = new MockToken();
+    }
+}
+
 contract SwapHandlerSetup is Test, TestUtils {
     using SwapRequestLib for SwapRequest;
 
@@ -27,7 +43,12 @@ contract SwapHandlerSetup is Test, TestUtils {
         tokenOut = new MockToken();
         universalRouter = new MockUniversalRouter(address(tokenOut));
 
-        swapHandler = new SwapHandler(address(universalRouter), address(0), address(0), address(permit2), address(this));
+        MockPumConverter pumConverter = new MockPumConverter();
+        MockLoyaltyConverter loyaltyConverter = new MockLoyaltyConverter();
+
+        swapHandler = new SwapHandler(
+            address(universalRouter), address(loyaltyConverter), address(pumConverter), address(permit2), address(this)
+        );
     }
 
     function _sign(SwapRequest memory request, uint256 fromPrivateKey) internal view returns (bytes memory) {

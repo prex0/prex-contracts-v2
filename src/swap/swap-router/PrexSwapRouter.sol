@@ -24,6 +24,12 @@ contract PrexSwapRouter is ISwapRouter {
         loyaltyConverter = LoyaltyConverter(_loyaltyConverter);
         pumConverter = PumConverter(_pumConverter);
         permit2 = IPermit2(_permit2);
+
+        // approve prex point to pum converter
+        ERC20(address(pumConverter.pumPoint())).approve(address(pumConverter), type(uint256).max);
+
+        // approve dai to loyalty converter
+        ERC20(address(loyaltyConverter.dai())).approve(address(loyaltyConverter), type(uint256).max);
     }
 
     /**

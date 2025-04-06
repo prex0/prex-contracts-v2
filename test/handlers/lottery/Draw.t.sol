@@ -112,6 +112,10 @@ contract TestLotteryDraw is LotterySetup {
         assertEq(receipt.points, 0);
 
         assertEq(token.balanceOf(drawer), 1 * 1e18);
+
+        MultiPrizeLottery.LotteryResultView memory result =
+            lotteryHandler.getLotteryResult(keccak256(abi.encode(drawOrder)));
+        assertEq(result.lotteryId, drawOrder.lotteryId);
     }
 
     function testDrawLotteryWithInvalidLotteryId() public {

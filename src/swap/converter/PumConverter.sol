@@ -44,7 +44,10 @@ contract PumConverter is FlowRateAdjustment {
 
         carryPointAmount = pumPointAmount;
 
-        pumPoint.consumePoints(msg.sender, pumPointAmount);
+        IERC20(address(pumPoint)).transferFrom(msg.sender, address(this), pumPointAmount);
+
+        pumPoint.burn(pumPointAmount);
+
         carryToken.mint(recipient, carryPointAmount);
     }
 

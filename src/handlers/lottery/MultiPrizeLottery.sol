@@ -17,8 +17,20 @@ contract MultiPrizeLottery {
     using DrawLotteryOrderLib for DrawLotteryOrder;
     using LotteryLib for LotteryLib.Lottery;
 
-    uint256 public lotteryCounter;
+    struct LotteryResult {
+        bytes32 lotteryId;
+        uint256 prizeType;
+    }
+
+    struct LotteryResultView {
+        bytes32 lotteryId;
+        uint256 prizeType;
+        string prizeName;
+    }
+
     mapping(bytes32 => LotteryLib.Lottery) public lotteries;
+
+    mapping(bytes32 => LotteryResult) private lotteryResults;
 
     IPermit2 public immutable permit2;
 
@@ -139,6 +151,8 @@ contract MultiPrizeLottery {
             revert LotteryNotActive();
         }
 
+        lotteryResults[keccak256(abi.encode(order))] = LotteryResult({lotteryId: order.lotteryId, prizeType: prizeType});
+
         emit LotteryDrawn(order.lotteryId, order.sender, ticketNumber, prizeType, orderHash);
 
         if (!lottery.active) {
@@ -164,6 +178,17 @@ contract MultiPrizeLottery {
     /// @notice くじの情報を取得
     function getLotteryInfo(bytes32 _lotteryId) external view returns (LotteryLib.Lottery memory) {
         return lotteries[_lotteryId];
+    }
+
+    /// @notice くじの結果を取得
+    function getLotteryResult(bytes32 _resultId) external view returns (LotteryResultView memory) {
+        LotteryResult memory result = lotteryResults[_resultId];
+
+        return LotteryResultView({
+            lotteryId: result.lotteryId,
+            prizeType: result.prizeType,
+            prizeName: lotteries[result.lotteryId].prizes[result.prizeType].name
+        });
     }
 
     function _verifyCreateOrder(CreateLotteryOrder memory order, bytes memory sig) internal {

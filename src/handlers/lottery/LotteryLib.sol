@@ -10,6 +10,7 @@ library LotteryLib {
     struct Prize {
         uint256 count; // 当たりの枚数
         uint256 remaining; // 残りの当たり枚数
+        string name; // 賞の名前
     }
 
     struct Lottery {
@@ -40,7 +41,7 @@ library LotteryLib {
 
         uint256 totalTickets = 0;
         for (uint256 i = 0; i < order.prizeCounts.length; i++) {
-            newLottery.prizes[i] = LotteryLib.Prize(order.prizeCounts[i], order.prizeCounts[i]);
+            newLottery.prizes[i] = LotteryLib.Prize(order.prizeCounts[i], order.prizeCounts[i], order.prizeNames[i]);
             totalTickets += order.prizeCounts[i];
         }
 

@@ -15,8 +15,6 @@ contract LoyaltyController is LoyaltyConverter {
 
     error SymbolAlreadyUsed(string symbol);
 
-    address public immutable loyaltyPoint;
-
     LoyaltyTokenFactory public immutable loyaltyTokenFactory;
 
     event LoyaltyCoinMinted(
@@ -24,8 +22,9 @@ contract LoyaltyController is LoyaltyConverter {
     );
     event LoyaltyTokenCreated(address indexed loyaltyToken, address indexed issuer, string name, string symbol);
 
-    constructor(address _owner, address _loyaltyPoint, address _loyaltyTokenFactory) LoyaltyConverter(_owner) {
-        loyaltyPoint = _loyaltyPoint;
+    constructor(address _owner, address _loyaltyPoint, address _loyaltyTokenFactory)
+        LoyaltyConverter(_owner, _loyaltyPoint)
+    {
         loyaltyTokenFactory = LoyaltyTokenFactory(_loyaltyTokenFactory);
     }
 
@@ -73,6 +72,11 @@ contract LoyaltyController is LoyaltyConverter {
     }
 
     function _validateLoyaltyCoin(address loyaltyToken) internal view override {
+        if (loyaltyToken == address(0)) {
+            // 0 address is used for loyalty point
+            return;
+        }
+
         if (loyaltyToken != loyaltyTokens[loyaltyToken]) {
             revert InvalidLoyaltyCoin();
         }
