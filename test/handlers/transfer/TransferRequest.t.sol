@@ -61,7 +61,7 @@ contract TransferRequestTest is TransferRequestSetup {
         );
 
         assertEq(receipt.policyId, 0);
-        assertEq(receipt.points, 1);
+        assertEq(receipt.points, 5);
 
         assertEq(ERC20(address(mockToken)).balanceOf(recipient), 1e18);
     }

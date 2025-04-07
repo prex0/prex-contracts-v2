@@ -25,7 +25,7 @@ contract CreateDropRequestLibTest is Test {
         assertFalse(CreateDropRequestLib.validateParams(createDropRequest(100, 10, 100)));
         assertFalse(CreateDropRequestLib.validateParams(createDropRequest(100, 10, 100 + 500 days)));
     }
-    
+
     function createDropRequest(uint256 _amount, uint256 _amountPerWithdrawal, uint256 _expiry)
         public
         pure

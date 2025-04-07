@@ -7,8 +7,8 @@ import {WhitelistHandler} from "./WhitelistHandler.sol";
  * @notice クレジット価格を管理するコントラクト
  */
 contract CreditPrice is WhitelistHandler {
-    // default credit price is 5_000_000;
-    uint256 public creditPrice = 5 * 1e6;
+    // default credit price is 1_000_000;
+    uint256 public creditPrice = 1 * 1e6;
 
     event CreditPriceUpdated(uint256 creditPrice);
 

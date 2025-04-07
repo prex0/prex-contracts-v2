@@ -17,6 +17,19 @@ import {PumController} from "../../swap/PumController.sol";
 contract IssueCreatorTokenHandler is IOrderHandler, PumController {
     using IssueCreatorTokenRequestLib for IssueCreatorTokenRequest;
 
+    uint256 public points = 0;
+
+    address public orderExecutor;
+
+    error CallerMustBeOrderExecutor();
+
+    modifier onlyOrderExecutor() {
+        if (msg.sender != orderExecutor) {
+            revert CallerMustBeOrderExecutor();
+        }
+        _;
+    }
+
     constructor(
         address owner,
         address _prexPoint,
@@ -27,11 +40,31 @@ contract IssueCreatorTokenHandler is IOrderHandler, PumController {
     ) PumController(owner, _prexPoint, _positionManager, _tokenRegistry, _creatorTokenFactory, _permit2) {}
 
     /**
+     * @notice ポイントを設定する
+     * @param _points ポイント
+     */
+    function setPoints(uint256 _points) external onlyOwner {
+        points = _points;
+    }
+
+    /**
+     * @notice オーダー実行者を設定する
+     * @param _orderExecutor オーダー実行者
+     */
+    function setOrderExecutor(address _orderExecutor) external onlyOwner {
+        orderExecutor = _orderExecutor;
+    }
+
+    /**
      * @notice ユーザのトークンを発行注文を処理する
      * @param order オーダーデータ
      * @return 注文の結果
      */
-    function execute(address, SignedOrder calldata order, bytes calldata) external returns (OrderReceipt memory) {
+    function execute(address, SignedOrder calldata order, bytes calldata)
+        external
+        onlyOrderExecutor
+        returns (OrderReceipt memory)
+    {
         IssueCreatorTokenRequest memory request = abi.decode(order.order, (IssueCreatorTokenRequest));
 
         // オーダーのリクエストを検証する
@@ -39,7 +72,7 @@ contract IssueCreatorTokenHandler is IOrderHandler, PumController {
 
         _issuePumToken(request.issuer, request.name, request.symbol, request.pictureHash, request.metadata);
 
-        return request.getOrderReceipt(0);
+        return request.getOrderReceipt(points);
     }
 
     /**

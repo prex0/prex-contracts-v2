@@ -28,7 +28,9 @@ contract LotterySetup is Test, TestUtils {
     function setUp() public virtual override {
         super.setUp();
 
-        lotteryHandler = new LotteryHandler(address(permit2));
+        lotteryHandler = new LotteryHandler(address(permit2), address(this));
+
+        lotteryHandler.setOrderExecutor(address(this));
 
         token = new MockToken();
 

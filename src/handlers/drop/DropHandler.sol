@@ -5,26 +5,16 @@ import "../../interfaces/IOrderHandler.sol";
 import "./DropRequestDispatcher.sol";
 import {Owned} from "../../../lib/solmate/src/auth/Owned.sol";
 
-contract DropHandler is IOrderHandler, DropRequestDispatcher, Owned {
+contract DropHandler is IOrderHandler, DropRequestDispatcher {
     error InvalidMethodId();
 
-    address public orderExecutor;
+    constructor(address _permit2, address _owner) DropRequestDispatcher(_permit2, _owner) {}
 
-    error CallerMustBeOrderExecutor();
-
-    modifier onlyOrderExecutor() {
-        if (msg.sender != orderExecutor) {
-            revert CallerMustBeOrderExecutor();
-        }
-        _;
-    }
-
-    constructor(address _permit2, address _owner) DropRequestDispatcher(_permit2) Owned(_owner) {}
-
-    function setOrderExecutor(address _orderExecutor) external onlyOwner {
-        orderExecutor = _orderExecutor;
-    }
-
+    /**
+     * @notice ドロップの実行
+     * @param order オーダー
+     * @return オーダーの結果
+     */
     function execute(address, SignedOrder calldata order, bytes calldata)
         external
         onlyOrderExecutor

@@ -9,13 +9,14 @@ import "../../../lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.s
 import "../../../lib/openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
 import "../../../lib/solmate/src/utils/ReentrancyGuard.sol";
 import {IOrderHandler} from "../../interfaces/IOrderHandler.sol";
+import "../../base/BaseHandler.sol";
 
 /**
  * @notice LinkTransferRequestDispatcher is a contract that allows the sender to create a request with a secret key.
  * The recipient can complete the request by providing the signature of the secret key.
  * This contract integrates with the Permit2 library to handle ERC20 token transfers securely and efficiently.
  */
-contract LinkTransferRequestDispatcher is ReentrancyGuard {
+contract LinkTransferRequestDispatcher is ReentrancyGuard, BaseHandler {
     using LinkTransferRequestLib for LinkTransferRequest;
 
     enum RequestStatus {
@@ -41,8 +42,6 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
     uint256 private constant MAX_EXPIRY = 180 days;
 
     IPermit2 immutable permit2;
-
-    uint256 public constant POINTS = 1;
 
     // Request errors
     /// @notice The request already exists
@@ -79,7 +78,7 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
     event RequestCompleted(bytes32 id, address recipient, bytes metadata, bytes32 orderHash);
     event RequestCancelled(bytes32 id);
 
-    constructor(address _permit2) {
+    constructor(address _permit2, address _owner) BaseHandler(_owner) {
         permit2 = IPermit2(_permit2);
     }
 
@@ -132,7 +131,7 @@ contract LinkTransferRequestDispatcher is ReentrancyGuard {
             id, request.token, request.sender, request.amount, request.deadline, request.metadata, orderHash
         );
 
-        return request.getOrderReceipt(POINTS);
+        return request.getOrderReceipt(points);
     }
 
     /**

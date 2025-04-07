@@ -11,7 +11,6 @@ import {ITokenRegistry} from "../../interfaces/ITokenRegistry.sol";
 import {CreateTokenParameters} from "../../token-factory/TokenParams.sol";
 import {Owned} from "../../../lib/solmate/src/auth/Owned.sol";
 
-
 /**
  * @notice ユーザのトークンを発行注文を処理するハンドラー
  */
@@ -69,7 +68,11 @@ contract IssueTokenHandler is IOrderHandler, PrexTokenFactory, Owned {
      * @param order オーダーデータ
      * @return 注文の結果
      */
-    function execute(address, SignedOrder calldata order, bytes calldata) external onlyOrderExecutor returns (OrderReceipt memory) {
+    function execute(address, SignedOrder calldata order, bytes calldata)
+        external
+        onlyOrderExecutor
+        returns (OrderReceipt memory)
+    {
         IssueMintableTokenRequest memory request = abi.decode(order.order, (IssueMintableTokenRequest));
 
         // オーダーのリクエストを検証する

@@ -9,9 +9,13 @@ import "./orders/DrawLotteryOrder.sol";
 contract LotteryHandler is IOrderHandler, MultiPrizeLottery {
     error InvalidMethodId();
 
-    constructor(address _permit2) MultiPrizeLottery(_permit2) {}
+    constructor(address _permit2, address _owner) MultiPrizeLottery(_permit2, _owner) {}
 
-    function execute(address, SignedOrder calldata order, bytes calldata) external returns (OrderReceipt memory) {
+    function execute(address, SignedOrder calldata order, bytes calldata)
+        external
+        onlyOrderExecutor
+        returns (OrderReceipt memory)
+    {
         if (order.methodId == 1) {
             CreateLotteryOrder memory request = abi.decode(order.order, (CreateLotteryOrder));
 

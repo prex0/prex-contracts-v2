@@ -48,7 +48,7 @@ contract TestLotteryRequestDispatcherSubmit is LotterySetup {
         OrderReceipt memory receipt = _createLottery(request, sig);
 
         assertEq(receipt.policyId, 0);
-        assertEq(receipt.points, 2);
+        assertEq(receipt.points, 10);
 
         LotteryLib.Lottery memory lottery = lotteryHandler.getLotteryInfo(lotteryHandler.getLotteryId(request));
 
@@ -65,7 +65,7 @@ contract TestLotteryRequestDispatcherSubmit is LotterySetup {
         OrderReceipt memory receipt = _createLottery(request, sig);
 
         assertEq(receipt.policyId, 0);
-        assertEq(receipt.points, 1);
+        assertEq(receipt.points, 5);
 
         LotteryLib.Lottery memory lottery = lotteryHandler.getLotteryInfo(lotteryHandler.getLotteryId(request));
 

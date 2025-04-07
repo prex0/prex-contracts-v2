@@ -21,7 +21,9 @@ contract LinkTransferSetup is Test, TestUtils {
     function setUp() public virtual override {
         super.setUp();
 
-        linkTransferHandler = new LinkTransferHandler(address(permit2));
+        linkTransferHandler = new LinkTransferHandler(address(permit2), address(this));
+
+        linkTransferHandler.setOrderExecutor(address(this));
     }
 
     function _sign(LinkTransferRequest memory request, uint256 fromPrivateKey) internal view returns (bytes memory) {

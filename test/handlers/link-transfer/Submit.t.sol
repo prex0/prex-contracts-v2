@@ -67,7 +67,7 @@ contract LinkTransferTest is LinkTransferSetup {
         );
 
         assertEq(receipt.policyId, 0);
-        assertEq(receipt.points, 1);
+        assertEq(receipt.points, 5);
 
         assertEq(mockToken.balanceOf(address(linkTransferHandler)), 1e18);
     }

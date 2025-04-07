@@ -10,8 +10,9 @@ import "../../../lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.s
 import "../../../lib/openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
 import "../../../lib/solmate/src/utils/ReentrancyGuard.sol";
 import {IOrderHandler} from "../../interfaces/IOrderHandler.sol";
+import "../../base/BaseHandler.sol";
 
-contract PaymentRequestDispatcher is ReentrancyGuard {
+contract PaymentRequestDispatcher is ReentrancyGuard, BaseHandler {
     using CreatePaymentRequestOrderLib for CreatePaymentRequestOrder;
     using PaymentOrderLib for PaymentOrder;
 
@@ -39,8 +40,6 @@ contract PaymentRequestDispatcher is ReentrancyGuard {
     uint256 private constant MAX_EXPIRY = 180 days;
 
     IPermit2 immutable permit2;
-
-    uint256 public constant POINTS = 1;
 
     // Request errors
     /// @notice The request already exists
@@ -76,7 +75,7 @@ contract PaymentRequestDispatcher is ReentrancyGuard {
     event PaymentMade(bytes32 id, address sender, bytes metadata, bytes32 orderHash);
     event PaymentRequestCancelled(bytes32 id);
 
-    constructor(address _permit2) {
+    constructor(address _permit2, address _owner) BaseHandler(_owner) {
         permit2 = IPermit2(_permit2);
     }
 
@@ -138,7 +137,7 @@ contract PaymentRequestDispatcher is ReentrancyGuard {
             orderHash
         );
 
-        return request.getOrderReceipt(request.isPrepaid ? (POINTS * request.maxPayments) : POINTS);
+        return request.getOrderReceipt(request.isPrepaid ? (points * request.maxPayments) : points);
     }
 
     /**
@@ -175,7 +174,7 @@ contract PaymentRequestDispatcher is ReentrancyGuard {
         return _getOrderReceipt(request);
     }
 
-    function _getOrderReceipt(PaymentRequest memory request) internal pure returns (OrderReceipt memory) {
+    function _getOrderReceipt(PaymentRequest memory request) internal view returns (OrderReceipt memory) {
         address[] memory tokens = new address[](1);
 
         tokens[0] = request.token;
@@ -184,7 +183,7 @@ contract PaymentRequestDispatcher is ReentrancyGuard {
             tokens: tokens,
             user: request.creator,
             policyId: request.policyId,
-            points: request.isPrepaid ? 0 : POINTS
+            points: request.isPrepaid ? 0 : points
         });
     }
 

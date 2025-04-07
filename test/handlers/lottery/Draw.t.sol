@@ -95,7 +95,7 @@ contract TestLotteryDraw is LotterySetup {
         OrderReceipt memory receipt = _drawLottery(drawOrder, sig);
 
         assertEq(receipt.policyId, 0);
-        assertEq(receipt.points, 1);
+        assertEq(receipt.points, 5);
 
         assertEq(token.balanceOf(drawer), 1 * 1e18);
     }

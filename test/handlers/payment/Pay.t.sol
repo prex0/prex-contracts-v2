@@ -90,7 +90,7 @@ contract PaymentTest is PaymentSetup {
         );
 
         assertEq(receipt.policyId, 0);
-        assertEq(receipt.points, 1);
+        assertEq(receipt.points, 5);
 
         assertEq(mockToken.balanceOf(user), 99 * 1e18);
         assertEq(mockToken.balanceOf(recipient), 1e18);

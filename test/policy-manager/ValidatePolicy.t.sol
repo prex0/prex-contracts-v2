@@ -115,7 +115,7 @@ contract ValidatePolicyTest is PolicyManagerSetup {
 
         policyManager.validatePolicy(
             OrderHeader({dispatcher: handler, methodId: 0, orderHash: orderHash, identifier: bytes32(0)}),
-            OrderReceipt({user: address(0), policyId: policyIdTrue, tokens: new address[](0), points: 1}),
+            OrderReceipt({user: address(0), policyId: policyIdTrue, tokens: new address[](0), points: 5}),
             _signMessage(policyPrivateKey, orderHashForPolicyTrue)
         );
 

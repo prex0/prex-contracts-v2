@@ -74,7 +74,7 @@ contract PaymentRequestTest is PaymentSetup {
         );
 
         assertEq(receipt.policyId, 0);
-        assertEq(receipt.points, 12);
+        assertEq(receipt.points, 60);
     }
 
     function test_CreatePaymentRequest_WithMaxExpiry() public {
@@ -95,6 +95,6 @@ contract PaymentRequestTest is PaymentSetup {
         );
 
         assertEq(receipt.policyId, 0);
-        assertEq(receipt.points, 1);
+        assertEq(receipt.points, 5);
     }
 }

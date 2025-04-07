@@ -24,7 +24,9 @@ contract PaymentSetup is Test, TestUtils {
     function setUp() public virtual override {
         super.setUp();
 
-        paymentRequestHandler = new PaymentRequestHandler(address(permit2));
+        paymentRequestHandler = new PaymentRequestHandler(address(permit2), address(this));
+
+        paymentRequestHandler.setOrderExecutor(address(this));
     }
 
     function _sign(CreatePaymentRequestOrder memory request, uint256 fromPrivateKey)

@@ -38,9 +38,7 @@ library CreatePaymentRequestOrderLib {
     string internal constant TOKEN_PERMISSIONS_TYPE = "TokenPermissions(address token,uint256 amount)";
     string internal constant PERMIT2_ORDER_TYPE = string(
         abi.encodePacked(
-            "CreatePaymentRequestOrder witness)",
-            CREATE_PAYMENT_REQUEST_ORDER_TYPE,
-            TOKEN_PERMISSIONS_TYPE
+            "CreatePaymentRequestOrder witness)", CREATE_PAYMENT_REQUEST_ORDER_TYPE, TOKEN_PERMISSIONS_TYPE
         )
     );
 
@@ -72,7 +70,11 @@ library CreatePaymentRequestOrderLib {
 
         tokens[0] = request.token;
 
-        return
-            OrderReceipt({tokens: tokens, user: request.orderInfo.sender, policyId: request.orderInfo.policyId, points: points});
+        return OrderReceipt({
+            tokens: tokens,
+            user: request.orderInfo.sender,
+            policyId: request.orderInfo.policyId,
+            points: points
+        });
     }
 }

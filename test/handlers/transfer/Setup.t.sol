@@ -18,7 +18,9 @@ contract TransferRequestSetup is Test, TestUtils {
     function setUp() public virtual override {
         super.setUp();
 
-        transferRequestHandler = new TransferRequestHandler(address(permit2));
+        transferRequestHandler = new TransferRequestHandler(address(permit2), address(this));
+
+        transferRequestHandler.setOrderExecutor(address(this));
     }
 
     function _sign(TransferRequest memory request, uint256 fromPrivateKey) internal view returns (bytes memory) {

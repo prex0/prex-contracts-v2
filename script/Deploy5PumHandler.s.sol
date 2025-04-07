@@ -31,6 +31,8 @@ contract DeployPumHandlerScript is Script {
 
     address public constant PREX_POINT = 0x74401F3866E057Ae41bf6C22d25235a1C7013B16;
 
+    address public constant ORDER_EXECUTOR = 0x4fF089348469DA4543e8935A6AF0C362Cb27c0BD;
+
     function run() public {
         vm.startBroadcast();
 
@@ -46,6 +48,7 @@ contract DeployPumHandlerScript is Script {
             new PumHook{salt: pumHookSalt}(POOL_MANAGER, address(issueCreatorTokenHandler.carryToken()), OWNER_ADDRESS);
 
         issueCreatorTokenHandler.setPumHook(address(pumHook));
+        issueCreatorTokenHandler.setOrderExecutor(ORDER_EXECUTOR);
         issueCreatorTokenHandler.transferOwnership(OWNER_ADDRESS);
 
         console.log("IssueCreatorTokenHandler deployed at", address(issueCreatorTokenHandler));

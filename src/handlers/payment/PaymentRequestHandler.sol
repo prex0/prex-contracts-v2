@@ -9,9 +9,13 @@ import "./PaymentRequestDispatcher.sol";
 contract PaymentRequestHandler is IOrderHandler, PaymentRequestDispatcher {
     error InvalidMethodId();
 
-    constructor(address _permit2) PaymentRequestDispatcher(_permit2) {}
+    constructor(address _permit2, address _owner) PaymentRequestDispatcher(_permit2, _owner) {}
 
-    function execute(address, SignedOrder calldata order, bytes calldata) external returns (OrderReceipt memory) {
+    function execute(address, SignedOrder calldata order, bytes calldata)
+        external
+        onlyOrderExecutor
+        returns (OrderReceipt memory)
+    {
         if (order.methodId == 1) {
             CreatePaymentRequestOrder memory createPaymentRequestOrder =
                 abi.decode(order.order, (CreatePaymentRequestOrder));

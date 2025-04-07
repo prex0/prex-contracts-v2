@@ -8,9 +8,6 @@ import {BuyLoyaltyPointHandler} from "../src/handlers/point/BuyLoyaltyPointHandl
 import {IssueCreatorTokenHandler} from "../src/handlers/token/IssueCreatorTokenHandler.sol";
 import {IssueTokenHandler} from "../src/handlers/token/IssueTokenHandler.sol";
 import {IssueLoyaltyTokenHandler} from "../src/handlers/token/IssueLoyaltyTokenHandler.sol";
-import {PumHook} from "../src/swap/hooks/PumHook.sol";
-import {Hooks} from "v4-core/src/libraries/Hooks.sol";
-import {HookMiner} from "v4-periphery/src/utils/HookMiner.sol";
 
 contract DeployTokenHandlerScript is Script {
     address public constant OWNER_ADDRESS = 0x51B89C499F3038756Eff64a0EF52d753147EAd75;

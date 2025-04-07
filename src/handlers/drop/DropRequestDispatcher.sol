@@ -9,6 +9,7 @@ import "../../../lib/openzeppelin-contracts/contracts/utils/cryptography/Message
 import "../../../lib/permit2/src/interfaces/IPermit2.sol";
 import "../../../lib/solmate/src/utils/ReentrancyGuard.sol";
 import {IOrderHandler} from "../../interfaces/IOrderHandler.sol";
+import {BaseHandler} from "../../base/BaseHandler.sol";
 
 /**
  * @notice DropRequestDispatcher is a contract that allows senders to create multiple distribution requests.
@@ -17,7 +18,7 @@ import {IOrderHandler} from "../../interfaces/IOrderHandler.sol";
  * This contract integrates with the Permit2 library to handle ERC20 token transfers securely and efficiently.
  * It supports multiple concurrent requests, enabling flexible and scalable token distribution scenarios.
  */
-contract DropRequestDispatcher is ReentrancyGuard {
+contract DropRequestDispatcher is ReentrancyGuard, BaseHandler {
     using CreateDropRequestLib for CreateDropRequest;
 
     enum RequestStatus {
@@ -46,8 +47,6 @@ contract DropRequestDispatcher is ReentrancyGuard {
     mapping(bytes32 => mapping(string idempotencyKey => bool)) public idempotencyKeyMap;
 
     IPermit2 public immutable permit2;
-
-    uint256 public constant POINTS = 1;
 
     /// @dev Error codes
     error InvalidRequest();
@@ -85,7 +84,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
     event RequestCancelled(bytes32 id, uint256 amount);
     event RequestExpired(bytes32 id, uint256 amount);
 
-    constructor(address _permit2) {
+    constructor(address _permit2, address _owner) BaseHandler(_owner) {
         permit2 = IPermit2(_permit2);
     }
 
@@ -146,7 +145,7 @@ contract DropRequestDispatcher is ReentrancyGuard {
             orderHash
         );
 
-        return request.getOrderReceipt(POINTS);
+        return request.getOrderReceipt(points);
     }
 
     /**

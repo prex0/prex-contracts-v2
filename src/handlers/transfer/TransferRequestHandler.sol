@@ -7,8 +7,9 @@ import "./TransferRequest.sol";
 import {ERC20} from "../../../lib/solmate/src/tokens/ERC20.sol";
 import "../../../lib/permit2/src/interfaces/ISignatureTransfer.sol";
 import "../../../lib/permit2/src/interfaces/IPermit2.sol";
+import "../../base/BaseHandler.sol";
 
-contract TransferRequestHandler is IOrderHandler {
+contract TransferRequestHandler is IOrderHandler, BaseHandler {
     using TransferRequestLib for TransferRequest;
 
     IPermit2 permit2;
@@ -17,9 +18,7 @@ contract TransferRequestHandler is IOrderHandler {
         address token, address from, address to, uint256 amount, uint256 category, bytes metadata, bytes32 orderHash
     );
 
-    uint256 public constant POINTS = 1;
-
-    constructor(address _permit2) {
+    constructor(address _permit2, address _owner) BaseHandler(_owner) {
         permit2 = IPermit2(_permit2);
     }
 
@@ -28,7 +27,11 @@ contract TransferRequestHandler is IOrderHandler {
      * @param order 注文
      * @return 注文の結果
      */
-    function execute(address, SignedOrder calldata order, bytes calldata) external returns (OrderReceipt memory) {
+    function execute(address, SignedOrder calldata order, bytes calldata)
+        external
+        onlyOrderExecutor
+        returns (OrderReceipt memory)
+    {
         TransferRequest memory request = abi.decode(order.order, (TransferRequest));
 
         // オーダーのリクエストを検証する
@@ -44,7 +47,7 @@ contract TransferRequestHandler is IOrderHandler {
             keccak256(order.order)
         );
 
-        return request.getOrderReceipt(POINTS);
+        return request.getOrderReceipt(points);
     }
 
     /**

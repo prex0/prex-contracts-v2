@@ -8,11 +8,12 @@ import "./orders/DrawLotteryOrder.sol";
 import {OrderReceipt} from "../../interfaces/IOrderHandler.sol";
 import {IOrderHandler} from "../../interfaces/IOrderHandler.sol";
 import "./LotteryLib.sol";
+import {BaseHandler} from "../../base/BaseHandler.sol";
 
 /**
  * @notice 複数の賞を持つくじ
  */
-contract MultiPrizeLottery {
+contract MultiPrizeLottery is BaseHandler {
     using CreateLotteryOrderLib for CreateLotteryOrder;
     using DrawLotteryOrderLib for DrawLotteryOrder;
     using LotteryLib for LotteryLib.Lottery;
@@ -33,8 +34,6 @@ contract MultiPrizeLottery {
     mapping(bytes32 => LotteryResult) private lotteryResults;
 
     IPermit2 public immutable permit2;
-
-    uint256 public constant POINTS = 1;
 
     event LotteryCreated(
         bytes32 indexed lotteryId,
@@ -72,7 +71,7 @@ contract MultiPrizeLottery {
         _;
     }
 
-    constructor(address _permit2) {
+    constructor(address _permit2, address _owner) BaseHandler(_owner) {
         permit2 = IPermit2(_permit2);
     }
 
@@ -112,10 +111,10 @@ contract MultiPrizeLottery {
 
     function _getRequiredPoints(bytes32 _lotteryId) internal view returns (uint256) {
         if (lotteries[_lotteryId].isPrepaid) {
-            return lotteries[_lotteryId].totalTickets * POINTS;
+            return lotteries[_lotteryId].totalTickets * points;
         }
 
-        return POINTS;
+        return points;
     }
 
     /**
@@ -162,7 +161,7 @@ contract MultiPrizeLottery {
         return _getOrderReceipt(lottery);
     }
 
-    function _getOrderReceipt(LotteryLib.Lottery memory lottery) internal pure returns (OrderReceipt memory) {
+    function _getOrderReceipt(LotteryLib.Lottery memory lottery) internal view returns (OrderReceipt memory) {
         address[] memory tokens = new address[](1);
 
         tokens[0] = lottery.token;
@@ -171,7 +170,7 @@ contract MultiPrizeLottery {
             tokens: tokens,
             user: lottery.owner,
             policyId: lottery.policyId,
-            points: lottery.isPrepaid ? 0 : POINTS
+            points: lottery.isPrepaid ? 0 : points
         });
     }
 
