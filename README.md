@@ -131,7 +131,7 @@ forge script script/Deploy5PumHandler.s.sol --rpc-url $RPC_URL --private-key $PR
 ```
 
 ```bash
-forge script script/Deploy5Handlers.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast --etherscan-api-key $ETHERSCAN_API_KEY --verify
+forge script script/Deploy5TransferHandlers.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast --etherscan-api-key $ETHERSCAN_API_KEY --verify
 ```
 
 ```bash

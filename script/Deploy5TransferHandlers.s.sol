@@ -5,7 +5,7 @@ import {Script, console} from "forge-std/Script.sol";
 import {LinkTransferHandler} from "../src/handlers/link-transfer/LinkTransferHandler.sol";
 import {TransferRequestHandler} from "../src/handlers/transfer/TransferRequestHandler.sol";
 
-contract DeployHandlersScript is Script {
+contract DeployTransferHandlersScript is Script {
     address public constant OWNER_ADDRESS = 0x51B89C499F3038756Eff64a0EF52d753147EAd75;
 
     address public constant PERMIT2_ADDRESS = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
