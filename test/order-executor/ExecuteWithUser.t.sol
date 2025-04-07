@@ -40,7 +40,7 @@ contract ExecuteWithUserTest is OrderExecutorSetup {
     function test_Execute_InsufficientCredit() public {
         TransferRequest memory request = createSampleRequest(user2, user);
 
-        vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, user2, 0, 5 * 1e6));
+        vm.expectRevert(abi.encodeWithSelector(IPolicyErrors.InsufficientCredit.selector, 5 * 1e6, 0));
         orderExecutor.execute(
             SignedOrder({
                 dispatcher: address(transferRequestHandler),

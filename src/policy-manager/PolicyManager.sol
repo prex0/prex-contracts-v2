@@ -160,7 +160,7 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
     function withdrawCredit(uint256 appId, uint256 amount, address to) external onlyAppOwner(appId) {
         // アプリが指定された量のクレジットを引き出すのに十分なクレジットを持っていることを確認する
         if (apps[appId].credit < amount) {
-            revert InsufficientCredit();
+            revert InsufficientCredit(amount, apps[appId].credit);
         }
 
         // 指定されたアプリのクレジット残高を引き出された量だけ減少させる
@@ -203,6 +203,12 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
             // ポリシーIDが0の場合、ユーザのクレジットを消費する
             if (receipt.points > 0) {
                 uint256 creditAmount = receipt.points * creditPrice;
+
+                // ユーザーのクレジット残高が消費するクレジット量より少ない場合はリバートする
+                uint256 balance = IERC20(address(prexPoint)).balanceOf(receipt.user);
+                if (balance < creditAmount) {
+                    revert InsufficientCredit(creditAmount, balance);
+                }
 
                 IPrexPoints(prexPoint).consumePoints(receipt.user, creditAmount);
 
@@ -263,7 +269,7 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
     function _consumeAppCredit(uint256 appId, uint256 policyId, uint256 amount, bytes32 orderHash) private {
         // アプリが指定された量のクレジットを消費するのに十分なクレジットを持っていることを確認する
         if (apps[appId].credit < amount) {
-            revert InsufficientCredit();
+            revert InsufficientCredit(amount, apps[appId].credit);
         }
 
         // 指定されたアプリのクレジット残高を消費された量だけ減少させる

@@ -127,7 +127,7 @@ contract ValidatePolicyTest is PolicyManagerSetup {
 
     // アプリがクレジットを消費するケースで、クレジットが足りない場合はリバートする
     function test_ValidatePolicy_AppConsume_InsufficientCredit() public {
-        vm.expectRevert(abi.encodeWithSelector(IPolicyErrors.InsufficientCredit.selector));
+        vm.expectRevert(abi.encodeWithSelector(IPolicyErrors.InsufficientCredit.selector, 1000000, 0));
         policyManager.validatePolicy(
             OrderHeader({dispatcher: handler, methodId: 0, orderHash: orderHash, identifier: bytes32(0)}),
             OrderReceipt({user: address(0), policyId: policyIdTrue, tokens: new address[](0), points: 1}),

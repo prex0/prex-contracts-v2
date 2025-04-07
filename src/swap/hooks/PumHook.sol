@@ -18,9 +18,9 @@ contract PumHook is BaseHook, Owned {
     using {equals} for Currency;
 
     // 0:creator, 1:carry
-    uint160 minSqrtPriceX96ByCarry = 6892168815194673229585;
+    uint160 minSqrtPriceX96ByCarry = 7086382300000000000000;
     // 0:carry, 1:creator
-    uint160 maxSqrtPriceX96ByCreator = 910758558546622084425891770569094353;
+    uint160 maxSqrtPriceX96ByCreator = 885797783642957107159712428047759491;
 
     Currency public immutable carryToken;
 

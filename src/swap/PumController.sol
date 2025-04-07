@@ -143,7 +143,7 @@ contract PumController is PumConverter {
             currency1: currency1,
             // 6.0%
             fee: 60_000,
-            tickSpacing: 60,
+            tickSpacing: 300,
             hooks: IHooks(address(pumHook))
         });
     }
@@ -157,9 +157,9 @@ contract PumController is PumConverter {
         bytes[] memory params = new bytes[](2);
         params[0] = _encodeMintParams(
             _getPoolKey(tokenA, tokenB),
-            int24(tokenA < tokenB ? -340680 : -887220),
-            int24(tokenA < tokenB ? 887220 : 340680),
-            4004955170909380034,
+            int24(tokenA < tokenB ? -340800 : -887100),
+            int24(tokenA < tokenB ? 887100 : 340800),
+            3980998579334402966,
             type(uint128).max,
             type(uint128).max,
             address(this)

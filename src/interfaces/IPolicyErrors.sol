@@ -18,7 +18,7 @@ interface IPolicyErrors {
     error InvalidPolicyOwner();
 
     // クレジット不足
-    error InsufficientCredit();
+    error InsufficientCredit(uint256 required, uint256 balance);
 
     // 不正なハンドラー
     error InvalidHandler();

@@ -35,7 +35,7 @@ contract WithdrawCreditTest is PolicyManagerSetup {
     // クレジットが不足している場合はリバートする
     function test_WithdrawCredit_InsufficientCredit() public {
         vm.startPrank(appOwner1);
-        vm.expectRevert(abi.encodeWithSelector(IPolicyErrors.InsufficientCredit.selector));
+        vm.expectRevert(abi.encodeWithSelector(IPolicyErrors.InsufficientCredit.selector, 101, 100));
         policyManager.withdrawCredit(appId, 101, appOwner1);
         vm.stopPrank();
     }

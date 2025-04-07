@@ -91,7 +91,7 @@ contract ExecuteWithAppTest is OrderExecutorSetup {
 
         orderExecutor.withdrawCredit(appId, 1000 * 1e6, owner);
 
-        vm.expectRevert(IPolicyErrors.InsufficientCredit.selector);
+        vm.expectRevert(abi.encodeWithSelector(IPolicyErrors.InsufficientCredit.selector, 5 * 1e6, 0));
         orderExecutor.execute(
             SignedOrder({
                 dispatcher: address(transferRequestHandler),
