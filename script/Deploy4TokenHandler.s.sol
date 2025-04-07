@@ -16,14 +16,14 @@ contract DeployTokenHandlerScript is Script {
 
     address public constant TOKEN_REGISTRY = 0x57F3891da461C783231A79328aa11AE6C724E9B2;
 
-    address public constant ORDER_EXECUTOR = 0x4fF089348469DA4543e8935A6AF0C362Cb27c0BD;
+    address public constant ORDER_EXECUTOR = 0x1e2F0cF2f6E51103075fA6beB605bA5C898c5e2B;
 
     function run() public {
         vm.startBroadcast();
 
         // Deploy Token Issue Handler
         IssueTokenHandler issueTokenHandler =
-            new IssueTokenHandler{salt: keccak256("IssueTokenHandler2")}(PERMIT2_ADDRESS, TOKEN_REGISTRY, msg.sender);
+            new IssueTokenHandler{salt: keccak256("Ver2")}(PERMIT2_ADDRESS, TOKEN_REGISTRY, msg.sender);
 
         issueTokenHandler.setOrderExecutor(ORDER_EXECUTOR);
 

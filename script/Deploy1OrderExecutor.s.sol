@@ -25,12 +25,12 @@ contract OrderExecutorScript is Script {
 
         // Deploy the BuyPrexPointHandler contract with a specific salt to ensure a predictable and deterministic address, which is crucial for contract interactions
         BuyPrexPointHandler pointHandler =
-            new BuyPrexPointHandler{salt: keccak256("BuyPrexPointHandler")}(msg.sender, PERMIT2_ADDRESS, OWNER_ADDRESS);
+            new BuyPrexPointHandler{salt: keccak256("Ver2")}(msg.sender, PERMIT2_ADDRESS, OWNER_ADDRESS);
 
         pointHandler.addMinter(POINT_MINTER);
 
         // Deploy the OrderExecutor contract with a specific salt and link it to the point handler to ensure it can manage point-related operations
-        orderExecutor = new OrderExecutor{salt: keccak256("OrderExecutor")}(address(pointHandler.point()), msg.sender);
+        orderExecutor = new OrderExecutor{salt: keccak256("Ver2")}(address(pointHandler.point()), msg.sender);
 
         pointHandler.setConsumer(address(orderExecutor));
 

@@ -11,15 +11,15 @@ contract Deploy6SwapHandlerScript is Script {
 
     address public constant UNIVERSAL_ROUTER = 0x851116D9223fabED8E56C0E6b8Ad0c31d98B3507;
 
-    address public constant LOYALTY_CONVERTER = 0xFAD597273FC93cD6366CF11C598636875FFBbF38;
+    address public constant ISSUE_LOYALTY_TOKEN_HANDLER = 0xA111630C5DF5CcF3DC79F116E5c478E39Cc94B12;
 
-    address public constant PUM_CONVERTER = 0xed3133C224568f59D3A7Bd83b84B950E30B3f3Cf;
+    address public constant ISSUE_CREATOR_TOKEN_HANDLER = 0xa38cC7Bb72ba5Ec7144c6Dab83e18Ba168ebef00;
 
     function run() public {
         vm.startBroadcast();
 
         SwapHandler swapHandler = new SwapHandler{salt: keccak256("SwapHandler")}(
-            UNIVERSAL_ROUTER, LOYALTY_CONVERTER, PUM_CONVERTER, PERMIT2_ADDRESS, OWNER_ADDRESS
+            UNIVERSAL_ROUTER, ISSUE_LOYALTY_TOKEN_HANDLER, ISSUE_CREATOR_TOKEN_HANDLER, PERMIT2_ADDRESS, OWNER_ADDRESS
         );
 
         console.log("SwapHandler deployed at", address(swapHandler));

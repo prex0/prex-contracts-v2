@@ -29,9 +29,9 @@ contract DeployPumHandlerScript is Script {
 
     address public constant DEPLOYER = 0x4e59b44847b379578588920cA78FbF26c0B4956C;
 
-    address public constant PREX_POINT = 0x74401F3866E057Ae41bf6C22d25235a1C7013B16;
+    address public constant PREX_POINT = 0xf32512641F9584b602900791390717b650A93A31;
 
-    address public constant ORDER_EXECUTOR = 0x4fF089348469DA4543e8935A6AF0C362Cb27c0BD;
+    address public constant ORDER_EXECUTOR = 0x1e2F0cF2f6E51103075fA6beB605bA5C898c5e2B;
 
     function run() public {
         vm.startBroadcast();
