@@ -310,9 +310,9 @@ contract DropRequestDispatcher is ReentrancyGuard {
                     expiry,
                     claimRequest.subPublicKey
                 ),
-                claimRequest.sig
+                claimRequest.subSig
             );
-            _verifyRecipientSignature(claimRequest.subPublicKey, claimRequest.claimInfo, claimRequest.subSig);
+            _verifyRecipientSignature(claimRequest.subPublicKey, claimRequest.claimInfo, claimRequest.sig);
         } else {
             _verifyRecipientSignature(publicKey, claimRequest.claimInfo, claimRequest.sig);
         }

@@ -32,7 +32,9 @@ library CreateDropRequestLib {
 
     /// @dev Note that sub-structs have to be defined in alphabetical order in the EIP-712 spec
 
-    bytes internal constant CREATE_DROP_REQUEST_TYPE = abi.encodePacked(CREATE_DROP_REQUEST_TYPE_S);
+    bytes internal constant CREATE_DROP_REQUEST_TYPE =
+        abi.encodePacked(CREATE_DROP_REQUEST_TYPE_S, OrderInfoLib.ORDER_INFO_TYPE_S);
+
     bytes32 internal constant CREATE_DROP_REQUEST_TYPE_HASH = keccak256(CREATE_DROP_REQUEST_TYPE);
 
     string internal constant TOKEN_PERMISSIONS_TYPE = "TokenPermissions(address token,uint256 amount)";
@@ -40,8 +42,7 @@ library CreateDropRequestLib {
     string internal constant PERMIT2_ORDER_TYPE = string(
         abi.encodePacked(
             "CreateDropRequest witness)",
-            CREATE_DROP_REQUEST_TYPE_S,
-            OrderInfoLib.ORDER_INFO_TYPE_S,
+            CREATE_DROP_REQUEST_TYPE,
             TOKEN_PERMISSIONS_TYPE
         )
     );

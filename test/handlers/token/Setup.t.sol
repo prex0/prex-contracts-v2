@@ -24,7 +24,9 @@ contract IssueMintableTokenRequestSetup is Test, TestUtils {
 
         TokenRegistry tokenRegistry = new TokenRegistry();
 
-        issueTokenHandler = new IssueTokenHandler(address(permit2), address(tokenRegistry));
+        issueTokenHandler = new IssueTokenHandler(address(permit2), address(tokenRegistry), address(this));
+
+        issueTokenHandler.setOrderExecutor(address(this));
     }
 
     function _sign(IssueMintableTokenRequest memory request, uint256 fromPrivateKey)

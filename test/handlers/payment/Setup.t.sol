@@ -67,7 +67,7 @@ contract PaymentSetup is Test, TestUtils {
         returns (ISignatureTransfer.PermitTransferFrom memory)
     {
         return ISignatureTransfer.PermitTransferFrom({
-            permitted: ISignatureTransfer.TokenPermissions({token: address(0), amount: 0}),
+            permitted: ISignatureTransfer.TokenPermissions({token: request.token, amount: 0}),
             nonce: request.orderInfo.nonce,
             deadline: request.orderInfo.deadline
         });

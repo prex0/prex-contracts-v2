@@ -123,6 +123,10 @@ forge script script/Deploy3DataRegistry.s.sol --rpc-url $RPC_URL --private-key $
 ```
 
 ```bash
+forge script script/Deploy4TokenHandler.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast --etherscan-api-key $ETHERSCAN_API_KEY --verify
+```
+
+```bash
 forge script script/Deploy5PumHandler.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast --etherscan-api-key $ETHERSCAN_API_KEY --verify
 ```
 

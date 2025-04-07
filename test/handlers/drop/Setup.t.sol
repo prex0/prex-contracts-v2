@@ -158,9 +158,9 @@ contract DropRequestSetup is Test, TestUtils {
 
         return ClaimDropRequest({
             claimInfo: claimInfo,
-            sig: _signMessage(_privateKey, messageHash),
+            sig: _signMessage(_subPrivateKey, subMessageHash),
             subPublicKey: _subPublicKey,
-            subSig: _signMessage(_subPrivateKey, subMessageHash)
+            subSig: _signMessage(_privateKey, messageHash)
         });
     }
 }

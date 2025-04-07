@@ -47,7 +47,6 @@ contract PaymentRequestTest is PaymentSetup {
                 deadline: 1,
                 nonce: 1
             }),
-            creator: user,
             recipient: recipient,
             amount: _amount,
             expiry: _expiry,

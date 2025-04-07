@@ -48,7 +48,6 @@ contract PaymentTest is PaymentSetup {
                 deadline: 1,
                 nonce: 1
             }),
-            creator: user,
             recipient: recipient,
             amount: 1e18,
             expiry: block.timestamp + 100,

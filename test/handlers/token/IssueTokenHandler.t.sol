@@ -46,6 +46,6 @@ contract IssueTokenHandlerTest is IssueMintableTokenRequestSetup {
         );
 
         assertEq(receipt.policyId, 0);
-        assertEq(receipt.points, 10);
+        assertEq(receipt.points, 200);
     }
 }

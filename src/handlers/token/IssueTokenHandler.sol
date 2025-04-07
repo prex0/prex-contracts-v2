@@ -9,17 +9,22 @@ import "../../../lib/permit2/src/interfaces/IPermit2.sol";
 import {PrexTokenFactory} from "../../token-factory/PrexTokenFactory.sol";
 import {ITokenRegistry} from "../../interfaces/ITokenRegistry.sol";
 import {CreateTokenParameters} from "../../token-factory/TokenParams.sol";
+import {Owned} from "../../../lib/solmate/src/auth/Owned.sol";
+
 
 /**
  * @notice ユーザのトークンを発行注文を処理するハンドラー
  */
-contract IssueTokenHandler is IOrderHandler, PrexTokenFactory {
+contract IssueTokenHandler is IOrderHandler, PrexTokenFactory, Owned {
     using IssueMintableTokenRequestLib for IssueMintableTokenRequest;
 
     IPermit2 public immutable permit2;
     ITokenRegistry public immutable tokenRegistry;
+    address public orderExecutor;
 
-    uint256 constant POINTS = 10;
+    error CallerMustBeOrderExecutor();
+
+    uint256 public points = 200;
 
     event TokenIssued(
         address indexed token,
@@ -31,9 +36,32 @@ contract IssueTokenHandler is IOrderHandler, PrexTokenFactory {
         bytes32 orderHash
     );
 
-    constructor(address _permit2, address _tokenRegistry) {
+    modifier onlyOrderExecutor() {
+        if (msg.sender != orderExecutor) {
+            revert CallerMustBeOrderExecutor();
+        }
+        _;
+    }
+
+    constructor(address _permit2, address _tokenRegistry, address _owner) Owned(_owner) {
         permit2 = IPermit2(_permit2);
         tokenRegistry = ITokenRegistry(_tokenRegistry);
+    }
+
+    /**
+     * @notice ポイントを設定する
+     * @param _points ポイント
+     */
+    function setPoints(uint256 _points) external onlyOwner {
+        points = _points;
+    }
+
+    /**
+     * @notice オーダー実行者を設定する
+     * @param _orderExecutor オーダー実行者
+     */
+    function setOrderExecutor(address _orderExecutor) external onlyOwner {
+        orderExecutor = _orderExecutor;
     }
 
     /**
@@ -41,7 +69,7 @@ contract IssueTokenHandler is IOrderHandler, PrexTokenFactory {
      * @param order オーダーデータ
      * @return 注文の結果
      */
-    function execute(address, SignedOrder calldata order, bytes calldata) external returns (OrderReceipt memory) {
+    function execute(address, SignedOrder calldata order, bytes calldata) external onlyOrderExecutor returns (OrderReceipt memory) {
         IssueMintableTokenRequest memory request = abi.decode(order.order, (IssueMintableTokenRequest));
 
         // オーダーのリクエストを検証する
@@ -70,7 +98,7 @@ contract IssueTokenHandler is IOrderHandler, PrexTokenFactory {
             keccak256(order.order)
         );
 
-        return request.getOrderReceipt(POINTS);
+        return request.getOrderReceipt(points);
     }
 
     /**

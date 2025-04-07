@@ -7,7 +7,6 @@ import "../../../src/libraries/OrderInfo.sol";
 struct CreatePaymentRequestOrder {
     OrderInfo orderInfo;
     bool isPrepaid;
-    address creator;
     address recipient;
     uint256 amount;
     uint256 expiry;
@@ -22,7 +21,6 @@ library CreatePaymentRequestOrderLib {
         "CreatePaymentRequestOrder(",
         "OrderInfo orderInfo,",
         "bool isPrepaid,",
-        "address creator,",
         "address recipient,",
         "uint256 amount,",
         "uint256 expiry,",
@@ -32,16 +30,16 @@ library CreatePaymentRequestOrderLib {
     );
 
     /// @dev Note that sub-structs have to be defined in alphabetical order in the EIP-712 spec
+    bytes internal constant CREATE_PAYMENT_REQUEST_ORDER_TYPE =
+        abi.encodePacked(CREATE_PAYMENT_REQUEST_ORDER_TYPE_S, OrderInfoLib.ORDER_INFO_TYPE_S);
 
-    bytes internal constant CREATE_PAYMENT_REQUEST_ORDER_TYPE = abi.encodePacked(CREATE_PAYMENT_REQUEST_ORDER_TYPE_S);
     bytes32 internal constant CREATE_PAYMENT_REQUEST_ORDER_TYPE_HASH = keccak256(CREATE_PAYMENT_REQUEST_ORDER_TYPE);
 
     string internal constant TOKEN_PERMISSIONS_TYPE = "TokenPermissions(address token,uint256 amount)";
     string internal constant PERMIT2_ORDER_TYPE = string(
         abi.encodePacked(
             "CreatePaymentRequestOrder witness)",
-            CREATE_PAYMENT_REQUEST_ORDER_TYPE_S,
-            OrderInfoLib.ORDER_INFO_TYPE_S,
+            CREATE_PAYMENT_REQUEST_ORDER_TYPE,
             TOKEN_PERMISSIONS_TYPE
         )
     );
@@ -53,15 +51,14 @@ library CreatePaymentRequestOrderLib {
         return keccak256(
             abi.encode(
                 CREATE_PAYMENT_REQUEST_ORDER_TYPE_HASH,
-                request.orderInfo,
+                OrderInfoLib.hash(request.orderInfo),
                 request.isPrepaid,
-                request.creator,
                 request.recipient,
                 request.amount,
                 request.expiry,
                 request.maxPayments,
                 request.token,
-                request.name
+                keccak256(bytes(request.name))
             )
         );
     }
@@ -76,6 +73,6 @@ library CreatePaymentRequestOrderLib {
         tokens[0] = request.token;
 
         return
-            OrderReceipt({tokens: tokens, user: request.creator, policyId: request.orderInfo.policyId, points: points});
+            OrderReceipt({tokens: tokens, user: request.orderInfo.sender, policyId: request.orderInfo.policyId, points: points});
     }
 }

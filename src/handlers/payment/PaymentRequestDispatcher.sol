@@ -128,7 +128,7 @@ contract PaymentRequestDispatcher is ReentrancyGuard {
 
         emit PaymentRequestCreated(
             id,
-            request.creator,
+            request.orderInfo.sender,
             request.recipient,
             request.token,
             request.amount,
@@ -251,12 +251,12 @@ contract PaymentRequestDispatcher is ReentrancyGuard {
 
         permit2.permitWitnessTransferFrom(
             ISignatureTransfer.PermitTransferFrom({
-                permitted: ISignatureTransfer.TokenPermissions({token: address(0), amount: 0}),
+                permitted: ISignatureTransfer.TokenPermissions({token: request.token, amount: 0}),
                 nonce: request.orderInfo.nonce,
                 deadline: request.orderInfo.deadline
             }),
-            ISignatureTransfer.SignatureTransferDetails({to: address(0), requestedAmount: 0}),
-            request.creator,
+            ISignatureTransfer.SignatureTransferDetails({to: address(this), requestedAmount: 0}),
+            request.orderInfo.sender,
             request.hash(),
             CreatePaymentRequestOrderLib.PERMIT2_ORDER_TYPE,
             sig
