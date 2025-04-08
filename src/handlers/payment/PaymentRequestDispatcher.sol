@@ -60,6 +60,8 @@ contract PaymentRequestDispatcher is ReentrancyGuard, BaseHandler {
     error RequestIsNotOpened();
     /// @notice The request is not expired
     error RequestNotExpired();
+    /// @notice The request is already cancelled
+    error RequestAlreadyCancelled();
 
     event PaymentRequestCreated(
         bytes32 id,
@@ -192,11 +194,15 @@ contract PaymentRequestDispatcher is ReentrancyGuard, BaseHandler {
      * @param id The request ID
      */
     function cancelPaymentRequest(bytes32 id) external {
-        if (paymentRequests[id].creator != msg.sender) {
+        PaymentRequest storage request = paymentRequests[id];
+
+        if (request.creator != msg.sender) {
             revert InvalidSender();
         }
 
-        _cancelPaymentRequest(id);
+        request.status = RequestStatus.Closed;
+
+        emit PaymentRequestCancelled(id);
     }
 
     /**
@@ -212,13 +218,11 @@ contract PaymentRequestDispatcher is ReentrancyGuard, BaseHandler {
     function _cancelPaymentRequest(bytes32 id) internal {
         PaymentRequest storage request = paymentRequests[id];
 
-        if (request.status != RequestStatus.Opened) {
-            revert RequestIsNotOpened();
+        if (request.status == RequestStatus.Closed) {
+            revert RequestAlreadyCancelled();
         }
 
-        require(request.expiry > 0, "Expiry not set");
-
-        if (block.timestamp < request.expiry) {
+        if (request.expiry == 0 || request.expiry > block.timestamp) {
             revert RequestNotExpired();
         }
 

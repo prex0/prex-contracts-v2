@@ -41,6 +41,7 @@ contract MultiPrizeLottery is BaseHandler {
         address owner,
         address recipient,
         uint256 entryFee,
+        uint256 expiry,
         string name,
         uint256[] prizeCounts,
         string[] prizeNames,
@@ -56,6 +57,9 @@ contract MultiPrizeLottery is BaseHandler {
     error LotteryNotFound();
     error LotteryNotActive();
     error LotteryAlreadyExists();
+    error LotteryExpired();
+    error LotteryNotExpired();
+    error LotteryAlreadyCancelled();
 
     modifier onlyLotteryOwner(bytes32 _lotteryId) {
         if (msg.sender != lotteries[_lotteryId].owner) {
@@ -97,9 +101,10 @@ contract MultiPrizeLottery is BaseHandler {
         emit LotteryCreated(
             lotteryId,
             order.token,
-            order.sender,
+            order.orderInfo.sender,
             order.recipient,
             order.entryFee,
+            order.expiry,
             order.name,
             order.prizeCounts,
             order.prizeNames,
@@ -122,6 +127,34 @@ contract MultiPrizeLottery is BaseHandler {
      * @param _lotteryId くじのID
      */
     function cancelLottery(bytes32 _lotteryId) external onlyLotteryOwner(_lotteryId) {
+        if (!lotteries[_lotteryId].active) {
+            revert LotteryAlreadyCancelled();
+        }
+
+        lotteries[_lotteryId].active = false;
+
+        emit LotteryCancelled(_lotteryId);
+    }
+
+    /**
+     * @notice 複数のくじをキャンセル
+     * @param _lotteryIds くじのID
+     */
+    function batchCancelLottery(bytes32[] memory _lotteryIds) external {
+        for (uint256 i = 0; i < _lotteryIds.length; i++) {
+            _cancelExpiredLottery(_lotteryIds[i]);
+        }
+    }
+
+    function _cancelExpiredLottery(bytes32 _lotteryId) internal {
+        if (!lotteries[_lotteryId].active) {
+            revert LotteryAlreadyCancelled();
+        }
+
+        if (block.timestamp < lotteries[_lotteryId].expiry) {
+            revert LotteryNotExpired();
+        }
+
         lotteries[_lotteryId].active = false;
 
         emit LotteryCancelled(_lotteryId);
@@ -134,6 +167,10 @@ contract MultiPrizeLottery is BaseHandler {
         returns (OrderReceipt memory)
     {
         LotteryLib.Lottery storage lottery = lotteries[order.lotteryId];
+
+        if (block.timestamp > lottery.expiry) {
+            revert LotteryExpired();
+        }
 
         require(lottery.remainingTickets > 0, "No tickets left");
 
@@ -191,22 +228,22 @@ contract MultiPrizeLottery is BaseHandler {
     }
 
     function _verifyCreateOrder(CreateLotteryOrder memory order, bytes memory sig) internal {
-        if (address(this) != address(order.dispatcher)) {
+        if (address(this) != address(order.orderInfo.dispatcher)) {
             revert IOrderHandler.InvalidDispatcher();
         }
 
-        if (block.timestamp > order.deadline) {
+        if (block.timestamp > order.orderInfo.deadline) {
             revert IOrderHandler.DeadlinePassed();
         }
 
         permit2.permitWitnessTransferFrom(
             ISignatureTransfer.PermitTransferFrom({
                 permitted: ISignatureTransfer.TokenPermissions({token: address(order.token), amount: 0}),
-                nonce: order.nonce,
-                deadline: order.deadline
+                nonce: order.orderInfo.nonce,
+                deadline: order.orderInfo.deadline
             }),
             ISignatureTransfer.SignatureTransferDetails({to: address(this), requestedAmount: 0}),
-            order.sender,
+            order.orderInfo.sender,
             order.hash(),
             CreateLotteryOrderLib.PERMIT2_ORDER_TYPE,
             sig

@@ -57,16 +57,19 @@ contract TestLotteryDraw is LotterySetup {
         prizeNames[1] = "prize2";
 
         return CreateLotteryOrder({
-            policyId: 0,
-            dispatcher: address(lotteryHandler),
+            orderInfo: OrderInfo({
+                policyId: 0,
+                dispatcher: address(lotteryHandler),
+                sender: sender,
+                deadline: _deadline,
+                nonce: _nonce
+            }),
             isPrepaid: _isPrepaid,
-            sender: sender,
             recipient: sender,
-            deadline: _deadline,
-            nonce: _nonce,
             token: address(token),
             name: "test",
             entryFee: 1e18,
+            expiry: 100,
             prizeCounts: prizeCounts,
             prizeNames: prizeNames
         });
@@ -136,6 +139,17 @@ contract TestLotteryDraw is LotterySetup {
         bytes memory sig = _sign(drawOrder, address(token), 1e18, drawerPrivKey);
 
         vm.expectRevert(MultiPrizeLottery.LotteryNotActive.selector);
+        _drawLottery(drawOrder, sig);
+    }
+
+    function testCannotDrawLottery_IfLotteryIsExpired() public {
+        vm.warp(102);
+
+        DrawLotteryOrder memory drawOrder = _getRequest(lotteryIdFalse, drawer, block.timestamp + 100);
+
+        bytes memory sig = _sign(drawOrder, address(token), 1e18, drawerPrivKey);
+
+        vm.expectRevert(MultiPrizeLottery.LotteryExpired.selector);
         _drawLottery(drawOrder, sig);
     }
 }

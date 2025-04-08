@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 import {Test} from "forge-std/Test.sol";
 import {LotteryLib} from "../../../src/handlers/lottery/LotteryLib.sol";
 import {CreateLotteryOrder, CreateLotteryOrderLib} from "../../../src/handlers/lottery/orders/CreateLotteryOrder.sol";
+import {OrderInfo} from "../../../src/libraries/OrderInfo.sol";
 
 contract LotteryLibTest is Test {
     LotteryLib.Lottery public lottery2;
@@ -19,16 +20,19 @@ contract LotteryLibTest is Test {
         returns (CreateLotteryOrder memory)
     {
         return CreateLotteryOrder({
-            policyId: 0,
-            dispatcher: address(this),
+            orderInfo: OrderInfo({
+                policyId: 0,
+                dispatcher: address(this),
+                sender: address(this),
+                deadline: block.timestamp + 100,
+                nonce: 0
+            }),
             isPrepaid: false,
-            sender: address(this),
             recipient: address(this),
-            deadline: block.timestamp + 100,
-            nonce: 0,
             token: address(0),
             name: "test",
             entryFee: 1e18,
+            expiry: block.timestamp + 100,
             prizeCounts: prizeCounts,
             prizeNames: prizeNames
         });

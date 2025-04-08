@@ -98,8 +98,8 @@ contract LotterySetup is Test, TestUtils {
     {
         return ISignatureTransfer.PermitTransferFrom({
             permitted: ISignatureTransfer.TokenPermissions({token: request.token, amount: 0}),
-            nonce: request.nonce,
-            deadline: request.deadline
+            nonce: request.orderInfo.nonce,
+            deadline: request.orderInfo.deadline
         });
     }
 

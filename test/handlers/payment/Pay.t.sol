@@ -50,7 +50,7 @@ contract PaymentTest is PaymentSetup {
             }),
             recipient: recipient,
             amount: 1e18,
-            expiry: block.timestamp + 100,
+            expiry: 100,
             token: address(mockToken),
             name: "test",
             isPrepaid: false,
@@ -112,6 +112,26 @@ contract PaymentTest is PaymentSetup {
                 bytes("")
             );
         }
+    }
+
+    function testCannotPay_IfRequestExpired() public {
+        vm.warp(102);
+
+        PaymentOrder memory order = _getPaymentOrder(user, 1, 2);
+
+        vm.expectRevert(PaymentRequestDispatcher.RequestExpired.selector);
+        paymentRequestHandler.execute(
+            address(this),
+            SignedOrder({
+                dispatcher: address(paymentRequestHandler),
+                methodId: 2,
+                order: abi.encode(order),
+                signature: _sign(order, address(mockToken), 1e18, userPrivateKey),
+                appSig: bytes(""),
+                identifier: bytes32(0)
+            }),
+            bytes("")
+        );
     }
 
     function _getPaymentOrder(address _sender, uint256 _deadline, uint256 _nonce)

@@ -44,16 +44,13 @@ contract TestLotteryCancel is LotterySetup {
         prizeNames[1] = "prize2";
 
         return CreateLotteryOrder({
-            policyId: 0,
-            dispatcher: _dispatcher,
+            orderInfo: OrderInfo({dispatcher: _dispatcher, policyId: 0, sender: sender, deadline: _deadline, nonce: 0}),
             isPrepaid: false,
-            sender: sender,
             recipient: sender,
-            deadline: _deadline,
-            nonce: 0,
             token: address(token),
             name: "test",
             entryFee: 1e18,
+            expiry: 100,
             prizeCounts: prizeCounts,
             prizeNames: prizeNames
         });
@@ -67,5 +64,22 @@ contract TestLotteryCancel is LotterySetup {
     function testCannotCancelLottery_IfCallerIsNotLotteryOwner() public {
         vm.expectRevert(MultiPrizeLottery.CallerIsNotLotteryOwner.selector);
         lotteryHandler.cancelLottery(lotteryId);
+    }
+
+    function testCancelBatchLottery() public {
+        bytes32[] memory lotteryIds = new bytes32[](1);
+        lotteryIds[0] = lotteryId;
+
+        vm.expectRevert(MultiPrizeLottery.LotteryNotExpired.selector);
+        lotteryHandler.batchCancelLottery(lotteryIds);
+    }
+
+    function testCancelBatchLottery_RevertIfLotteryIsNotExpired() public {
+        vm.warp(102);
+
+        bytes32[] memory lotteryIds = new bytes32[](1);
+        lotteryIds[0] = lotteryId;
+
+        lotteryHandler.batchCancelLottery(lotteryIds);
     }
 }

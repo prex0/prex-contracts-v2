@@ -23,6 +23,7 @@ library LotteryLib {
         string name;
         uint256 totalTickets;
         uint256 remainingTickets;
+        uint256 expiry;
         bool active;
         Prize[8] prizes;
     }
@@ -30,13 +31,14 @@ library LotteryLib {
     function create(CreateLotteryOrder memory order) internal pure returns (Lottery memory) {
         Lottery memory newLottery;
 
-        newLottery.policyId = order.policyId;
+        newLottery.policyId = order.orderInfo.policyId;
         newLottery.isPrepaid = order.isPrepaid;
-        newLottery.owner = order.sender;
+        newLottery.owner = order.orderInfo.sender;
         newLottery.recipient = order.recipient;
         newLottery.token = order.token;
         newLottery.entryFee = order.entryFee;
         newLottery.active = true;
+        newLottery.expiry = order.expiry;
         newLottery.name = order.name;
 
         uint256 totalTickets = 0;

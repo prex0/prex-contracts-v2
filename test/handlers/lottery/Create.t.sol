@@ -24,16 +24,19 @@ contract TestLotteryRequestDispatcherSubmit is LotterySetup {
         prizeNames[1] = "prize2";
 
         return CreateLotteryOrder({
-            policyId: 0,
-            dispatcher: address(lotteryHandler),
+            orderInfo: OrderInfo({
+                dispatcher: address(lotteryHandler),
+                policyId: 0,
+                sender: sender,
+                deadline: _deadline,
+                nonce: 0
+            }),
             isPrepaid: _isPrepaid,
-            sender: sender,
             recipient: sender,
-            deadline: _deadline,
-            nonce: 0,
             token: address(token),
             name: "test",
             entryFee: 1,
+            expiry: _deadline,
             prizeCounts: prizeCounts,
             prizeNames: prizeNames
         });
