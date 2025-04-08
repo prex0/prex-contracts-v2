@@ -29,16 +29,16 @@ contract DeployPumHandlerScript is Script {
 
     address public constant DEPLOYER = 0x4e59b44847b379578588920cA78FbF26c0B4956C;
 
-    address public constant PREX_POINT = 0xf32512641F9584b602900791390717b650A93A31;
+    address public constant PREX_POINT = 0xC2835f0fC2f63AB2057F6e74fA213B6a0cE04C4A;
 
-    address public constant ORDER_EXECUTOR = 0x1e2F0cF2f6E51103075fA6beB605bA5C898c5e2B;
+    address public constant ORDER_EXECUTOR = 0x06145CfE8bCEE920088bfe240817b6C9473C9cf3;
 
     function run() public {
         vm.startBroadcast();
 
         // Deploy Creator Token Issue Handler
         IssueCreatorTokenHandler issueCreatorTokenHandler = new IssueCreatorTokenHandler{
-            salt: keccak256("IssueCreatorTokenHandler2")
+            salt: keccak256("Ver3")
         }(msg.sender, PREX_POINT, POSITION_MANAGER, TOKEN_REGISTRY, CREATOR_TOKEN_FACTORY, PERMIT2_ADDRESS);
 
         issueCreatorTokenHandler.setDai(DAI_ADDRESS);

@@ -29,7 +29,7 @@ contract DeployLoyaltyHandlerScript is Script {
 
         // Deploy Loyalty Point and Market
         BuyLoyaltyPointHandler loyaltyPointHandler = new BuyLoyaltyPointHandler{
-            salt: keccak256("BuyLoyaltyPointHandler2")
+            salt: keccak256("Ver3")
         }(msg.sender, PERMIT2_ADDRESS, OWNER_ADDRESS);
 
         loyaltyPointHandler.addMinter(POINT_MINTER);
@@ -41,7 +41,7 @@ contract DeployLoyaltyHandlerScript is Script {
 
         // Deploy Loyalty Token Issue Handler
         IssueLoyaltyTokenHandler issueLoyaltyTokenHandler = new IssueLoyaltyTokenHandler{
-            salt: keccak256("IssueLoyaltyTokenHandler2")
+            salt: keccak256("Ver3")
         }(msg.sender, address(loyaltyPointHandler.point()), TOKEN_REGISTRY, LOYALTY_TOKEN_FACTORY, PERMIT2_ADDRESS);
 
         issueLoyaltyTokenHandler.setDai(DAI_ADDRESS);

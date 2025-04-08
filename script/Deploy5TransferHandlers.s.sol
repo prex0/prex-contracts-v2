@@ -10,13 +10,13 @@ contract DeployTransferHandlersScript is Script {
 
     address public constant PERMIT2_ADDRESS = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
 
-    address public constant ORDER_EXECUTOR = 0x1e2F0cF2f6E51103075fA6beB605bA5C898c5e2B;
+    address public constant ORDER_EXECUTOR = 0x06145CfE8bCEE920088bfe240817b6C9473C9cf3;
 
     function run() public {
         vm.startBroadcast();
 
         LinkTransferHandler linkTransferHandler =
-            new LinkTransferHandler{salt: keccak256("LinkTransferHandler3")}(PERMIT2_ADDRESS, msg.sender);
+            new LinkTransferHandler{salt: keccak256("Ver3")}(PERMIT2_ADDRESS, msg.sender);
 
         linkTransferHandler.setOrderExecutor(ORDER_EXECUTOR);
 
@@ -25,7 +25,7 @@ contract DeployTransferHandlersScript is Script {
         console.log("LinkTransferHandler deployed at", address(linkTransferHandler));
 
         TransferRequestHandler transferRequestHandler =
-            new TransferRequestHandler{salt: keccak256("TransferRequestHandler3")}(PERMIT2_ADDRESS, msg.sender);
+            new TransferRequestHandler{salt: keccak256("Ver3")}(PERMIT2_ADDRESS, msg.sender);
 
         transferRequestHandler.setOrderExecutor(ORDER_EXECUTOR);
 

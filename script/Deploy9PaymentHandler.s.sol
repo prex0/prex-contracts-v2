@@ -9,13 +9,13 @@ contract DeployHandlersScript is Script {
 
     address public constant PERMIT2_ADDRESS = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
 
-    address public constant ORDER_EXECUTOR = 0x1e2F0cF2f6E51103075fA6beB605bA5C898c5e2B;
+    address public constant ORDER_EXECUTOR = 0x06145CfE8bCEE920088bfe240817b6C9473C9cf3;
 
     function run() public {
         vm.startBroadcast();
 
         PaymentRequestHandler paymentRequestHandler =
-            new PaymentRequestHandler{salt: keccak256("PaymentRequestHandler3")}(PERMIT2_ADDRESS, msg.sender);
+            new PaymentRequestHandler{salt: keccak256("Ver3")}(PERMIT2_ADDRESS, msg.sender);
 
         paymentRequestHandler.setOrderExecutor(ORDER_EXECUTOR);
 
