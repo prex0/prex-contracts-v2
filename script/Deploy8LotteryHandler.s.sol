@@ -14,8 +14,7 @@ contract DeployHandlersScript is Script {
     function run() public {
         vm.startBroadcast();
 
-        LotteryHandler lotteryHandler =
-            new LotteryHandler{salt: keccak256("Ver3")}(PERMIT2_ADDRESS, msg.sender);
+        LotteryHandler lotteryHandler = new LotteryHandler{salt: keccak256("Ver3")}(PERMIT2_ADDRESS, msg.sender);
 
         lotteryHandler.setOrderExecutor(ORDER_EXECUTOR);
 

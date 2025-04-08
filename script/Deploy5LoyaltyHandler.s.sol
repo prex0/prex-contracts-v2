@@ -28,9 +28,8 @@ contract DeployLoyaltyHandlerScript is Script {
         vm.startBroadcast();
 
         // Deploy Loyalty Point and Market
-        BuyLoyaltyPointHandler loyaltyPointHandler = new BuyLoyaltyPointHandler{
-            salt: keccak256("Ver3")
-        }(msg.sender, PERMIT2_ADDRESS, OWNER_ADDRESS);
+        BuyLoyaltyPointHandler loyaltyPointHandler =
+            new BuyLoyaltyPointHandler{salt: keccak256("Ver3")}(msg.sender, PERMIT2_ADDRESS, OWNER_ADDRESS);
 
         loyaltyPointHandler.addMinter(POINT_MINTER);
 
@@ -40,9 +39,9 @@ contract DeployLoyaltyHandlerScript is Script {
         console.log("LOYALTY Point deployed at", address(loyaltyPointHandler.point()));
 
         // Deploy Loyalty Token Issue Handler
-        IssueLoyaltyTokenHandler issueLoyaltyTokenHandler = new IssueLoyaltyTokenHandler{
-            salt: keccak256("Ver3")
-        }(msg.sender, address(loyaltyPointHandler.point()), TOKEN_REGISTRY, LOYALTY_TOKEN_FACTORY, PERMIT2_ADDRESS);
+        IssueLoyaltyTokenHandler issueLoyaltyTokenHandler = new IssueLoyaltyTokenHandler{salt: keccak256("Ver3")}(
+            msg.sender, address(loyaltyPointHandler.point()), TOKEN_REGISTRY, LOYALTY_TOKEN_FACTORY, PERMIT2_ADDRESS
+        );
 
         issueLoyaltyTokenHandler.setDai(DAI_ADDRESS);
 

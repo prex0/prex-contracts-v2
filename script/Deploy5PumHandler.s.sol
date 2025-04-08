@@ -37,9 +37,9 @@ contract DeployPumHandlerScript is Script {
         vm.startBroadcast();
 
         // Deploy Creator Token Issue Handler
-        IssueCreatorTokenHandler issueCreatorTokenHandler = new IssueCreatorTokenHandler{
-            salt: keccak256("Ver3")
-        }(msg.sender, PREX_POINT, POSITION_MANAGER, TOKEN_REGISTRY, CREATOR_TOKEN_FACTORY, PERMIT2_ADDRESS);
+        IssueCreatorTokenHandler issueCreatorTokenHandler = new IssueCreatorTokenHandler{salt: keccak256("Ver3")}(
+            msg.sender, PREX_POINT, POSITION_MANAGER, TOKEN_REGISTRY, CREATOR_TOKEN_FACTORY, PERMIT2_ADDRESS
+        );
 
         issueCreatorTokenHandler.setDai(DAI_ADDRESS);
 

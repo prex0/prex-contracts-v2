@@ -12,32 +12,25 @@ contract OrderExecutorScript is Script {
     OrderExecutor public orderExecutor;
 
     // Constant address for the owner of the deployed contracts, ensuring control and management by a specific entity
-    address public constant OWNER_ADDRESS =
-        0x51B89C499F3038756Eff64a0EF52d753147EAd75;
+    address public constant OWNER_ADDRESS = 0x51B89C499F3038756Eff64a0EF52d753147EAd75;
 
     // Constant address for the Permit2 contract, which is required for handling permissions within the system
-    address public constant PERMIT2_ADDRESS =
-        0x000000000022D473030F116dDEE9F6B43aC78BA3;
+    address public constant PERMIT2_ADDRESS = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
 
-    address public constant POINT_MINTER =
-        0xAd77509161a564cF02790E12d56928940a556cbB;
+    address public constant POINT_MINTER = 0xAd77509161a564cF02790E12d56928940a556cbB;
 
     // Main function to deploy the contracts, ensuring they are initialized and linked properly
     function run() public {
         vm.startBroadcast();
 
         // Deploy the BuyPrexPointHandler contract with a specific salt to ensure a predictable and deterministic address, which is crucial for contract interactions
-        BuyPrexPointHandler pointHandler = new BuyPrexPointHandler{
-            salt: keccak256("Ver3")
-        }(msg.sender, PERMIT2_ADDRESS, OWNER_ADDRESS);
+        BuyPrexPointHandler pointHandler =
+            new BuyPrexPointHandler{salt: keccak256("Ver3")}(msg.sender, PERMIT2_ADDRESS, OWNER_ADDRESS);
 
         pointHandler.addMinter(POINT_MINTER);
 
         // Deploy the OrderExecutor contract with a specific salt and link it to the point handler to ensure it can manage point-related operations
-        orderExecutor = new OrderExecutor{salt: keccak256("Ver3")}(
-            address(pointHandler.point()),
-            msg.sender
-        );
+        orderExecutor = new OrderExecutor{salt: keccak256("Ver3")}(address(pointHandler.point()), msg.sender);
 
         pointHandler.setConsumer(address(orderExecutor));
 
