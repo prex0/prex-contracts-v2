@@ -17,6 +17,8 @@ import {PumHook} from "../../../src/swap/hooks/PumHook.sol";
 import {ISwapRouter} from "../../../src/interfaces/ISwapRouter.sol";
 import {SwapRouterSetup} from "./Setup.t.sol";
 import {SignedOrder} from "../../../src/interfaces/IOrderExecutor.sol";
+import {LPFeeLibrary} from "v4-core/src/libraries/LPFeeLibrary.sol";
+import {PoolKey} from "v4-core/src/types/PoolKey.sol";
 
 interface IPositionManager {
     function poolManager() external view returns (address);
@@ -101,6 +103,21 @@ contract PumControllerTest is SwapRouterSetup {
         assertEq(dai.balanceOf(userAddress), 10000000000000000000);
     }
 
+    function testUpdateFee() public {
+        address creatorToken = pumController.issuePumToken(issuer, "PUM", "PUM", bytes32(0), "");
+
+        currency1 = Currency.wrap(address(creatorToken));
+
+        pumHook.setFee(_getPoolKey(), 100);
+
+        _buy(2000 * 1e6, creatorToken, 1246110 * 1e18);
+
+        // 手数料を0.01%に設定したので、ユーザーには約124万トークンが入る
+        assertEq(IERC20(creatorToken).balanceOf(userAddress), 1246110 * 1e18);
+        // 手数料
+        assertLt(IERC20(creatorToken).balanceOf(address(swapHandler)), 1e18);
+    }
+
     function _buy(uint256 amountIn, address creatorToken, uint256 amountOut) internal {
         Currency[] memory tokenPath = new Currency[](2);
         tokenPath[0] = currency0;
@@ -175,12 +192,38 @@ contract PumControllerTest is SwapRouterSetup {
     {
         PathKey[] memory path = new PathKey[](_tokenPath.length - 1);
         for (uint256 i = 0; i < _tokenPath.length - 1; i++) {
-            path[i] = PathKey(_tokenPath[i + 1], 60_000, 300, IHooks(address(pumHook)), bytes(""));
+            path[i] = PathKey(
+                _tokenPath[i + 1],
+                LPFeeLibrary.DYNAMIC_FEE_FLAG,
+                300,
+                IHooks(address(pumHook)),
+                bytes("")
+            );
         }
 
         params.currencyIn = _tokenPath[0];
         params.path = path;
         params.amountIn = uint128(amountIn);
         params.amountOutMinimum = 0;
+    }
+
+    function _getPoolKey() internal view returns (PoolKey memory) {
+        if (currency0 < currency1) {
+            return PoolKey({
+                currency0: currency0,
+                currency1: currency1,
+                fee: LPFeeLibrary.DYNAMIC_FEE_FLAG,
+                tickSpacing: 300,
+                hooks: IHooks(address(pumHook))
+            });
+        } else {
+            return PoolKey({
+                currency0: currency1,
+                currency1: currency0,
+                fee: LPFeeLibrary.DYNAMIC_FEE_FLAG,
+                tickSpacing: 300,
+                hooks: IHooks(address(pumHook))
+            });
+        }
     }
 }

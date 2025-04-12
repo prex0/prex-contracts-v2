@@ -14,6 +14,7 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IPermit2} from "../../lib/permit2/src/interfaces/IPermit2.sol";
 import {CreatorTokenFactory} from "../token-factory/CreatorTokenFactory.sol";
 import {PumHook} from "./hooks/PumHook.sol";
+import {LPFeeLibrary} from "v4-core/src/libraries/LPFeeLibrary.sol";
 
 interface IPositionManager {
     function nextTokenId() external view returns (uint256);
@@ -139,8 +140,8 @@ contract PumController is PumConverter {
         return PoolKey({
             currency0: currency0,
             currency1: currency1,
-            // 6.0%
-            fee: 60_000,
+            // dynamic fee
+            fee: LPFeeLibrary.DYNAMIC_FEE_FLAG,
             tickSpacing: 300,
             hooks: IHooks(address(pumHook))
         });

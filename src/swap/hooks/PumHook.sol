@@ -51,6 +51,10 @@ contract PumHook is BaseHook, Owned {
         _updateMarketStatus(creatorToken, isSellable);
     }
 
+    function setFee(PoolKey calldata key, uint24 newFee) external onlyOwner {
+        poolManager.updateDynamicLPFee(key, newFee);
+    }
+
     function _getMinSqrtPriceX96(bool isToken0Carry) internal view returns (uint160) {
         if (isToken0Carry) {
             return maxSqrtPriceX96ByCreator;
@@ -63,7 +67,7 @@ contract PumHook is BaseHook, Owned {
     function getHookPermissions() public pure override returns (Hooks.Permissions memory) {
         return Hooks.Permissions({
             beforeInitialize: false,
-            afterInitialize: false,
+            afterInitialize: true,
             beforeAddLiquidity: false,
             afterAddLiquidity: false,
             beforeRemoveLiquidity: false,
@@ -77,6 +81,13 @@ contract PumHook is BaseHook, Owned {
             afterAddLiquidityReturnDelta: false,
             afterRemoveLiquidityReturnDelta: false
         });
+    }
+
+    function _afterInitialize(address, PoolKey calldata key, uint160, int24) internal override returns (bytes4) {
+        // 初期化時に手数料を6.0%に設定
+        poolManager.updateDynamicLPFee(key, 60000);
+
+        return BaseHook.afterInitialize.selector;
     }
 
     function _beforeSwap(address, PoolKey calldata key, IPoolManager.SwapParams calldata swapParams, bytes calldata)

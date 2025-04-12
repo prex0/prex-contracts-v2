@@ -212,7 +212,7 @@ contract SwapRouterSetup is Test, TestUtils {
     }
 
     function _mineAddress() internal view returns (address, bytes32) {
-        uint160 flags = uint160(Hooks.BEFORE_SWAP_FLAG | Hooks.AFTER_SWAP_FLAG);
+        uint160 flags = uint160(Hooks.BEFORE_SWAP_FLAG | Hooks.AFTER_SWAP_FLAG | Hooks.AFTER_INITIALIZE_FLAG);
         bytes memory constructorArgs = abi.encode(
             address(0x9a13F98Cb987694C9F086b1F5eB990EeA8264Ec3), address(pumController.carryToken()), address(this)
         );
