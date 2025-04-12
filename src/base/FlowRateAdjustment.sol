@@ -16,7 +16,9 @@ abstract contract FlowRateAdjustment is BaseConverter {
 
     error ExceedFlowRate(uint256 amount, uint256 flowRate);
 
-    constructor(address _owner) BaseConverter(_owner) {}
+    function __FlowRateAdjustment_init(address _owner) internal onlyInitializing {
+        __BaseConverter_init(_owner);
+    }
 
     function setFlowRate(uint256 _flowRate) external onlyOwner {
         flowRate = _flowRate;

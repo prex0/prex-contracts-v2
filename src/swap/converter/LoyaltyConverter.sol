@@ -12,7 +12,7 @@ contract LoyaltyConverter is FlowRateAdjustment {
     using PriceLibrary for uint256;
     using BipsLibrary for uint256;
 
-    address public immutable loyaltyPoint;
+    address public loyaltyPoint;
 
     // jpy price by dai (150 jpy = 1 dai)
     uint256 public priceJpyByDai = 6667 * 1e12;
@@ -25,7 +25,8 @@ contract LoyaltyConverter is FlowRateAdjustment {
     event PriceUpdated(uint256 newPrice);
     event FeeRateUpdated(uint256 newFeeRate);
 
-    constructor(address _owner, address _loyaltyPoint) FlowRateAdjustment(_owner) {
+    function __LoyaltyConverter_init(address _owner, address _loyaltyPoint) internal onlyInitializing {
+        __FlowRateAdjustment_init(_owner);
         loyaltyPoint = _loyaltyPoint;
     }
 

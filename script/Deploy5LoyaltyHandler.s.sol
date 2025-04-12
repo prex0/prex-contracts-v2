@@ -8,8 +8,7 @@ import {BuyLoyaltyPointHandler} from "../src/handlers/point/BuyLoyaltyPointHandl
 import {IssueCreatorTokenHandler} from "../src/handlers/token/IssueCreatorTokenHandler.sol";
 import {IssueTokenHandler} from "../src/handlers/token/IssueTokenHandler.sol";
 import {IssueLoyaltyTokenHandler} from "../src/handlers/token/IssueLoyaltyTokenHandler.sol";
-import {PumHook} from "../src/swap/hooks/PumHook.sol";
-import {Hooks} from "v4-core/src/libraries/Hooks.sol";
+import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 contract DeployLoyaltyHandlerScript is Script {
     address public constant OWNER_ADDRESS = 0x51B89C499F3038756Eff64a0EF52d753147EAd75;
@@ -39,13 +38,26 @@ contract DeployLoyaltyHandlerScript is Script {
         console.log("LOYALTY Point deployed at", address(loyaltyPointHandler.point()));
 
         // Deploy Loyalty Token Issue Handler
-        IssueLoyaltyTokenHandler issueLoyaltyTokenHandler = new IssueLoyaltyTokenHandler{salt: keccak256("Ver3")}(
-            msg.sender, address(loyaltyPointHandler.point()), TOKEN_REGISTRY, LOYALTY_TOKEN_FACTORY, PERMIT2_ADDRESS
+        IssueLoyaltyTokenHandler issueLoyaltyTokenHandler = new IssueLoyaltyTokenHandler{salt: keccak256("Ver1")}();
+
+        bytes memory initData = abi.encodeWithSelector(
+            IssueLoyaltyTokenHandler.initialize.selector,
+            msg.sender,
+            address(loyaltyPointHandler.point()),
+            TOKEN_REGISTRY,
+            LOYALTY_TOKEN_FACTORY,
+            PERMIT2_ADDRESS
         );
 
-        issueLoyaltyTokenHandler.setDai(DAI_ADDRESS);
+        TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
+            address(issueLoyaltyTokenHandler),
+            OWNER_ADDRESS,
+            initData
+        );
 
-        issueLoyaltyTokenHandler.transferOwnership(OWNER_ADDRESS);
+        IssueLoyaltyTokenHandler(address(proxy)).setDai(DAI_ADDRESS);
+
+        IssueLoyaltyTokenHandler(address(proxy)).transferOwnership(OWNER_ADDRESS);
 
         console.log("IssueLoyaltyTokenHandler deployed at", address(issueLoyaltyTokenHandler));
 

@@ -1,16 +1,18 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
-import {Owned} from "solmate/src/auth/Owned.sol";
 import {IERC20} from "../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {OwnableUpgradeable} from "../../lib/openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
 
 /**
  * @notice BaseConverter is a base contract for Converter.
  */
-abstract contract BaseConverter is Owned {
+abstract contract BaseConverter is OwnableUpgradeable {
     IERC20 public dai;
 
-    constructor(address _owner) Owned(_owner) {}
+    function __BaseConverter_init(address _owner) internal onlyInitializing {
+        __Ownable_init(_owner);
+    }
 
     /**
      * @notice Set the DAI address

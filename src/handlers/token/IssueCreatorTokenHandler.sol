@@ -30,14 +30,12 @@ contract IssueCreatorTokenHandler is IOrderHandler, PumController {
         _;
     }
 
-    constructor(
-        address owner,
-        address _prexPoint,
-        address _positionManager,
-        address _tokenRegistry,
-        address _creatorTokenFactory,
-        address _permit2
-    ) PumController(owner, _prexPoint, _positionManager, _tokenRegistry, _creatorTokenFactory, _permit2) {}
+    function initialize(address _owner, address _prexPoint, address _positionManager, address _tokenRegistry, address _creatorTokenFactory, address _permit2)
+        external
+        initializer
+    {
+        __PumController_init(_owner, _prexPoint, _positionManager, _tokenRegistry, _creatorTokenFactory, _permit2);
+    }
 
     /**
      * @notice ポイントを設定する

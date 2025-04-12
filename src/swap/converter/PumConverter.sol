@@ -10,15 +10,16 @@ import {FlowRateAdjustment} from "../../base/FlowRateAdjustment.sol";
 contract PumConverter is FlowRateAdjustment {
     using PriceLibrary for uint256;
 
-    CarryToken public immutable carryToken;
-    IPrexPoints public immutable pumPoint;
+    CarryToken public carryToken;
+    IPrexPoints public pumPoint;
 
     // point price by DAI
     uint256 public pricePointByDai = 1e30 / 200;
 
     event PriceUpdated(uint256 newPrice);
 
-    constructor(address _owner, address _prexPoint) FlowRateAdjustment(_owner) {
+    function __PumConverter_init(address _owner, address _prexPoint) internal onlyInitializing {
+        __FlowRateAdjustment_init(_owner);
         carryToken = new CarryToken(address(this));
         pumPoint = IPrexPoints(_prexPoint);
     }

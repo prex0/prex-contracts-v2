@@ -11,6 +11,7 @@ import {IssueLoyaltyTokenHandler} from "../src/handlers/token/IssueLoyaltyTokenH
 import {PumHook} from "../src/swap/hooks/PumHook.sol";
 import {Hooks} from "v4-core/src/libraries/Hooks.sol";
 import {HookMiner} from "v4-periphery/src/utils/HookMiner.sol";
+import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 contract DeployPumHandlerScript is Script {
     address public constant OWNER_ADDRESS = 0x51B89C499F3038756Eff64a0EF52d753147EAd75;
@@ -37,19 +38,33 @@ contract DeployPumHandlerScript is Script {
         vm.startBroadcast();
 
         // Deploy Creator Token Issue Handler
-        IssueCreatorTokenHandler issueCreatorTokenHandler = new IssueCreatorTokenHandler{salt: keccak256("Ver3")}(
-            msg.sender, PREX_POINT, POSITION_MANAGER, TOKEN_REGISTRY, CREATOR_TOKEN_FACTORY, PERMIT2_ADDRESS
+        IssueCreatorTokenHandler issueCreatorTokenHandler = new IssueCreatorTokenHandler{salt: keccak256("Ver1")}();
+
+        bytes memory initData = abi.encodeWithSelector(
+            IssueCreatorTokenHandler.initialize.selector,
+            msg.sender,
+            PREX_POINT,
+            POSITION_MANAGER,
+            TOKEN_REGISTRY,
+            CREATOR_TOKEN_FACTORY,
+            PERMIT2_ADDRESS
         );
 
-        issueCreatorTokenHandler.setDai(DAI_ADDRESS);
+        TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
+            address(issueCreatorTokenHandler),
+            OWNER_ADDRESS,
+            initData
+        );
+
+        IssueCreatorTokenHandler(address(proxy)).setDai(DAI_ADDRESS);
 
         (, bytes32 pumHookSalt) = _mineAddress(address(issueCreatorTokenHandler.carryToken()));
         PumHook pumHook =
             new PumHook{salt: pumHookSalt}(POOL_MANAGER, address(issueCreatorTokenHandler.carryToken()), OWNER_ADDRESS);
 
-        issueCreatorTokenHandler.setPumHook(address(pumHook));
-        issueCreatorTokenHandler.setOrderExecutor(ORDER_EXECUTOR);
-        issueCreatorTokenHandler.transferOwnership(OWNER_ADDRESS);
+        IssueCreatorTokenHandler(address(proxy)).setPumHook(address(pumHook));
+        IssueCreatorTokenHandler(address(proxy)).setOrderExecutor(ORDER_EXECUTOR);
+        IssueCreatorTokenHandler(address(proxy)).transferOwnership(OWNER_ADDRESS);
 
         console.log("IssueCreatorTokenHandler deployed at", address(issueCreatorTokenHandler));
         console.log("PumHook deployed at", address(pumHook));

@@ -17,8 +17,8 @@ import {LoyaltyController} from "../../swap/LoyaltyController.sol";
 contract IssueLoyaltyTokenHandler is IOrderHandler, LoyaltyController {
     using IssueMintableTokenRequestLib for IssueMintableTokenRequest;
 
-    IPermit2 public immutable permit2;
-    ITokenRegistry public immutable tokenRegistry;
+    IPermit2 public permit2;
+    ITokenRegistry public tokenRegistry;
 
     uint256 constant POINTS = 10;
 
@@ -26,13 +26,11 @@ contract IssueLoyaltyTokenHandler is IOrderHandler, LoyaltyController {
         address indexed loyaltyToken, address indexed issuer, string name, string symbol, bytes32 orderHash
     );
 
-    constructor(
-        address owner,
-        address _loyaltyPoint,
-        address _tokenRegistry,
-        address _loyaltyTokenFactory,
-        address _permit2
-    ) LoyaltyController(owner, _loyaltyPoint, _loyaltyTokenFactory) {
+    function initialize(address _owner, address _loyaltyPoint, address _tokenRegistry, address _loyaltyTokenFactory, address _permit2)
+        external
+        initializer
+    {
+        __LoyaltyController_init(_owner, _loyaltyPoint, _loyaltyTokenFactory);
         permit2 = IPermit2(_permit2);
         tokenRegistry = ITokenRegistry(_tokenRegistry);
     }

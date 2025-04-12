@@ -40,15 +40,13 @@ contract PumController is PumConverter {
     event TokenIssued(
         address indexed communityToken, address indexed issuer, string name, string symbol, uint256 amountCT
     );
+    
+    function __PumController_init(address _owner, address _prexPoint, address _positionManager, address _tokenRegistry, address _creatorTokenFactory, address _permit2)
+        internal
+        onlyInitializing
+    {
+        __PumConverter_init(_owner, _prexPoint);
 
-    constructor(
-        address _owner,
-        address _prexPoint,
-        address _positionManager,
-        address _tokenRegistry,
-        address _creatorTokenFactory,
-        address _permit2
-    ) PumConverter(_owner, _prexPoint) {
         positionManager = _positionManager;
         tokenRegistry = _tokenRegistry;
         permit2 = IPermit2(_permit2);

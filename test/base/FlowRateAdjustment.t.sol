@@ -5,7 +5,9 @@ import {Test} from "forge-std/Test.sol";
 import {FlowRateAdjustment} from "../../src/base/FlowRateAdjustment.sol";
 
 contract WrapperFlowRateAdjustment is FlowRateAdjustment {
-    constructor(address _owner) FlowRateAdjustment(_owner) {}
+    function __WrapperFlowRateAdjustment_init(address _owner) public initializer {
+        __FlowRateAdjustment_init(_owner);
+    }
 
     function throwAmount(uint256 amount) external {
         checkFlowRate(amount);
@@ -18,7 +20,8 @@ contract FlowRateAdjustmentTest is Test {
     address public owner = vm.addr(5);
 
     function setUp() public virtual {
-        wrapper = new WrapperFlowRateAdjustment(owner);
+        wrapper = new WrapperFlowRateAdjustment();
+        wrapper.__WrapperFlowRateAdjustment_init(owner);
 
         vm.startPrank(owner);
         wrapper.setFlowRate(1000);

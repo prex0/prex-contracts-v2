@@ -15,16 +15,18 @@ contract LoyaltyController is LoyaltyConverter {
 
     error SymbolAlreadyUsed(string symbol);
 
-    LoyaltyTokenFactory public immutable loyaltyTokenFactory;
+    LoyaltyTokenFactory public loyaltyTokenFactory;
 
     event LoyaltyCoinMinted(
         address indexed loyaltyToken, address indexed recipient, uint256 amount, uint256 loyaltyPointAmount
     );
     event LoyaltyTokenCreated(address indexed loyaltyToken, address indexed issuer, string name, string symbol);
 
-    constructor(address _owner, address _loyaltyPoint, address _loyaltyTokenFactory)
-        LoyaltyConverter(_owner, _loyaltyPoint)
+    function __LoyaltyController_init(address _owner, address _loyaltyPoint, address _loyaltyTokenFactory)
+        internal
+        onlyInitializing
     {
+        __LoyaltyConverter_init(_owner, _loyaltyPoint);
         loyaltyTokenFactory = LoyaltyTokenFactory(_loyaltyTokenFactory);
     }
 

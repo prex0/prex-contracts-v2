@@ -27,9 +27,11 @@ import {LoyaltyTokenFactory} from "../../../src/token-factory/LoyaltyTokenFactor
 contract MockLoyaltyController is LoyaltyController {
     address public tokenRegistry;
 
-    constructor(address _owner, address _loyaltyPoint, address _loyaltyTokenFactory, address _tokenRegistry)
-        LoyaltyController(_owner, _loyaltyPoint, _loyaltyTokenFactory)
+    function __MockLoyaltyController_init(address _owner, address _loyaltyPoint, address _loyaltyTokenFactory, address _tokenRegistry)
+        public
+        initializer
     {
+        __LoyaltyController_init(_owner, _loyaltyPoint, _loyaltyTokenFactory);
         tokenRegistry = _tokenRegistry;
     }
 
@@ -39,14 +41,12 @@ contract MockLoyaltyController is LoyaltyController {
 }
 
 contract MockPumController is PumController {
-    constructor(
-        address _owner,
-        address _pumPoint,
-        address _positionManager,
-        address _tokenRegistry,
-        address _creatorTokenFactory,
-        address _permit2
-    ) PumController(_owner, _pumPoint, _positionManager, _tokenRegistry, _creatorTokenFactory, _permit2) {}
+    function __MockPumController_init(address _owner, address _pumPoint, address _positionManager, address _tokenRegistry, address _creatorTokenFactory, address _permit2)
+        public
+        initializer
+    {
+        __PumController_init(_owner, _pumPoint, _positionManager, _tokenRegistry, _creatorTokenFactory, _permit2);
+    }
 
     function issuePumToken(
         address issuer,
@@ -105,7 +105,8 @@ contract SwapRouterSetup is Test, TestUtils {
             new PrexPoint("LoyaltyPoint", "LOYALTY", address(this), address(0x000000000022D473030F116dDEE9F6B43aC78BA3));
         TokenRegistry tokenRegistry = new TokenRegistry();
         creatorTokenFactory = new CreatorTokenFactory();
-        pumController = new MockPumController(
+        pumController = new MockPumController();
+        pumController.__MockPumController_init(
             address(this),
             address(pumPoint),
             address(0x3C3Ea4B57a46241e54610e5f022E5c45859A1017),
@@ -124,7 +125,8 @@ contract SwapRouterSetup is Test, TestUtils {
 
         // Set pumController as consumer
         pumPoint.setConsumer(address(pumController));
-        loyaltyController = new MockLoyaltyController(
+        loyaltyController = new MockLoyaltyController();
+        loyaltyController.__MockLoyaltyController_init(
             address(this), address(loyaltyPoint), address(loyaltyTokenFactory), address(tokenRegistry)
         );
         loyaltyController.setDai(address(dai));
