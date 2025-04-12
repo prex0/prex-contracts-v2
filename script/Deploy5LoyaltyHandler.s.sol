@@ -18,7 +18,7 @@ contract DeployLoyaltyHandlerScript is Script {
 
     address public DAI_ADDRESS = vm.envAddress("DAI_ADDRESS");
 
-    address public constant LOYALTY_TOKEN_FACTORY = 0xE74dcAec463c07DBAeCAac55e95d4c9Cd133BED0;
+    address public constant LOYALTY_TOKEN_FACTORY = 0x7D7561A66dC92B5B34DCb8496ACc99F8dE6cB301;
 
     address public constant TOKEN_REGISTRY = 0x57F3891da461C783231A79328aa11AE6C724E9B2;
 
