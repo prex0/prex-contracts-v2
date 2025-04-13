@@ -158,6 +158,18 @@ forge script script/Deploy9PaymentHandler.s.sol --rpc-url $RPC_URL --private-key
 forge script script/Deploy13OrderExecutorV2.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast --etherscan-api-key $ETHERSCAN_API_KEY --verify
 ```
 
+```bash
+forge script script/Deploy10PumHandler.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast --etherscan-api-key $ETHERSCAN_API_KEY --verify
+```
+
+```bash
+forge script script/Deploy11LoyaltyHandler.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast --etherscan-api-key $ETHERSCAN_API_KEY --verify
+```
+
+```bash
+forge script script/Deploy12SwapHandler.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast --etherscan-api-key $ETHERSCAN_API_KEY --verify
+```
+
 
 
 ### Cast

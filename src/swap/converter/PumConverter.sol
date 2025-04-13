@@ -20,8 +20,11 @@ contract PumConverter is FlowRateAdjustment {
 
     function __PumConverter_init(address _owner, address _prexPoint) internal onlyInitializing {
         __FlowRateAdjustment_init(_owner);
-        carryToken = new CarryToken(address(this));
         pumPoint = IPrexPoints(_prexPoint);
+    }
+
+    function setCarryToken(address _carryToken) external onlyOwner {
+        carryToken = CarryToken(_carryToken);
     }
 
     /**

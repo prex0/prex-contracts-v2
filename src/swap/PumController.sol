@@ -54,8 +54,8 @@ contract PumController is PumConverter {
         creatorTokenFactory = CreatorTokenFactory(_creatorTokenFactory);
 
         // approve CARRY token
-        carryToken.approve(address(permit2), type(uint256).max);
-        permit2.approve(address(carryToken), address(positionManager), type(uint160).max, type(uint48).max);
+        // carryToken.approve(address(permit2), type(uint256).max);
+        // permit2.approve(address(carryToken), address(positionManager), type(uint160).max, type(uint48).max);
     }
 
     function setPumHook(address _pumHook) external onlyOwner {

@@ -12,6 +12,7 @@ import {PumHook} from "../src/swap/hooks/PumHook.sol";
 import {Hooks} from "v4-core/src/libraries/Hooks.sol";
 import {HookMiner} from "v4-periphery/src/utils/HookMiner.sol";
 import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {CarryToken} from "../src/swap/CarryToken.sol";
 
 contract DeployPumHandlerScript is Script {
     address public constant OWNER_ADDRESS = 0x51B89C499F3038756Eff64a0EF52d753147EAd75;
@@ -32,7 +33,7 @@ contract DeployPumHandlerScript is Script {
 
     address public constant PREX_POINT = 0xC2835f0fC2f63AB2057F6e74fA213B6a0cE04C4A;
 
-    address public constant ORDER_EXECUTOR = 0x06145CfE8bCEE920088bfe240817b6C9473C9cf3;
+    address public constant ORDER_EXECUTOR = 0xe19854226EB6F58D04DFaB7a43ce4439f136EE1f;
 
     function run() public {
         vm.startBroadcast();
@@ -50,12 +51,15 @@ contract DeployPumHandlerScript is Script {
             PERMIT2_ADDRESS
         );
 
-        TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
+        TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy{salt: keccak256("Ver1")}(
             address(issueCreatorTokenHandler),
             OWNER_ADDRESS,
             initData
         );
 
+        CarryToken carryToken = new CarryToken(address(proxy));
+
+        IssueCreatorTokenHandler(address(proxy)).setCarryToken(address(carryToken));
         IssueCreatorTokenHandler(address(proxy)).setDai(DAI_ADDRESS);
 
         (, bytes32 pumHookSalt) = _mineAddress(address(issueCreatorTokenHandler.carryToken()));
@@ -73,7 +77,7 @@ contract DeployPumHandlerScript is Script {
     }
 
     function _mineAddress(address carryToken) internal view returns (address, bytes32) {
-        uint160 flags = uint160(Hooks.BEFORE_SWAP_FLAG | Hooks.AFTER_SWAP_FLAG);
+        uint160 flags = uint160(Hooks.BEFORE_SWAP_FLAG | Hooks.AFTER_SWAP_FLAG | Hooks.AFTER_INITIALIZE_FLAG);
         bytes memory constructorArgs = abi.encode(POOL_MANAGER, carryToken, OWNER_ADDRESS);
         (address hookAddress, bytes32 salt) =
             HookMiner.find(address(DEPLOYER), flags, type(PumHook).creationCode, constructorArgs);

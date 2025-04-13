@@ -23,6 +23,7 @@ import {HookMiner} from "v4-periphery/src/utils/HookMiner.sol";
 import "../../../lib/permit2/src/interfaces/IPermit2.sol";
 import {CreateTokenParameters} from "../../../src/token-factory/CreatorTokenFactory.sol";
 import {LoyaltyTokenFactory} from "../../../src/token-factory/LoyaltyTokenFactory.sol";
+import {CarryToken} from "../../../src/swap/CarryToken.sol";
 
 contract MockLoyaltyController is LoyaltyController {
     address public tokenRegistry;
@@ -106,6 +107,7 @@ contract SwapRouterSetup is Test, TestUtils {
         TokenRegistry tokenRegistry = new TokenRegistry();
         creatorTokenFactory = new CreatorTokenFactory();
         pumController = new MockPumController();
+
         pumController.__MockPumController_init(
             address(this),
             address(pumPoint),
@@ -114,6 +116,11 @@ contract SwapRouterSetup is Test, TestUtils {
             address(creatorTokenFactory),
             address(0x000000000022D473030F116dDEE9F6B43aC78BA3)
         );
+
+        CarryToken carryToken = new CarryToken(address(pumController));
+
+        pumController.setCarryToken(address(carryToken));
+
         pumController.setDai(address(dai));
         (, bytes32 pumHookSalt) = _mineAddress();
         pumHook = new PumHook{salt: pumHookSalt}(

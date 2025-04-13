@@ -49,7 +49,7 @@ contract DeployLoyaltyHandlerScript is Script {
             PERMIT2_ADDRESS
         );
 
-        TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
+        TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy{salt: keccak256("Ver1")}(
             address(issueLoyaltyTokenHandler),
             OWNER_ADDRESS,
             initData

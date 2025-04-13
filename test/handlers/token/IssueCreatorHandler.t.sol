@@ -6,6 +6,7 @@ import "forge-std/Test.sol";
 import "../../../src/handlers/token/IssueCreatorTokenHandler.sol";
 import "../../../lib/openzeppelin-contracts/contracts/proxy/transparent/ProxyAdmin.sol";
 import "../../../lib/openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import { CarryToken } from "../../../src/swap/CarryToken.sol";
 
 contract MockPermit2 {
     function approve(address, address, uint160, uint48) external {
