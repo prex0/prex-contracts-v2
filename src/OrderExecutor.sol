@@ -16,7 +16,9 @@ contract OrderExecutor is IOrderExecutor, PolicyManager {
      * @notice コンストラクタ
      * @param _prexPoint ポイント管理コントラクトのアドレス
      */
-    constructor(address _prexPoint, address _owner) PolicyManager(_prexPoint, _owner) {}
+    function initialize(address _prexPoint, address _owner) external initializer {
+        __PolicyManager_init(_prexPoint, _owner);
+    }
 
     /**
      * @notice オーダーを実行する関数

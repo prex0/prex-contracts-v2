@@ -24,12 +24,14 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
         uint256 appId;
         bytes policyParams;
         bool isActive;
+        uint256[4] reserved;
     }
 
     struct App {
         address owner;
         uint256 credit;
         bool isActive;
+        uint256[4] reserved;
     }
 
     /// @dev ポリシーIDからポリシー情報へのマッピング
@@ -71,8 +73,9 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
         }
         _;
     }
-
-    constructor(address _prexPoint, address _owner) CreditPrice(_owner) {
+    
+    function __PolicyManager_init(address _prexPoint, address _owner) internal onlyInitializing {
+        __CreditPrice_init(_owner);
         prexPoint = _prexPoint;
     }
 
@@ -85,7 +88,7 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
     function registerApp(address owner, string calldata appName) external returns (uint256 appId) {
         appId = nextAppId++;
 
-        apps[appId] = App({owner: owner, credit: 0, isActive: true});
+        apps[appId] = App({owner: owner, credit: 0, isActive: true, reserved: [uint256(0), uint256(0), uint256(0), uint256(0)]});
 
         emit AppRegistered(appId, owner, appName);
     }
@@ -107,7 +110,7 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
     ) external onlyAppOwner(appId) returns (uint256 policyId) {
         policyId = nextPolicyId++;
 
-        policies[policyId] = Policy(validator, policyId, publicKey, appId, policyParams, true);
+        policies[policyId] = Policy(validator, policyId, publicKey, appId, policyParams, true, [uint256(0), uint256(0), uint256(0), uint256(0)]);
 
         emit PolicyRegistered(appId, policyId, validator, publicKey, policyParams, policyName);
     }

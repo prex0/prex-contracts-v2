@@ -32,7 +32,8 @@ contract OrderExecutorSetup is Test, TestUtils {
         super.setUp();
 
         prexPoint = new PrexPoint("PrexPoint", "PREX", owner, address(permit2));
-        orderExecutor = new OrderExecutor(address(prexPoint), owner);
+        orderExecutor = new OrderExecutor();
+        orderExecutor.initialize(address(prexPoint), owner);
         transferRequestHandler = new TransferRequestHandler(address(permit2), owner);
         transferRequestHandler.setOrderExecutor(address(orderExecutor));
 

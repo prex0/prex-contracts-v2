@@ -59,7 +59,7 @@ contract DeployLoyaltyHandlerScript is Script {
 
         IssueLoyaltyTokenHandler(address(proxy)).transferOwnership(OWNER_ADDRESS);
 
-        console.log("IssueLoyaltyTokenHandler deployed at", address(issueLoyaltyTokenHandler));
+        console.log("IssueLoyaltyTokenHandler deployed at", address(proxy));
 
         vm.stopBroadcast();
     }

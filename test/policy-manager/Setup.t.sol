@@ -19,7 +19,9 @@ contract PolicyManagerSetup is Test, TestUtils {
         super.setUp();
 
         prexPoint = new PrexPoint("PrexPoint", "PREX", owner, address(permit2));
-        policyManager = new PolicyManagerWrapper(address(prexPoint), owner);
+        policyManager = new PolicyManagerWrapper();
+
+        policyManager.initialize(address(prexPoint), owner);
 
         // Set policy manager as consumer
         prexPoint.setConsumer(address(policyManager));

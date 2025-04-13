@@ -66,7 +66,7 @@ contract DeployPumHandlerScript is Script {
         IssueCreatorTokenHandler(address(proxy)).setOrderExecutor(ORDER_EXECUTOR);
         IssueCreatorTokenHandler(address(proxy)).transferOwnership(OWNER_ADDRESS);
 
-        console.log("IssueCreatorTokenHandler deployed at", address(issueCreatorTokenHandler));
+        console.log("IssueCreatorTokenHandler deployed at", address(proxy));
         console.log("PumHook deployed at", address(pumHook));
 
         vm.stopBroadcast();

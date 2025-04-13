@@ -12,7 +12,9 @@ contract CreditPrice is WhitelistHandler {
 
     event CreditPriceUpdated(uint256 creditPrice);
 
-    constructor(address _owner) WhitelistHandler(_owner) {}
+    function __CreditPrice_init(address _owner) internal onlyInitializing {
+        __WhitelistHandler_init(_owner);
+    }
 
     /**
      * @notice クレジット価格を設定する

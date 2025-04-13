@@ -1,19 +1,21 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
-import {Owned} from "../../lib/solmate/src/auth/Owned.sol";
+import {OwnableUpgradeable} from "../../lib/openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
 
 /**
  * @title WhitelistHandlerPolicyValidator
  * @notice ホワイトリストに登録されたハンドラーのみがオーダーを実行できる
  */
-contract WhitelistHandler is Owned {
+contract WhitelistHandler is OwnableUpgradeable {
     mapping(address => bool) public whitelist;
 
     event HandlerAdded(address handler);
     event HandlerRemoved(address handler);
-
-    constructor(address _owner) Owned(_owner) {}
+    
+    function __WhitelistHandler_init(address _owner) internal onlyInitializing {
+        __Ownable_init(_owner);
+    }
 
     /**
      * @notice ハンドラーをホワイトリストに追加する

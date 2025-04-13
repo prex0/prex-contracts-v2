@@ -5,13 +5,13 @@ import {Test} from "forge-std/Test.sol";
 import {PrexCreditMarket} from "../../../src/credit/PrexCreditMarket.sol";
 import {MockToken} from "../../mock/MockToken.sol";
 import {ERC20} from "../../../lib/solmate/src/tokens/ERC20.sol";
-import {PolicyManager} from "../../../src/policy-manager/PolicyManager.sol";
+import {OrderExecutor} from "../../../src/OrderExecutor.sol";
 
 contract CreditMarketSetup is Test {
     PrexCreditMarket public prexCreditMarket;
     ERC20 public prexCredit;
     MockToken public stableToken;
-    PolicyManager public policyManager;
+    OrderExecutor public policyManager;
 
     address public owner = address(this);
     address public feeRecipient = vm.addr(5);
@@ -25,7 +25,9 @@ contract CreditMarketSetup is Test {
 
         prexCredit = ERC20(address(prexCreditMarket.point()));
 
-        policyManager = new PolicyManager(address(prexCredit), owner);
+        policyManager = new OrderExecutor();
+
+        policyManager.initialize(address(prexCredit), owner);
 
         prexCreditMarket.setOrderExecutor(address(policyManager));
     }
