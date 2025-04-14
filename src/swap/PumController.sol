@@ -15,6 +15,7 @@ import {IPermit2} from "../../lib/permit2/src/interfaces/IPermit2.sol";
 import {CreatorTokenFactory} from "../token-factory/CreatorTokenFactory.sol";
 import {PumHook} from "./hooks/PumHook.sol";
 import {LPFeeLibrary} from "v4-core/src/libraries/LPFeeLibrary.sol";
+import {RouterLib} from "../libraries/RouterLib.sol";
 
 interface IPositionManager {
     function nextTokenId() external view returns (uint256);
@@ -29,6 +30,7 @@ contract PumController is PumConverter {
     address public tokenRegistry;
     IPermit2 public permit2;
     CreatorTokenFactory public creatorTokenFactory;
+    address public universalRouter;
 
     uint256 public constant MAX_SUPPLY_CT = 1e8 * 1e18;
 
@@ -41,11 +43,23 @@ contract PumController is PumConverter {
     event TokenIssued(
         address indexed communityToken, address indexed issuer, string name, string symbol, uint256 amountCT
     );
-    
-    function __PumController_init(address _owner, address _prexPoint, address _positionManager, address _tokenRegistry, address _creatorTokenFactory, address _permit2)
-        internal
-        onlyInitializing
-    {
+
+    event InitialSwap(
+        address indexed creatorToken,
+        address indexed issuer,
+        address creditToken,
+        uint256 creditAmount,
+        uint256 creatorTokenAmount
+    );
+
+    function __PumController_init(
+        address _owner,
+        address _prexPoint,
+        address _positionManager,
+        address _tokenRegistry,
+        address _creatorTokenFactory,
+        address _permit2
+    ) internal onlyInitializing {
         __PumConverter_init(_owner, _prexPoint);
 
         positionManager = _positionManager;
@@ -63,6 +77,17 @@ contract PumController is PumConverter {
     }
 
     /**
+     * @notice ユニバーサルルーターを設定する
+     * @param _universalRouter ユニバーサルルーターのアドレス
+     */
+    function setUniversalRouter(address _universalRouter) external onlyOwner {
+        universalRouter = _universalRouter;
+
+        carryToken.approve(address(permit2), type(uint256).max);
+        permit2.approve(address(carryToken), address(universalRouter), type(uint160).max, type(uint48).max);
+    }
+
+    /**
      * @notice トークンを発行する
      * @param issuer トークンの発行者
      * @param name トークンの名前
@@ -75,7 +100,8 @@ contract PumController is PumConverter {
         string memory name,
         string memory symbol,
         bytes32 pictureHash,
-        bytes memory metadata
+        bytes memory metadata,
+        uint256 creditAmount
     ) internal returns (address) {
         // Issue PUM token
         address creatorToken = creatorTokenFactory.createCreatorToken(
@@ -98,6 +124,11 @@ contract PumController is PumConverter {
         }
 
         emit TokenIssued(creatorToken, issuer, name, symbol, MAX_SUPPLY_CT);
+
+        // initial buy
+        if (creditAmount > 0) {
+            _initialSwap(creatorToken, creditAmount, issuer);
+        }
 
         return creatorToken;
     }
@@ -124,27 +155,11 @@ contract PumController is PumConverter {
         // TODO: ここでsqrtPriceX96を計算する
         uint256 sqrtPriceX96 = _getStartSqrtPriceX96(tokenA, tokenB);
 
-        PoolKey memory poolKey = _getPoolKey(tokenA, tokenB);
+        PoolKey memory poolKey = RouterLib.getPoolKey(tokenA, tokenB, address(pumHook));
 
         IPoolManager poolManager = IPositionManager(positionManager).poolManager();
 
         poolManager.initialize(poolKey, uint160(sqrtPriceX96));
-    }
-
-    function _getPoolKey(address tokenA, address tokenB) internal view returns (PoolKey memory) {
-        Currency currency0 = Currency.wrap(tokenA);
-        Currency currency1 = Currency.wrap(tokenB);
-        if (tokenA > tokenB) {
-            (currency0, currency1) = (currency1, currency0);
-        }
-        return PoolKey({
-            currency0: currency0,
-            currency1: currency1,
-            // dynamic fee
-            fee: LPFeeLibrary.DYNAMIC_FEE_FLAG,
-            tickSpacing: 300,
-            hooks: IHooks(address(pumHook))
-        });
     }
 
     function _addLiquidity(address tokenA, address tokenB) internal {
@@ -154,8 +169,8 @@ contract PumController is PumConverter {
         actions[1] = bytes1(uint8(Actions.SETTLE_PAIR));
 
         bytes[] memory params = new bytes[](2);
-        params[0] = _encodeMintParams(
-            _getPoolKey(tokenA, tokenB),
+        params[0] = _encodeIncreaseParams(
+            RouterLib.getPoolKey(tokenA, tokenB, address(pumHook)),
             int24(tokenA < tokenB ? -340800 : -887100),
             int24(tokenA < tokenB ? 887100 : 340800),
             3980998579334402966,
@@ -170,6 +185,49 @@ contract PumController is PumConverter {
         IPositionManager(positionManager).modifyLiquidities(abi.encode(actions, params), block.timestamp);
     }
 
+    function _initialSwap(address creatorToken, uint256 initialAmount, address issuer) internal {
+        bytes memory data = RouterLib.createUniversalRouterCommand(
+            address(carryToken), address(creatorToken), initialAmount, address(pumHook)
+        );
+
+        // burn initial amount of PUM point
+        pumPoint.burn(initialAmount);
+        // mint initial amount of CARRY token
+        carryToken.mint(address(this), initialAmount);
+
+        _executeUniversalRouter(data);
+
+        uint256 creatorTokenAmount = IERC20(creatorToken).balanceOf(address(this));
+
+        creatorTokenAmount = roundDown(creatorTokenAmount, 18);
+
+        // transfer creator token to issuer
+        IERC20(creatorToken).transfer(issuer, creatorTokenAmount);
+
+        emit InitialSwap(creatorToken, issuer, address(pumPoint), initialAmount, creatorTokenAmount);
+    }
+
+    function roundDown(uint256 value, uint256 decimals) internal pure returns (uint256) {
+        return (value / (10 ** decimals)) * (10 ** decimals);
+    }
+
+    /// @notice ユニバーサルルーターを実行する
+    function _executeUniversalRouter(bytes memory data) internal {
+        (bool success, bytes memory returnData) = universalRouter.call(data);
+        if (!success) {
+            assembly {
+                revert(add(returnData, 32), mload(returnData))
+            }
+        }
+    }
+
+    /**
+     * @notice 手数料を収集する
+     * @param tokenA トークンAのアドレス
+     * @param tokenB トークンBのアドレス
+     * @param tokenId トークンのID
+     * @param recipient 手数料を受け取るアドレス
+     */
     function _collectFee(address tokenA, address tokenB, uint256 tokenId, address recipient) internal {
         bytes memory actions = new bytes(2);
 
@@ -182,7 +240,8 @@ contract PumController is PumConverter {
         IPositionManager(positionManager).modifyLiquidities(abi.encode(actions, params), block.timestamp);
     }
 
-    function _encodeMintParams(
+    /// @notice LP用の流動性追加パラメータをエンコードする
+    function _encodeIncreaseParams(
         PoolKey memory poolKey,
         int24 tickLower,
         int24 tickUpper,
@@ -194,6 +253,7 @@ contract PumController is PumConverter {
         return abi.encode(poolKey, tickLower, tickUpper, liquidity, amount0Max, amount1Max, owner, bytes(""));
     }
 
+    /// @notice LP用の流動性削除パラメータをエンコードする
     function _encodeDecreaseLiquidityParams(uint256 tokenId, uint256 liquidity, uint128 amount0Min, uint128 amount1Min)
         internal
         pure

@@ -9,6 +9,7 @@ struct IssueCreatorTokenRequest {
     address issuer;
     uint256 deadline;
     uint256 nonce;
+    uint256 creditAmount;
     string name;
     string symbol;
     bytes32 pictureHash;
@@ -24,6 +25,7 @@ library IssueCreatorTokenRequestLib {
         "address issuer,",
         "uint256 deadline,",
         "uint256 nonce,",
+        "uint256 creditAmount,",
         "string name,",
         "string symbol,",
         "bytes32 pictureHash,",
@@ -54,6 +56,7 @@ library IssueCreatorTokenRequestLib {
                 request.issuer,
                 request.deadline,
                 request.nonce,
+                request.creditAmount,
                 keccak256(bytes(request.name)),
                 keccak256(bytes(request.symbol)),
                 request.pictureHash,

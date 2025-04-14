@@ -50,9 +50,7 @@ contract DeployLoyaltyHandlerScript is Script {
         );
 
         TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy{salt: keccak256("Ver1")}(
-            address(issueLoyaltyTokenHandler),
-            OWNER_ADDRESS,
-            initData
+            address(issueLoyaltyTokenHandler), OWNER_ADDRESS, initData
         );
 
         IssueLoyaltyTokenHandler(address(proxy)).setDai(DAI_ADDRESS);

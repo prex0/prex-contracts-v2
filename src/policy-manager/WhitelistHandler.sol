@@ -12,7 +12,7 @@ contract WhitelistHandler is OwnableUpgradeable {
 
     event HandlerAdded(address handler);
     event HandlerRemoved(address handler);
-    
+
     function __WhitelistHandler_init(address _owner) internal onlyInitializing {
         __Ownable_init(_owner);
     }

@@ -30,10 +30,14 @@ contract IssueCreatorTokenHandler is IOrderHandler, PumController {
         _;
     }
 
-    function initialize(address _owner, address _prexPoint, address _positionManager, address _tokenRegistry, address _creatorTokenFactory, address _permit2)
-        external
-        initializer
-    {
+    function initialize(
+        address _owner,
+        address _prexPoint,
+        address _positionManager,
+        address _tokenRegistry,
+        address _creatorTokenFactory,
+        address _permit2
+    ) external initializer {
         __PumController_init(_owner, _prexPoint, _positionManager, _tokenRegistry, _creatorTokenFactory, _permit2);
     }
 
@@ -68,7 +72,9 @@ contract IssueCreatorTokenHandler is IOrderHandler, PumController {
         // オーダーのリクエストを検証する
         _verifyRequest(request, order.signature);
 
-        _issuePumToken(request.issuer, request.name, request.symbol, request.pictureHash, request.metadata);
+        _issuePumToken(
+            request.issuer, request.name, request.symbol, request.pictureHash, request.metadata, request.creditAmount
+        );
 
         return request.getOrderReceipt(points);
     }
@@ -89,7 +95,7 @@ contract IssueCreatorTokenHandler is IOrderHandler, PumController {
 
         permit2.permitWitnessTransferFrom(
             ISignatureTransfer.PermitTransferFrom({
-                permitted: ISignatureTransfer.TokenPermissions({token: address(0), amount: 0}),
+                permitted: ISignatureTransfer.TokenPermissions({token: address(pumPoint), amount: request.creditAmount}),
                 nonce: request.nonce,
                 deadline: request.deadline
             }),

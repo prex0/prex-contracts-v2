@@ -28,10 +28,12 @@ import {CarryToken} from "../../../src/swap/CarryToken.sol";
 contract MockLoyaltyController is LoyaltyController {
     address public tokenRegistry;
 
-    function __MockLoyaltyController_init(address _owner, address _loyaltyPoint, address _loyaltyTokenFactory, address _tokenRegistry)
-        public
-        initializer
-    {
+    function __MockLoyaltyController_init(
+        address _owner,
+        address _loyaltyPoint,
+        address _loyaltyTokenFactory,
+        address _tokenRegistry
+    ) public initializer {
         __LoyaltyController_init(_owner, _loyaltyPoint, _loyaltyTokenFactory);
         tokenRegistry = _tokenRegistry;
     }
@@ -42,10 +44,14 @@ contract MockLoyaltyController is LoyaltyController {
 }
 
 contract MockPumController is PumController {
-    function __MockPumController_init(address _owner, address _pumPoint, address _positionManager, address _tokenRegistry, address _creatorTokenFactory, address _permit2)
-        public
-        initializer
-    {
+    function __MockPumController_init(
+        address _owner,
+        address _pumPoint,
+        address _positionManager,
+        address _tokenRegistry,
+        address _creatorTokenFactory,
+        address _permit2
+    ) public initializer {
         __PumController_init(_owner, _pumPoint, _positionManager, _tokenRegistry, _creatorTokenFactory, _permit2);
     }
 
@@ -54,9 +60,10 @@ contract MockPumController is PumController {
         string memory name,
         string memory symbol,
         bytes32 pictureHash,
-        bytes memory metadata
+        bytes memory metadata,
+        uint256 creditAmount
     ) external returns (address) {
-        return super._issuePumToken(issuer, name, symbol, pictureHash, metadata);
+        return super._issuePumToken(issuer, name, symbol, pictureHash, metadata, creditAmount);
     }
 }
 
@@ -120,6 +127,8 @@ contract SwapRouterSetup is Test, TestUtils {
         CarryToken carryToken = new CarryToken(address(pumController));
 
         pumController.setCarryToken(address(carryToken));
+        // after carry token is set, set universal router
+        pumController.setUniversalRouter(address(0x851116D9223fabED8E56C0E6b8Ad0c31d98B3507));
 
         pumController.setDai(address(dai));
         (, bytes32 pumHookSalt) = _mineAddress();

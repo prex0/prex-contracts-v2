@@ -26,10 +26,13 @@ contract IssueLoyaltyTokenHandler is IOrderHandler, LoyaltyController {
         address indexed loyaltyToken, address indexed issuer, string name, string symbol, bytes32 orderHash
     );
 
-    function initialize(address _owner, address _loyaltyPoint, address _tokenRegistry, address _loyaltyTokenFactory, address _permit2)
-        external
-        initializer
-    {
+    function initialize(
+        address _owner,
+        address _loyaltyPoint,
+        address _tokenRegistry,
+        address _loyaltyTokenFactory,
+        address _permit2
+    ) external initializer {
         __LoyaltyController_init(_owner, _loyaltyPoint, _loyaltyTokenFactory);
         permit2 = IPermit2(_permit2);
         tokenRegistry = ITokenRegistry(_tokenRegistry);

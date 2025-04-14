@@ -39,7 +39,7 @@ contract DeployPumHandlerScript is Script {
         vm.startBroadcast();
 
         // Deploy Creator Token Issue Handler
-        IssueCreatorTokenHandler issueCreatorTokenHandler = new IssueCreatorTokenHandler{salt: keccak256("Ver1")}();
+        IssueCreatorTokenHandler issueCreatorTokenHandler = new IssueCreatorTokenHandler{salt: keccak256("Ver2")}();
 
         bytes memory initData = abi.encodeWithSelector(
             IssueCreatorTokenHandler.initialize.selector,
@@ -51,10 +51,8 @@ contract DeployPumHandlerScript is Script {
             PERMIT2_ADDRESS
         );
 
-        TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy{salt: keccak256("Ver1")}(
-            address(issueCreatorTokenHandler),
-            OWNER_ADDRESS,
-            initData
+        TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy{salt: keccak256("Ver2")}(
+            address(issueCreatorTokenHandler), OWNER_ADDRESS, initData
         );
 
         CarryToken carryToken = new CarryToken(address(proxy));
@@ -62,9 +60,10 @@ contract DeployPumHandlerScript is Script {
         IssueCreatorTokenHandler(address(proxy)).setCarryToken(address(carryToken));
         IssueCreatorTokenHandler(address(proxy)).setDai(DAI_ADDRESS);
 
-        (, bytes32 pumHookSalt) = _mineAddress(address(issueCreatorTokenHandler.carryToken()));
-        PumHook pumHook =
-            new PumHook{salt: pumHookSalt}(POOL_MANAGER, address(issueCreatorTokenHandler.carryToken()), OWNER_ADDRESS);
+        (, bytes32 pumHookSalt) = _mineAddress(address(IssueCreatorTokenHandler(address(proxy)).carryToken()));
+        PumHook pumHook = new PumHook{salt: pumHookSalt}(
+            POOL_MANAGER, address(IssueCreatorTokenHandler(address(proxy)).carryToken()), OWNER_ADDRESS
+        );
 
         IssueCreatorTokenHandler(address(proxy)).setPumHook(address(pumHook));
         IssueCreatorTokenHandler(address(proxy)).setOrderExecutor(ORDER_EXECUTOR);

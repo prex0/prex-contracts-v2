@@ -14,13 +14,15 @@ contract PumConverter is FlowRateAdjustment {
     IPrexPoints public pumPoint;
 
     // point price by DAI
-    uint256 public pricePointByDai = 1e30 / 200;
+    uint256 public pricePointByDai;
 
     event PriceUpdated(uint256 newPrice);
 
     function __PumConverter_init(address _owner, address _prexPoint) internal onlyInitializing {
         __FlowRateAdjustment_init(_owner);
+
         pumPoint = IPrexPoints(_prexPoint);
+        pricePointByDai = 1e30 / 200;
     }
 
     function setCarryToken(address _carryToken) external onlyOwner {

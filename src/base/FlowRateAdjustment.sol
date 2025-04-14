@@ -7,7 +7,7 @@ import {BaseConverter} from "./BaseConverter.sol";
  * @notice FlowRateAdjustment is a base contract for FlowRateAdjustment.
  */
 abstract contract FlowRateAdjustment is BaseConverter {
-    uint256 public flowRate = 500000 * 1e6;
+    uint256 public flowRate;
 
     uint256 public lastFlowRateUpdate;
     uint256 public currentCumulativeAmount;
@@ -18,6 +18,8 @@ abstract contract FlowRateAdjustment is BaseConverter {
 
     function __FlowRateAdjustment_init(address _owner) internal onlyInitializing {
         __BaseConverter_init(_owner);
+
+        flowRate = 500000 * 1e6;
     }
 
     function setFlowRate(uint256 _flowRate) external onlyOwner {

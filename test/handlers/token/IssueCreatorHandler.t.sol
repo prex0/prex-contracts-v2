@@ -6,15 +6,13 @@ import "forge-std/Test.sol";
 import "../../../src/handlers/token/IssueCreatorTokenHandler.sol";
 import "../../../lib/openzeppelin-contracts/contracts/proxy/transparent/ProxyAdmin.sol";
 import "../../../lib/openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
-import { CarryToken } from "../../../src/swap/CarryToken.sol";
+import {CarryToken} from "../../../src/swap/CarryToken.sol";
 
 contract MockPermit2 {
-    function approve(address, address, uint160, uint48) external {
-        
-    }
+    function approve(address, address, uint160, uint48) external {}
 }
 
-contract HandlerV2 is IssueCreatorTokenHandler{
+contract HandlerV2 is IssueCreatorTokenHandler {
     function newMethod() public returns (uint256) {
         return 100;
     }
@@ -43,11 +41,7 @@ contract IssueCreatorHandlerTest is Test {
             address(permit2)
         );
 
-        proxy = new TransparentUpgradeableProxy(
-            address(logic),
-            owner,
-            initData
-        );
+        proxy = new TransparentUpgradeableProxy(address(logic), owner, initData);
     }
 
     function testInitializeAndIssue() public {
@@ -59,23 +53,18 @@ contract IssueCreatorHandlerTest is Test {
         HandlerV2 logicV2 = new HandlerV2();
 
         vm.prank(owner);
-        ProxyAdmin(admin).upgradeAndCall(
-            ITransparentUpgradeableProxy(address(proxy)),
-            address(logicV2),
-            bytes("")
-        );
+        ProxyAdmin(admin).upgradeAndCall(ITransparentUpgradeableProxy(address(proxy)), address(logicV2), bytes(""));
 
         //HandlerV2 handlerV2 = HandlerV2(address(proxy));
 
         //assertEq(handlerV2.newMethod(), 100);
-
     }
 
-  function getAdminAddress(address proxy) internal view returns (address) {
-    address CHEATCODE_ADDRESS = 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D;
-    Vm vm = Vm(CHEATCODE_ADDRESS);
+    function getAdminAddress(address proxy) internal view returns (address) {
+        address CHEATCODE_ADDRESS = 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D;
+        Vm vm = Vm(CHEATCODE_ADDRESS);
 
-    bytes32 adminSlot = vm.load(proxy, ERC1967Utils.ADMIN_SLOT);
-    return address(uint160(uint256(adminSlot)));
-  }
+        bytes32 adminSlot = vm.load(proxy, ERC1967Utils.ADMIN_SLOT);
+        return address(uint160(uint256(adminSlot)));
+    }
 }

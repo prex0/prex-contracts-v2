@@ -44,8 +44,18 @@ contract PumControllerTest is SwapRouterSetup {
         pumPoint.mint(userAddress, 1000000 * 1e6);
     }
 
+    function testIssuePumToken_AndCheckInitialBuy() public {
+        pumPoint.mint(address(pumController), 2000 * 1e6);
+        address creatorToken = pumController.issuePumToken(issuer, "PUM", "PUM", bytes32(0), "", 2000 * 1e6);
+
+        currency1 = Currency.wrap(address(creatorToken));
+
+        // 初期購入
+        assertEq(IERC20(creatorToken).balanceOf(issuer), 1172336 * 1e18);
+    }
+
     function testIssuePumToken_AndCheckFirstBuy() public {
-        address creatorToken = pumController.issuePumToken(issuer, "PUM", "PUM", bytes32(0), "");
+        address creatorToken = pumController.issuePumToken(issuer, "PUM", "PUM", bytes32(0), "", 0);
 
         currency1 = Currency.wrap(address(creatorToken));
 
@@ -58,7 +68,7 @@ contract PumControllerTest is SwapRouterSetup {
     }
 
     function testIssuePumToken_AndCheckFirstBuy20000() public {
-        address creatorToken = pumController.issuePumToken(issuer, "PUM", "PUM", bytes32(0), "");
+        address creatorToken = pumController.issuePumToken(issuer, "PUM", "PUM", bytes32(0), "", 0);
 
         currency1 = Currency.wrap(address(creatorToken));
 
@@ -70,7 +80,7 @@ contract PumControllerTest is SwapRouterSetup {
     }
 
     function testCannotSellBeforeMarketOpen() public {
-        address creatorToken = pumController.issuePumToken(issuer, "PUM", "PUM", bytes32(0), "");
+        address creatorToken = pumController.issuePumToken(issuer, "PUM", "PUM", bytes32(0), "", 0);
 
         currency1 = Currency.wrap(address(creatorToken));
 
@@ -86,7 +96,7 @@ contract PumControllerTest is SwapRouterSetup {
     }
 
     function testSellAfterMarketOpen() public {
-        address creatorToken = pumController.issuePumToken(issuer, "PUM", "PUM", bytes32(0), "");
+        address creatorToken = pumController.issuePumToken(issuer, "PUM", "PUM", bytes32(0), "", 0);
 
         currency1 = Currency.wrap(address(creatorToken));
 
@@ -104,7 +114,7 @@ contract PumControllerTest is SwapRouterSetup {
     }
 
     function testUpdateFee() public {
-        address creatorToken = pumController.issuePumToken(issuer, "PUM", "PUM", bytes32(0), "");
+        address creatorToken = pumController.issuePumToken(issuer, "PUM", "PUM", bytes32(0), "", 0);
 
         currency1 = Currency.wrap(address(creatorToken));
 
@@ -192,13 +202,8 @@ contract PumControllerTest is SwapRouterSetup {
     {
         PathKey[] memory path = new PathKey[](_tokenPath.length - 1);
         for (uint256 i = 0; i < _tokenPath.length - 1; i++) {
-            path[i] = PathKey(
-                _tokenPath[i + 1],
-                LPFeeLibrary.DYNAMIC_FEE_FLAG,
-                300,
-                IHooks(address(pumHook)),
-                bytes("")
-            );
+            path[i] =
+                PathKey(_tokenPath[i + 1], LPFeeLibrary.DYNAMIC_FEE_FLAG, 300, IHooks(address(pumHook)), bytes(""));
         }
 
         params.currencyIn = _tokenPath[0];

@@ -73,7 +73,7 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
         }
         _;
     }
-    
+
     function __PolicyManager_init(address _prexPoint, address _owner) internal onlyInitializing {
         __CreditPrice_init(_owner);
         prexPoint = _prexPoint;
@@ -88,7 +88,8 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
     function registerApp(address owner, string calldata appName) external returns (uint256 appId) {
         appId = nextAppId++;
 
-        apps[appId] = App({owner: owner, credit: 0, isActive: true, reserved: [uint256(0), uint256(0), uint256(0), uint256(0)]});
+        apps[appId] =
+            App({owner: owner, credit: 0, isActive: true, reserved: [uint256(0), uint256(0), uint256(0), uint256(0)]});
 
         emit AppRegistered(appId, owner, appName);
     }
@@ -110,7 +111,9 @@ contract PolicyManager is CreditPrice, IPolicyErrors {
     ) external onlyAppOwner(appId) returns (uint256 policyId) {
         policyId = nextPolicyId++;
 
-        policies[policyId] = Policy(validator, policyId, publicKey, appId, policyParams, true, [uint256(0), uint256(0), uint256(0), uint256(0)]);
+        policies[policyId] = Policy(
+            validator, policyId, publicKey, appId, policyParams, true, [uint256(0), uint256(0), uint256(0), uint256(0)]
+        );
 
         emit PolicyRegistered(appId, policyId, validator, publicKey, policyParams, policyName);
     }
