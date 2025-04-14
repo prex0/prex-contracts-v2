@@ -75,9 +75,7 @@ library RouterLib {
         Currency currency0 = Currency.wrap(tokenIn);
         Currency currency1 = Currency.wrap(tokenOut);
 
-        if (tokenIn > tokenOut) {
-            (currency0, currency1) = (currency1, currency0);
-        }
+        (currency0, currency1) = (tokenIn < tokenOut) ? (currency0, currency1) : (currency1, currency0);
 
         return PoolKey({
             currency0: currency0,

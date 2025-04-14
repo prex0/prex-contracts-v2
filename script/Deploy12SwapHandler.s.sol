@@ -13,7 +13,7 @@ contract Deploy6SwapHandlerScript is Script {
 
     address public constant ISSUE_LOYALTY_TOKEN_HANDLER = 0xe508bd474401Bbf6E72b0046ce3cFa5350D23062;
 
-    address public constant ISSUE_CREATOR_TOKEN_HANDLER = 0x76D614FA067b80a6B57603E1ceBE9fD39320CE09;
+    address public constant ISSUE_CREATOR_TOKEN_HANDLER = 0x924bA7abe027f00e59b551C49Aea25B98fc2E4d1;
 
     function run() public {
         vm.startBroadcast();

@@ -66,10 +66,6 @@ contract PumController is PumConverter {
         tokenRegistry = _tokenRegistry;
         permit2 = IPermit2(_permit2);
         creatorTokenFactory = CreatorTokenFactory(_creatorTokenFactory);
-
-        // approve CARRY token
-        // carryToken.approve(address(permit2), type(uint256).max);
-        // permit2.approve(address(carryToken), address(positionManager), type(uint160).max, type(uint48).max);
     }
 
     function setPumHook(address _pumHook) external onlyOwner {
@@ -83,6 +79,7 @@ contract PumController is PumConverter {
     function setUniversalRouter(address _universalRouter) external onlyOwner {
         universalRouter = _universalRouter;
 
+        // approve CARRY token
         carryToken.approve(address(permit2), type(uint256).max);
         permit2.approve(address(carryToken), address(universalRouter), type(uint160).max, type(uint48).max);
     }
@@ -152,7 +149,6 @@ contract PumController is PumConverter {
     }
 
     function _initializePool(address tokenA, address tokenB) internal {
-        // TODO: ここでsqrtPriceX96を計算する
         uint256 sqrtPriceX96 = _getStartSqrtPriceX96(tokenA, tokenB);
 
         PoolKey memory poolKey = RouterLib.getPoolKey(tokenA, tokenB, address(pumHook));

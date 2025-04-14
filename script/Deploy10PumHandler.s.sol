@@ -35,6 +35,8 @@ contract DeployPumHandlerScript is Script {
 
     address public constant ORDER_EXECUTOR = 0xe19854226EB6F58D04DFaB7a43ce4439f136EE1f;
 
+    address public UNIVERSAL_ROUTER = vm.envAddress("UNIVERSAL_ROUTER");
+
     function run() public {
         vm.startBroadcast();
 
@@ -59,6 +61,7 @@ contract DeployPumHandlerScript is Script {
 
         IssueCreatorTokenHandler(address(proxy)).setCarryToken(address(carryToken));
         IssueCreatorTokenHandler(address(proxy)).setDai(DAI_ADDRESS);
+        IssueCreatorTokenHandler(address(proxy)).setUniversalRouter(UNIVERSAL_ROUTER);
 
         (, bytes32 pumHookSalt) = _mineAddress(address(IssueCreatorTokenHandler(address(proxy)).carryToken()));
         PumHook pumHook = new PumHook{salt: pumHookSalt}(
