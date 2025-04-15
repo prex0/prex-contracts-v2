@@ -18,9 +18,9 @@ contract PumHook is BaseHook, Owned {
     using {equals} for Currency;
 
     // 0:creator, 1:carry
-    uint160 minSqrtPriceX96ByCarry = 7086382300000000000000;
+    uint160 minSqrtPriceX96ByCarry = 3543191200000000000000;
     // 0:carry, 1:creator
-    uint160 maxSqrtPriceX96ByCreator = 885797783642957107159712428047759491;
+    uint160 maxSqrtPriceX96ByCreator = 1771595542285914675966622806922659555;
 
     Currency public immutable carryToken;
 
@@ -55,11 +55,11 @@ contract PumHook is BaseHook, Owned {
         poolManager.updateDynamicLPFee(key, newFee);
     }
 
-    function _getMinSqrtPriceX96(bool isToken0Carry) internal view returns (uint160) {
+    function _checkSqrtPriceX96(uint160 sqrtPriceX96, bool isToken0Carry) internal view returns (bool) {
         if (isToken0Carry) {
-            return maxSqrtPriceX96ByCreator;
+            return sqrtPriceX96 <= maxSqrtPriceX96ByCreator;
         } else {
-            return minSqrtPriceX96ByCarry;
+            return sqrtPriceX96 >= minSqrtPriceX96ByCarry;
         }
     }
 
@@ -125,13 +125,11 @@ contract PumHook is BaseHook, Owned {
     ) internal override returns (bytes4, int128) {
         (bool isCarryToken0, address creatorToken) = _getCreatorToken(key);
 
-        uint160 minSqrtPriceX96 = _getMinSqrtPriceX96(isCarryToken0);
-
         // 現在の sqrtPriceX96 を取得
         (uint160 currentSqrtPriceX96,,,) = poolManager.getSlot0(key.toId());
 
         // 一定価格以上であれば、売却可能にする
-        if (currentSqrtPriceX96 > minSqrtPriceX96) {
+        if (_checkSqrtPriceX96(currentSqrtPriceX96, isCarryToken0)) {
             _updateMarketStatus(creatorToken, true);
         }
 

@@ -109,6 +109,7 @@ contract SwapRouterSetup is Test, TestUtils {
 
         pumPoint =
             new PrexPoint("PrexPoint", "PREX", address(this), address(0x000000000022D473030F116dDEE9F6B43aC78BA3));
+
         loyaltyPoint =
             new PrexPoint("LoyaltyPoint", "LOYALTY", address(this), address(0x000000000022D473030F116dDEE9F6B43aC78BA3));
         TokenRegistry tokenRegistry = new TokenRegistry();

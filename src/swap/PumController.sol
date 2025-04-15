@@ -32,7 +32,7 @@ contract PumController is PumConverter {
     CreatorTokenFactory public creatorTokenFactory;
     address public universalRouter;
 
-    uint256 public constant MAX_SUPPLY_CT = 1e8 * 1e18;
+    uint256 public constant MAX_SUPPLY_CT = 1e9 * 1e18;
 
     PumHook public pumHook;
 
@@ -142,9 +142,11 @@ contract PumController is PumConverter {
 
     function _getStartSqrtPriceX96(address tokenA, address tokenB) internal pure returns (uint160) {
         if (tokenA < tokenB) {
-            return uint160(500000000000);
+            // min sqrt price
+            return uint160(4295128739);
         } else {
-            return uint160(1e8 * 1e38);
+            // max sqrt price
+            return uint160(1461446703485210103287273052203988822378723970341);
         }
     }
 
@@ -159,22 +161,32 @@ contract PumController is PumConverter {
     }
 
     function _addLiquidity(address tokenA, address tokenB) internal {
-        bytes memory actions = new bytes(2);
+        bytes memory actions = new bytes(3);
 
         actions[0] = bytes1(uint8(Actions.MINT_POSITION));
-        actions[1] = bytes1(uint8(Actions.SETTLE_PAIR));
+        actions[1] = bytes1(uint8(Actions.MINT_POSITION));
+        actions[2] = bytes1(uint8(Actions.SETTLE_PAIR));
 
-        bytes[] memory params = new bytes[](2);
+        bytes[] memory params = new bytes[](3);
         params[0] = _encodeIncreaseParams(
             RouterLib.getPoolKey(tokenA, tokenB, address(pumHook)),
-            int24(tokenA < tokenB ? -340800 : -887100),
-            int24(tokenA < tokenB ? 887100 : 340800),
-            3980998579334402966,
+            int24(tokenA < tokenB ? -340500 : -887100),
+            int24(tokenA < tokenB ? 887100 : 340500),
+            32329285099435181112,
             type(uint128).max,
             type(uint128).max,
             address(this)
         );
-        params[1] = abi.encode(tokenA, tokenB);
+        params[1] = _encodeIncreaseParams(
+            RouterLib.getPoolKey(tokenA, tokenB, address(pumHook)),
+            int24(tokenA < tokenB ? -370800 : -887100),
+            int24(tokenA < tokenB ? 887100 : 370800),
+            1776694939356593754,
+            type(uint128).max,
+            type(uint128).max,
+            address(this)
+        );
+        params[2] = abi.encode(tokenA, tokenB);
 
         tokenIdMap[tokenA] = IPositionManager(positionManager).nextTokenId();
 

@@ -55,9 +55,9 @@ contract IssueCreatorHandlerTest is Test {
         vm.prank(owner);
         ProxyAdmin(admin).upgradeAndCall(ITransparentUpgradeableProxy(address(proxy)), address(logicV2), bytes(""));
 
-        //HandlerV2 handlerV2 = HandlerV2(address(proxy));
+        HandlerV2 handlerV2 = HandlerV2(address(proxy));
 
-        //assertEq(handlerV2.newMethod(), 100);
+        assertEq(handlerV2.newMethod(), 100);
     }
 
     function getAdminAddress(address proxy) internal view returns (address) {

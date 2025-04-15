@@ -39,7 +39,7 @@ library RouterLib {
 
     function createV4Command(address currencyIn, address currencyOut, uint256 amountIn, address pumHook)
         internal
-        view
+        pure
         returns (bytes memory)
     {
         IV4Router.ExactInputSingleParams memory v4Params =

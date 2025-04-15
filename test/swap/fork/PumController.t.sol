@@ -36,6 +36,8 @@ contract PumControllerTest is SwapRouterSetup {
     address issuer = address(0x1234567890123456789012345678901234567890);
     address feeRecipient = vm.addr(500);
 
+    uint256 nonce = 1;
+
     // create two _different_ forks during setup
     function setUp() public override {
         super.setUp();
@@ -51,7 +53,8 @@ contract PumControllerTest is SwapRouterSetup {
         currency1 = Currency.wrap(address(creatorToken));
 
         // 初期購入
-        assertEq(IERC20(creatorToken).balanceOf(issuer), 1172336 * 1e18);
+        // 21,287,166 (2.1%)
+        assertEq(IERC20(creatorToken).balanceOf(issuer), 21287166 * 1e18);
     }
 
     function testIssuePumToken_AndCheckFirstBuy() public {
@@ -59,10 +62,10 @@ contract PumControllerTest is SwapRouterSetup {
 
         currency1 = Currency.wrap(address(creatorToken));
 
-        _buy(2000 * 1e6, creatorToken, 1172336 * 1e18);
+        _buy(2000 * 1e6, creatorToken, 21287166 * 1e18);
 
-        // ユーザーには約117万トークンが入ってい
-        assertEq(IERC20(creatorToken).balanceOf(userAddress), 1172336 * 1e18);
+        // 21,287,166 (2.1%)
+        assertEq(IERC20(creatorToken).balanceOf(userAddress), 21287166 * 1e18);
         // 手数料
         assertLt(IERC20(creatorToken).balanceOf(address(swapHandler)), 1e18);
     }
@@ -72,10 +75,11 @@ contract PumControllerTest is SwapRouterSetup {
 
         currency1 = Currency.wrap(address(creatorToken));
 
-        _buy(20000 * 1e6, creatorToken, 10604483 * 1e18);
+        _buy(20000 * 1e6, creatorToken, 108723233 * 1e18);
 
-        // ユーザーには約1060万トークンが入ってい
-        assertEq(IERC20(creatorToken).balanceOf(userAddress), 10604483 * 1e18);
+        // ユーザーには約108,723,233トークンが入ってい
+        // 10.8%
+        assertEq(IERC20(creatorToken).balanceOf(userAddress), 108723233 * 1e18);
         assertLt(IERC20(creatorToken).balanceOf(address(swapHandler)), 1e18);
     }
 
@@ -84,7 +88,8 @@ contract PumControllerTest is SwapRouterSetup {
 
         currency1 = Currency.wrap(address(creatorToken));
 
-        _buy(210000 * 1e6, creatorToken, 5000000 * 1e18);
+        _buy(20000 * 1e6, creatorToken, 500000 * 1e18);
+        _buy(180000 * 1e6, creatorToken, 5000000 * 1e18);
 
         bytes memory data = _getSellFacilitationData(10000 * 1e18);
 
@@ -103,14 +108,25 @@ contract PumControllerTest is SwapRouterSetup {
         // assertEq(creatorToken, address(0x4200000000000000000000000000000000000006));
         // pumPoint.mint(address(swapHandler), 200000 * 1e6);
 
-        _buy(220000 * 1e6, creatorToken, 5000000 * 1e18);
+        _buy(20000 * 1e6, creatorToken, 500000 * 1e18);
+        _buy(200000 * 1e6, creatorToken, 5000000 * 1e18);
 
         _sell(2000000 * 1e18, creatorToken, 10 * 1e18);
 
         pumController.collectFee(creatorToken, feeRecipient);
 
-        assertEq(IERC20(creatorToken).balanceOf(feeRecipient), 119999999999999999999999);
+        assertEq(IERC20(creatorToken).balanceOf(feeRecipient), 113748797352244503611198);
         assertEq(dai.balanceOf(userAddress), 10000000000000000000);
+    }
+
+    function testCannotUpdateFee() public {
+        address creatorToken = pumController.issuePumToken(issuer, "PUM", "PUM", bytes32(0), "", 0);
+        currency1 = Currency.wrap(address(creatorToken));
+
+        vm.startPrank(issuer);
+        vm.expectRevert(bytes("UNAUTHORIZED"));
+        pumHook.setFee(_getPoolKey(), 100);
+        vm.stopPrank();
     }
 
     function testUpdateFee() public {
@@ -120,10 +136,11 @@ contract PumControllerTest is SwapRouterSetup {
 
         pumHook.setFee(_getPoolKey(), 100);
 
-        _buy(2000 * 1e6, creatorToken, 1246110 * 1e18);
+        _buy(2000 * 1e6, creatorToken, 22491112 * 1e18);
 
-        // 手数料を0.01%に設定したので、ユーザーには約124万トークンが入る
-        assertEq(IERC20(creatorToken).balanceOf(userAddress), 1246110 * 1e18);
+        // 手数料を0.01%に設定したので、ユーザーには約22,491,112トークンが入る
+        assertEq(IERC20(creatorToken).balanceOf(userAddress), 22491112 * 1e18);
+
         // 手数料
         assertLt(IERC20(creatorToken).balanceOf(address(swapHandler)), 1e18);
     }
@@ -144,7 +161,9 @@ contract PumControllerTest is SwapRouterSetup {
 
         swapHandler.execute(
             address(this),
-            createSignedOrder(userPrivateKey, userAddress, address(pumPoint), creatorToken, amountIn, amountOut, 1),
+            createSignedOrder(
+                userPrivateKey, userAddress, address(pumPoint), creatorToken, amountIn, amountOut, nonce++
+            ),
             abi.encode(
                 tokensToApproveForUniversalRouter,
                 ISwapRouter.ConvertParams(ISwapRouter.ConvertType.PUM_TO_CARRY, address(0)),
@@ -179,7 +198,7 @@ contract PumControllerTest is SwapRouterSetup {
 
         swapHandler.execute(
             address(this),
-            createSignedOrder(userPrivateKey, userAddress, creatorToken, address(dai), amountIn, amountOut, 2),
+            createSignedOrder(userPrivateKey, userAddress, creatorToken, address(dai), amountIn, amountOut, nonce++),
             data
         );
     }

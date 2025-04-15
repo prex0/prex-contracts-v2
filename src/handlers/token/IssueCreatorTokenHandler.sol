@@ -99,7 +99,7 @@ contract IssueCreatorTokenHandler is IOrderHandler, PumController {
                 nonce: request.nonce,
                 deadline: request.deadline
             }),
-            ISignatureTransfer.SignatureTransferDetails({to: address(this), requestedAmount: 0}),
+            ISignatureTransfer.SignatureTransferDetails({to: address(this), requestedAmount: request.creditAmount}),
             request.issuer,
             request.hash(),
             IssueCreatorTokenRequestLib.PERMIT2_ORDER_TYPE,
